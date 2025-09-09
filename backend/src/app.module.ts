@@ -6,9 +6,12 @@ import { NutrichefAiController } from './nutrichef-ai/nutrichef-ai.controller';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [ConfigModule.forRoot({
-      isGlobal: true, // 👈 hace que ConfigService esté disponible en toda la app
-    })],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // ✅ Esto debe estar presente
+      envFilePath: '.env', // ✅ Agregar esta línea
+    }),
+  ],
   controllers: [AppController, NutrichefAiController],
   providers: [AppService, NutrichefAiService],
 })

@@ -1,0 +1,49 @@
+.greeting-container {
+  padding: 2rem;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.loading {
+  color: #007bff;
+  font-style: italic;
+  padding: 2rem;
+}
+
+.error {
+  color: #dc3545;
+  padding: 2rem;
+  background-color: #f8d7da;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.greeting {
+  background-color: #f8f9fa;
+  padding: 2rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  border-left: 4px solid #28a745;
+}
+
+.greeting h3 {
+  color: #28a745;
+  margin-top: 0;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 1rem;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
