@@ -1,1 +1,18 @@
-<p>inicio works!</p>
+<div class="greeting-container">
+  <h2>NutriChef IA</h2>
+  
+  <div *ngIf="isLoading" class="loading">
+    <p>Conectando con la inteligencia artificial...</p>
+  </div>
+  
+  <div *ngIf="error" class="error">
+    <p>{{ error }}</p>
+    <button (click)="getAIGreeting()">Reintentar</button>
+  </div>
+  
+  <div *ngIf="greeting && !isLoading" class="greeting">
+    <h3>Mensaje de la IA:</h3>
+    <p>{{ greeting }}</p>
+    <button (click)="getAIGreeting()">Obtener nuevo mensaje</button>
+  </div>
+</div>
