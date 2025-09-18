@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "resolvePackageJsonExports": true,
+    "module": "commonjs", // Ya lo habíamos cambiado, esto está bien
+    "moduleResolution": "node", // Ya lo habíamos cambiado, esto está bien
+    // "resolvePackageJsonExports": true, // <--- ¡COMENTAR O ELIMINAR ESTA LÍNEA!
     "esModuleInterop": true,
     "isolatedModules": true,
     "declaration": true,
