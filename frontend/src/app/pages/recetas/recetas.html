@@ -1,51 +1,25 @@
+<!-- Barra de navegación Nutrichef IA actualizada -->
+<nav class="navbar">
+  <div class="logo">
+    <i class="fas fa-utensils"></i>
+    <span>NUTRICHEF IA</span>
+  </div>
+  <ul class="nav-links">
+    <li><a routerLink="/inicio">INICIO</a></li>
+    <li><a routerLink="/contacto">CONTACTANOS</a></li>
+    <li><a routerLink="/sobre-nosotros">SOBRE NOSOTROS</a></li>
+    <li><a routerLink="/login">LOGIN</a></li>
+  </ul>
+</nav>
+
 <div class="recetas-container">
   <header class="recetas-header">
-    <h1>Recetas Deliciosas</h1>
-    <p class="subtitle">Descubre nuestras mejores recetas de cocina</p>
+    <h1>RECETAS DELICIOSAS</h1>
+    <p class="subtitle">Descubre nuestras creaciones culinarias inteligentes</p>
   </header>
 
-  <div class="search-bar">
-    <input 
-      type="text" 
-      class="search-input" 
-      placeholder="Buscar recetas..." 
-      (input)="buscarRecetas($event)"
-    >
-  </div>
-
-  <div class="filters">
-    <button 
-      class="filter-btn" 
-      [class.active]="categoriaFiltro === 'todas'"
-      (click)="filtrarPorCategoria('todas')"
-    >
-      Todas
-    </button>
-    <button 
-      class="filter-btn" 
-      [class.active]="categoriaFiltro === 'postres'"
-      (click)="filtrarPorCategoria('postres')"
-    >
-      Postres
-    </button>
-    <button 
-      class="filter-btn" 
-      [class.active]="categoriaFiltro === 'platos principales'"
-      (click)="filtrarPorCategoria('platos principales')"
-    >
-      Platos Principales
-    </button>
-    <button 
-      class="filter-btn" 
-      [class.active]="categoriaFiltro === 'ensaladas'"
-      (click)="filtrarPorCategoria('ensaladas')"
-    >
-      Ensaladas
-    </button>
-  </div>
-
   <div class="recipes-grid">
-    <div class="recipe-card" *ngFor="let receta of recetasFiltradas">
+    <div class="recipe-card" *ngFor="let receta of recetas">
       <img [src]="receta.imagen_url" [alt]="receta.nombre" class="recipe-image">
       <div class="recipe-content">
         <h2 class="recipe-title">{{ receta.nombre }}</h2>
@@ -55,12 +29,7 @@
           <span><i class="fas fa-clock"></i> {{ receta.tempo_preparacion }} min</span>
           <span><i class="fas fa-fire"></i> {{ receta.calorias_totales }} kcal</span>
         </div>
-        <button class="view-recipe-btn">Ver Receta</button>
       </div>
     </div>
-  </div>
-
-  <div class="no-results" *ngIf="recetasFiltradas.length === 0">
-    <p>No se encontraron recetas que coincidan con tu búsqueda.</p>
   </div>
 </div>

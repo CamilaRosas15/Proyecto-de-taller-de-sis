@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 // Interfaz para el modelo de receta
 export interface Receta {
@@ -14,6 +15,8 @@ export interface Receta {
 
 @Component({
   selector: 'app-recetas',
+  standalone: true, // Esta línea es importante
+  imports: [CommonModule], // Necesario para *ngFor
   templateUrl: './recetas.html',
   styleUrls: ['./recetas.scss']
 })
@@ -71,27 +74,4 @@ export class Recetas {
       imagen_url: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1080&q=80"
     }
   ];
-
-  categoriaFiltro: string = 'todas';
-  textoBusqueda: string = '';
-
-  // Filtrar recetas por categoría
-  filtrarPorCategoria(categoria: string): void {
-    this.categoriaFiltro = categoria;
-  }
-
-  // Obtener recetas filtradas
-  get recetasFiltradas(): Receta[] {
-    return this.recetas.filter(receta => {
-      const coincideCategoria = this.categoriaFiltro === 'todas' || receta.categoria.toLowerCase() === this.categoriaFiltro;
-      const coincideBusqueda = receta.nombre.toLowerCase().includes(this.textoBusqueda.toLowerCase()) || 
-                              receta.description.toLowerCase().includes(this.textoBusqueda.toLowerCase());
-      return coincideCategoria && coincideBusqueda;
-    });
-  }
-
-  // Buscar recetas
-  buscarRecetas(event: any): void {
-    this.textoBusqueda = event.target.value;
-  }
 }

@@ -23,17 +23,4 @@ describe('Recetas', () => {
   it('should have initial recipes', () => {
     expect(component.recetas.length).toBeGreaterThan(0);
   });
-
-  it('should filter recipes by category', () => {
-    component.filtrarPorCategoria('postres');
-    expect(component.categoriaFiltro).toBe('postres');
-    
-    const postres = component.recetasFiltradas;
-    expect(postres.every(receta => receta.categoria === 'Postres')).toBeTrue();
-  });
-
-  it('should return all recipes when category is "todas"', () => {
-    component.filtrarPorCategoria('todas');
-    expect(component.recetasFiltradas.length).toBe(component.recetas.length);
-  });
 });
