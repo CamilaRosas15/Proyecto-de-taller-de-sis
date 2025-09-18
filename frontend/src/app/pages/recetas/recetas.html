@@ -1,0 +1,35 @@
+<!-- Barra de navegación Nutrichef IA actualizada -->
+<nav class="navbar">
+  <div class="logo">
+    <i class="fas fa-utensils"></i>
+    <span>NUTRICHEF IA</span>
+  </div>
+  <ul class="nav-links">
+    <li><a routerLink="/inicio">INICIO</a></li>
+    <li><a routerLink="/contacto">CONTACTANOS</a></li>
+    <li><a routerLink="/sobre-nosotros">SOBRE NOSOTROS</a></li>
+    <li><a routerLink="/login">LOGIN</a></li>
+  </ul>
+</nav>
+
+<div class="recetas-container">
+  <header class="recetas-header">
+    <h1>RECETAS DELICIOSAS</h1>
+    <p class="subtitle">Descubre nuestras creaciones culinarias inteligentes</p>
+  </header>
+
+  <div class="recipes-grid">
+    <div class="recipe-card" *ngFor="let receta of recetas">
+      <img [src]="receta.imagen_url" [alt]="receta.nombre" class="recipe-image">
+      <div class="recipe-content">
+        <h2 class="recipe-title">{{ receta.nombre }}</h2>
+        <span class="recipe-category">{{ receta.categoria }}</span>
+        <p class="recipe-description">{{ receta.description }}</p>
+        <div class="recipe-meta">
+          <span><i class="fas fa-clock"></i> {{ receta.tempo_preparacion }} min</span>
+          <span><i class="fas fa-fire"></i> {{ receta.calorias_totales }} kcal</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
