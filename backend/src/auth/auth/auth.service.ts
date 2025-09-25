@@ -13,14 +13,18 @@ interface LoginDto {
 }
 
 export interface ProfileDto {
-  nombre: string;
+  nombre_completo: string;
   edad: number;
   peso: number;
-  altura: number;
-  sexo: string;
-  objetivo_calorico: number;
+  // ✅ HACER OPCIONALES LOS CAMPOS QUE NO ENVÍA EL FRONTEND
+  altura?: number;
+  sexo?: string;
+  objetivo_calorico?: number;
   gustos: string;
   alergias: string;
+  objetivo_salud: string;
+  no_me_gusta: string;
+  calorias_diarias_objetivo: number;
 }
 
 @Injectable()
@@ -199,19 +203,33 @@ export class AuthService {
   async saveUserProfile(userId: string, profileDto: ProfileDto): Promise<any> {
     try {
       this.logger.log(`Saving profile for user: ${userId}`);
+      
+      // ✅ LOG PARA DEBUG: Ver qué datos están llegando
+      this.logger.log(`Datos recibidos para perfil:`, JSON.stringify(profileDto, null, 2));
+
+      // ✅ VALIDACIÓN CRÍTICA: Verificar campos requeridos
+      if (!profileDto.nombre_completo || profileDto.nombre_completo.trim() === '') {
+        throw new InternalServerErrorException('El campo nombre_completo es requerido');
+      }
 
       const profileData = {
         id_usuario: userId,
-        nombre: profileDto.nombre,
-        edad: profileDto.edad,
-        peso: profileDto.peso,
-        altura: profileDto.altura,
-        sexo: profileDto.sexo,
-        objetivo_calorico: profileDto.objetivo_calorico,
-        gustos: profileDto.gustos,
-        alergias: profileDto.alergias,
+        nombre: profileDto.nombre_completo,
+        edad: profileDto.edad || 0,
+        peso: profileDto.peso || 0,
+        altura: profileDto.altura || 0,
+        // ✅ CORREGIDO: Usar el valor exacto que espera la constraint
+        sexo: 'Otro', // Con 'O' mayúscula como requiere la base de datos
+        objetivo_calorico: profileDto.objetivo_calorico || 0,
+        gustos: Array.isArray(profileDto.gustos) ? profileDto.gustos.join(', ') : (profileDto.gustos || 'No especificado'),
+        alergias: Array.isArray(profileDto.alergias) ? profileDto.alergias.join(', ') : (profileDto.alergias || 'Ninguna'),
+        objetivo_salud: profileDto.objetivo_salud || 'No especificado',
+        no_me_gusta: Array.isArray(profileDto.no_me_gusta) ? profileDto.no_me_gusta.join(', ') : (profileDto.no_me_gusta || 'Ninguno'),
+        calorias_diarias_objetivo: profileDto.calorias_diarias_objetivo || 0,
         fecha_creacion: new Date().toISOString()
       };
+
+      this.logger.log(`Datos a guardar en BD:`, JSON.stringify(profileData, null, 2));
 
       const { data: existingProfile, error: fetchError } = await this.supabaseService.getClient()
         .from('usuario_detalles')
@@ -248,13 +266,16 @@ export class AuthService {
 
       if (result.error) {
         this.logger.error(`Error saving profile: ${result.error.message}`);
+        this.logger.error(`Error details:`, result.error);
         throw new InternalServerErrorException('Failed to save profile.');
       }
 
+      this.logger.log(`Profile saved successfully: ${JSON.stringify(result.data)}`);
       return result.data;
 
     } catch (error) {
       this.logger.error(`Unexpected error saving profile: ${error.message}`);
+      this.logger.error(`Error stack: ${error.stack}`);
       throw new InternalServerErrorException('Failed to save user profile.');
     }
   }
