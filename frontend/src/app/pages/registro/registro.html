@@ -1,0 +1,109 @@
+<!-- src/app/pages/registro/registro.html -->
+<div class="registro-container">
+  <div class="registro-card">
+    <h2>Registro en Nutri-IA</h2>
+
+    <!-- Paso 1: Registro de Autenticación -->
+    <div *ngIf="registrationStep === 1">
+      <h3>Paso 1: Crea tu Cuenta</h3>
+      <form (ngSubmit)="onRegisterAuth()">
+        <div class="form-group">
+          <label for="regEmail">Email:</label>
+          <input type="email" id="regEmail" [(ngModel)]="email" name="regEmail" required>
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Contraseña:</label>
+          <input type="password" id="regPassword" [(ngModel)]="password" name="regPassword" required minlength="6">
+        </div>
+        <button type="submit" [disabled]="isLoadingAuth">
+          {{ isLoadingAuth ? 'Registrando...' : 'Registrar Cuenta' }}
+        </button>
+        <div *ngIf="errorMessageAuth" class="error-message">
+          {{ errorMessageAuth }}
+        </div>
+      </form>
+      <p>¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión aquí</a></p>
+    </div>
+
+    <!-- Paso 2: Datos del Perfil (después del registro exitoso) -->
+    <div *ngIf="registrationStep === 2">
+      <h3>Paso 2: Completa tu Perfil (Usuario: {{ userEmail }})</h3>
+      <form (ngSubmit)="onSaveProfile(profileForm)" #profileForm="ngForm">
+        <div class="form-group">
+          <label for="nombreCompleto">Nombre Completo:</label>
+          <input type="text" id="nombreCompleto" [(ngModel)]="profileData.nombre_completo" name="nombreCompleto" required>
+        </div>
+        <div class="form-group">
+          <label for="edad">Edad:</label>
+          <input type="number" id="edad" [(ngModel)]="profileData.edad" name="edad" required min="12" max="120">
+        </div>
+        <div class="form-group">
+          <label for="peso">Peso (kg):</label>
+          <input type="number" id="peso" [(ngModel)]="profileData.peso" name="peso" required min="30" max="300">
+        </div>
+        <div class="form-group">
+          <label for="objetivoSalud">Objetivo de Salud:</label>
+          <select id="objetivoSalud" [(ngModel)]="profileData.objetivo_salud" name="objetivoSalud" required>
+            <option value="Perder peso">Perder peso</option>
+            <option value="Mantener peso">Mantener peso</option>
+            <option value="Ganar masa muscular">Ganar masa muscular</option>
+            <option value="Comer más saludable">Comer más saludable</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="caloriasObjetivo">Calorías Diarias Objetivo:</label>
+          <input type="number" id="caloriasObjetivo" [(ngModel)]="profileData.calorias_diarias_objetivo" name="caloriasObjetivo" required min="1000" max="5000">
+        </div>
+
+        <!-- Alergias -->
+        <div class="form-group">
+          <label for="nuevaAlergia">Alergias (una por una):</label>
+          <div class="input-with-button">
+            <input type="text" id="nuevaAlergia" [(ngModel)]="nuevaAlergia" name="nuevaAlergia" placeholder="Ej: Maní, Gluten">
+            <button type="button" (click)="addAlergia()">Añadir</button>
+          </div>
+          <div class="tags-container">
+            <span *ngFor="let alergia of profileData.alergias; let i = index" class="tag">
+              {{ alergia }} <span (click)="removeAlergia(i)">x</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Gustos -->
+        <div class="form-group">
+          <label for="nuevoGusto">Me gusta (alimentos):</label>
+          <div class="input-with-button">
+            <input type="text" id="nuevoGusto" [(ngModel)]="nuevoGusto" name="nuevoGusto" placeholder="Ej: Pollo, Chocolate">
+            <button type="button" (click)="addGusto()">Añadir</button>
+          </div>
+          <div class="tags-container">
+            <span *ngFor="let gusto of profileData.gustos; let i = index" class="tag">
+              {{ gusto }} <span (click)="removeGusto(i)">x</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- No me gusta -->
+        <div class="form-group">
+          <label for="nuevoNoMeGusta">No me gusta (alimentos):</label>
+          <div class="input-with-button">
+            <input type="text" id="nuevoNoMeGusta" [(ngModel)]="nuevoNoMeGusta" name="nuevoNoMeGusta" placeholder="Ej: Brócoli, Setas">
+            <button type="button" (click)="addNoMeGusta()">Añadir</button>
+          </div>
+          <div class="tags-container">
+            <span *ngFor="let noMeGusta of profileData.no_me_gusta; let i = index" class="tag">
+              {{ noMeGusta }} <span (click)="removeNoMeGusta(i)">x</span>
+            </span>
+          </div>
+        </div>
+
+        <button type="submit" [disabled]="isLoadingProfile">
+          {{ isLoadingProfile ? 'Guardando...' : 'Guardar Perfil' }}
+        </button>
+        <div *ngIf="errorMessageProfile" class="error-message">
+          {{ errorMessageProfile }}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
