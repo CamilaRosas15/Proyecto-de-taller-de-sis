@@ -1,0 +1,185 @@
+/* src/app/pages/login/login.scss */
+
+// 🎨 Variables de colores
+$primary-color: #00897b; // Verde turquesa oscuro
+$secondary-color: #4db6ac; // Verde turquesa más suave
+$text-color: #333333;
+$error-color: #e53935;
+$input-border-color: #ddd;
+$input-focus-color: #26a69a; // Verde aqua para focus
+$card-background: rgba(224, 247, 250, 0.9); // Verde turquesa muy suave con transparencia
+
+// 🌆 Fondo de la página con imagen animada
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80")
+    no-repeat center center fixed; // ✅ Imagen de recetas
+  background-size: cover;
+  padding: 20px;
+  box-sizing: border-box;
+
+  // Animación del fondo (parallax effect suave)
+  animation: moveBackground 30s linear infinite;
+}
+
+@keyframes moveBackground {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+// 💳 Tarjeta de login con verde turquesa suave
+.login-card {
+  background-color: $card-background;
+  padding: 50px 40px;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  backdrop-filter: blur(10px); // Efecto vidrio esmerilado
+  animation: fadeInUp 0.8s ease both;
+
+  h2 {
+    color: $primary-color;
+    font-size: 2.4em;
+    margin-bottom: 25px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+}
+
+// ✨ Animación de entrada
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// 📑 Formulario
+.form-group {
+  margin-bottom: 25px;
+  text-align: left;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    color: $text-color;
+    font-weight: 600;
+    font-size: 0.95em;
+  }
+}
+
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid $input-border-color;
+  border-radius: 10px;
+  font-size: 1em;
+  color: $text-color;
+  background: #fafafa;
+  transition: all 0.3s ease;
+
+  &:focus {
+    border-color: $input-focus-color;
+    box-shadow: 0 0 10px rgba(38, 166, 154, 0.4);
+    outline: none;
+    background: #fff;
+  }
+}
+
+// 🔘 Botón degradado verde turquesa
+button[type="submit"] {
+  width: 100%;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, $primary-color, $secondary-color);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.15em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+
+  &:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 137, 123, 0.3);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    background: lighten($primary-color, 20%);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+}
+
+// ❌ Mensaje de error con animación
+.error-message {
+  color: $error-color;
+  margin-top: 15px;
+  font-size: 0.9em;
+  font-weight: 500;
+  background-color: lighten($error-color, 45%);
+  border: 1px solid lighten($error-color, 20%);
+  border-radius: 8px;
+  padding: 12px;
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+// 🔗 Texto con enlace
+p {
+  margin-top: 25px;
+  color: $text-color;
+  font-size: 0.95em;
+
+  a {
+    color: $primary-color;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+
+    &:hover {
+      text-decoration: underline;
+      color: darken($primary-color, 10%);
+    }
+  }
+}
+
+// ⏳ Spinner
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
