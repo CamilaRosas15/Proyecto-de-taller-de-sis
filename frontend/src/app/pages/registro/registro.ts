@@ -1,52 +1,46 @@
-// src/app/pages/registro/registro.ts (Frontend Angular - ¡Alineado a tu estructura!)
-import { Component, OnInit } from '@angular/core'; // ✅ Importar OnInit
-import { FormsModule, NgForm } from '@angular/forms'; // ✅ Importar NgForm para validación del formulario
+// registro.ts - VERSIÓN CORREGIDA
+import { Component, OnInit } from '@angular/core';
+import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router'; // Importar Router y RouterModule
-
-import { AuthService, UserProfileData } from '../../services/auth'; // ✅ Ruta del servicio, UserProfileData
+import { Router, RouterModule } from '@angular/router';
+import { AuthService, UserProfileData } from '../../services/auth';
 
 @Component({
   selector: 'app-registro',
   standalone: true,
   imports: [FormsModule, CommonModule, RouterModule],
-  templateUrl: './registro.html', // ✅ ¡CORREGIDO para tu nombre de archivo!
-  styleUrls: ['./registro.scss'] // ✅ ¡CORREGIDO para tu nombre de archivo!
+  templateUrl: './registro.html',
+  styleUrls: ['./registro.scss']
 })
-export class Registro implements OnInit { // ✅ Nombre de CLASE ALINEADO
-  // Datos para el registro de autenticación (Paso 1 del formulario)
+export class Registro implements OnInit {
   email = '';
   password = '';
   errorMessageAuth: string | null = null;
   isLoadingAuth = false;
 
-  // Datos para el perfil de usuario detallado (Paso 2 del formulario)
-  userId: string | null = null; // Para guardar el ID del usuario recién registrado
-  userEmail: string | null = null; // Para guardar el email del usuario
+  userId: string | null = null;
+  userEmail: string | null = null;
   profileData: UserProfileData = {
       nombre_completo: '',
       edad: 0,
       peso: 0,
-      objetivo_salud: 'Mantener peso', // Valor por defecto
-      calorias_diarias_objetivo: 2000, // Valor por defecto
+      objetivo_salud: 'Mantener peso',
+      calorias_diarias_objetivo: 2000,
       alergias: [],
       gustos: [],
       no_me_gusta: [],
-      email: '' // Se llenará con el email de registro
+      email: ''
   };
   nuevaAlergia = '';
   nuevoGusto = '';
   nuevoNoMeGusta = '';
   errorMessageProfile: string | null = null;
   isLoadingProfile = false;
-  registrationStep = 1; // 1: Registro Auth, 2: Datos de Perfil
+  registrationStep = 1;
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  ngOnInit(): void {
-      // Si ya está logueado, podría redirigir o cargar perfil
-      // Por ahora, lo dejamos vacío, pero se podría añadir lógica aquí.
-  }
+  ngOnInit(): void {}
 
   async onRegisterAuth(): Promise<void> {
     this.errorMessageAuth = null;
@@ -57,14 +51,21 @@ export class Registro implements OnInit { // ✅ Nombre de CLASE ALINEADO
         this.isLoadingAuth = false;
         this.userId = response.userId;
         this.userEmail = response.email;
-        this.profileData.email = response.email; // Pre-llenar el email en el perfil
-        this.registrationStep = 2; // Avanzar al paso del perfil
-        console.log('Registro de autenticación exitoso:', response.userId);
+        this.profileData.email = response.email;
+
+        // ✅ CORREGIDO: Ahora accessToken existe en la interfaz
+        if (response.accessToken) {
+          this.authService.setSession(response.accessToken);
+          console.log('Sesión automática iniciada después del registro');
+        }
+
+        this.registrationStep = 2;
+        console.log('Registro y auto-login exitoso:', response.userId);
       },
       error: (err) => {
         this.isLoadingAuth = false;
         this.errorMessageAuth = err.message || 'Error al registrar usuario.';
-        console.error('Error de registro de autenticación:', err);
+        console.error('Error de registro:', err);
       }
     });
   }
@@ -86,8 +87,10 @@ export class Registro implements OnInit { // ✅ Nombre de CLASE ALINEADO
       next: (response) => {
         this.isLoadingProfile = false;
         console.log('Perfil de usuario guardado exitosamente:', response.profile);
-        // Redirigir al login o a la página principal después de guardar el perfil
-        this.router.navigate(['/login']); // ✅ Redirigir al login después de guardar el perfil
+        
+        // ✅ Redirigir a la página principal en lugar de al login
+        // ya que ya estamos autenticados
+        this.router.navigate(['/principal']);
       },
       error: (err) => {
         this.isLoadingProfile = false;
@@ -97,7 +100,7 @@ export class Registro implements OnInit { // ✅ Nombre de CLASE ALINEADO
     });
   }
 
-  // Métodos para añadir/eliminar alergias, gustos, no-gustos (para la UI)
+  // Métodos para añadir/eliminar alergias, gustos, no-gustos
   addAlergia(): void {
     if (this.nuevaAlergia.trim() && !this.profileData.alergias.includes(this.nuevaAlergia.trim())) {
       this.profileData.alergias.push(this.nuevaAlergia.trim());

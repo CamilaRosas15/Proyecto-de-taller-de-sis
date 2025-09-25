@@ -45,7 +45,8 @@ export class AuthController {
     return { message: 'Logged in successfully', accessToken: result.data.session?.access_token, user: result.data.user };
   }
 
-  @Post('profile/:userId') // Endpoint para guardar/actualizar el perfil
+  @Post('profile/:userId') 
+  // Endpoint para guardar/actualizar el perfil
   @HttpCode(HttpStatus.OK)
   // ✅ Usamos AuthServiceProfileDto directamente como el tipo para el body
   async saveProfile(@Param('userId') userId: string, @Body() profileDto: AuthServiceProfileDto) {

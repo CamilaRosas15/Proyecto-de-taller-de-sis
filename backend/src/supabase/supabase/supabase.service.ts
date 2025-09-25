@@ -22,7 +22,7 @@ export class SupabaseService {
     this.logger.log('Supabase client initialized successfully.');
   }
 
-  get client(): SupabaseClient {
+  getClient(): SupabaseClient {
     return this.supabase;
   }
 

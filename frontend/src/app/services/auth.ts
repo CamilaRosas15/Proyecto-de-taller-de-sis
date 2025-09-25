@@ -4,8 +4,25 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, throwError, tap } from 'rxjs';
 import { Router } from '@angular/router';
 
-interface LoginResponse { accessToken: string; user: { id: string; email: string; /* ...otros datos */ } }
-interface RegisterResponse { message: string; userId: string; email: string; }
+// ✅ INTERFACES ACTUALIZADAS
+interface LoginResponse { 
+  message: string;
+  accessToken: string; 
+  user: { 
+    id: string; 
+    email: string; 
+    /* ...otros datos */ 
+  } 
+}
+
+interface RegisterResponse { 
+  message: string; 
+  userId: string; 
+  email: string; 
+  accessToken?: string;  // ✅ AÑADIDO
+  user?: any;            // ✅ AÑADIDO
+}
+
 export interface UserProfileData {
     nombre_completo: string;
     edad: number;
@@ -21,12 +38,12 @@ export interface UserProfileData {
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService { // ✅ ¡CLASE RENOMBRADA!
+export class AuthService {
+  // ✅ CORREGIR la URL base (eliminar /api si tu backend no lo tiene)
   private baseUrl = 'http://localhost:3000/api/auth';
   private _accessToken: string | null = null;
   private _currentUserId: string | null = null;
   private _currentUserEmail: string | null = null;
-
 
   constructor(private http: HttpClient, private router: Router) {
     this._accessToken = localStorage.getItem('accessToken');
@@ -50,8 +67,39 @@ export class AuthService { // ✅ ¡CLASE RENOMBRADA!
       return !!this._accessToken && !!this._currentUserId;
   }
 
+  // ✅ MÉTODO AÑADIDO para setSession
+  setSession(accessToken: string, userId?: string, userEmail?: string): void {
+    this._accessToken = accessToken;
+    if (userId) this._currentUserId = userId;
+    if (userEmail) this._currentUserEmail = userEmail;
+    
+    localStorage.setItem('accessToken', accessToken);
+    if (userId) localStorage.setItem('userId', userId);
+    if (userEmail) localStorage.setItem('userEmail', userEmail);
+  }
+
+  // ✅ MÉTODO AÑADIDO para obtener token (alias de accessToken)
+  getToken(): string | null {
+    return this._accessToken;
+  }
+
+  // ✅ MÉTODO AÑADIDO para verificar autenticación (alias de isLoggedIn)
+  isAuthenticated(): boolean {
+    return this.isLoggedIn();
+  }
+
   register(email: string, password: string): Observable<RegisterResponse> {
     return this.http.post<RegisterResponse>(`${this.baseUrl}/register`, { email, password }).pipe(
+      tap(response => {
+        // ✅ AÑADIDO: Auto-sesión después del registro si hay accessToken
+        if (response.accessToken) {
+          this.setSession(
+            response.accessToken, 
+            response.userId, 
+            response.email
+          );
+        }
+      }),
       catchError(this.handleError)
     );
   }
@@ -59,12 +107,11 @@ export class AuthService { // ✅ ¡CLASE RENOMBRADA!
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.baseUrl}/login`, { email, password }).pipe(
       tap(response => {
-        this._accessToken = response.accessToken;
-        this._currentUserId = response.user.id;
-        this._currentUserEmail = response.user.email;
-        localStorage.setItem('accessToken', response.accessToken);
-        localStorage.setItem('userId', response.user.id);
-        localStorage.setItem('userEmail', response.user.email);
+        this.setSession(
+          response.accessToken,
+          response.user.id,
+          response.user.email
+        );
       }),
       catchError(this.handleError)
     );
