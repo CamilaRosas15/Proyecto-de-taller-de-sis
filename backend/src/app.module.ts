@@ -6,7 +6,7 @@ import { NutrichefAiController } from './nutrichef-ai/nutrichef-ai.controller';
 import { ConfigModule } from '@nestjs/config';
 import { SupabaseModule } from './supabase/supabase.module';
 import { RecipesController } from './recipes/recipes.controller'; // <--- ¡Importaremos este controlador aquí!
-
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -15,6 +15,7 @@ import { RecipesController } from './recipes/recipes.controller'; // <--- ¡Impo
       envFilePath: '.env', // ✅ Asegura que .env sea reconocido
     }),
     SupabaseModule,        // ✅ ¡Añade tu SupabaseModule aquí!
+    AuthModule,
   ],
   controllers: [
     AppController,
