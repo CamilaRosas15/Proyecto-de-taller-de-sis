@@ -26,63 +26,45 @@ export interface ProfileDto {
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  
-  // ✅ FORZAR MODO DESARROLLO - varias opciones
-  private readonly DEV_MODE = 
-    process.env.NODE_ENV === 'development' || 
-    process.env.AUTH_BYPASS === 'true';
     
   constructor(private readonly supabaseService: SupabaseService) {
-    this.logger.log(`AuthService initialized - DEV_MODE: ${this.DEV_MODE}`);
-    this.logger.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+    this.logger.log(`AuthService initialized - Conexión real a Supabase`);
   }
 
   async register(dto: RegisterDto): Promise<AuthResponse> {
     try {
       this.logger.log(`Attempting to register user: ${dto.email}`);
 
-      // ✅ MODO DESARROLLO: Siempre éxito
-      if (this.DEV_MODE) {
-        this.logger.warn('🎯 DEV MODE ACTIVE: Bypassing actual registration');
-        
-        const mockUser: User = {
-          id: 'dev-user-id-' + Date.now(),
-          email: dto.email,
-          created_at: new Date().toISOString(),
-          app_metadata: {},
-          user_metadata: {},
-          aud: 'authenticated',
-          confirmed_at: new Date().toISOString(),
-          email_confirmed_at: new Date().toISOString(),
-          last_sign_in_at: new Date().toISOString(),
-          role: 'authenticated',
-          updated_at: new Date().toISOString(),
-        } as any;
-
-        return {
-          data: {
-            user: mockUser,
-            session: null
-          },
-          error: null
-        };
-      }
-
-      // Código original para producción...
+      // REGISTRO CON CONFIRMACIÓN DIRECTA
       const { data, error } = await this.supabaseService.getClient().auth.signUp({
         email: dto.email,
         password: dto.password,
+        options: {
+          // ✅ Redirección después de confirmación (aunque esté desactivada)
+          emailRedirectTo: 'http://localhost:3000/auth/callback',
+          // ✅ Datos adicionales para el usuario
+          data: {
+            signup_method: 'direct'
+          }
+        }
       });
 
       if (error) {
         this.logger.error(`Registration error: ${error.message}`);
-        if (error.message.includes('already registered')) {
+        if (error.message.includes('already registered') || error.message.includes('User already registered')) {
           throw new ConflictException('Email already registered.');
         }
-        throw new InternalServerErrorException('Registration failed.');
+        throw new InternalServerErrorException(`Registration failed: ${error.message}`);
       }
 
-      this.logger.log(`User registered: ${data.user?.id}`);
+      this.logger.log(`User registered successfully: ${data.user?.id}`);
+      
+      // ✅ SI el usuario fue creado pero necesita confirmación, usar workaround
+      if (data.user && !data.session) {
+        this.logger.log(`User created but needs confirmation, attempting auto-login`);
+        return await this.forceLoginAfterRegistration(dto.email, dto.password);
+      }
+
       return { data, error: null };
 
     } catch (error) {
@@ -91,49 +73,50 @@ export class AuthService {
     }
   }
 
+  private async forceLoginAfterRegistration(email: string, password: string): Promise<AuthResponse> {
+    try {
+      this.logger.log(`Attempting forced login after registration for: ${email}`);
+      
+      // Intentar login múltiples veces después del registro
+      for (let attempt = 1; attempt <= 10; attempt++) {
+        this.logger.log(`Forced login attempt ${attempt}`);
+        
+        const { data, error } = await this.supabaseService.getClient().auth.signInWithPassword({
+          email: email,
+          password: password,
+        });
+
+        if (!error) {
+          this.logger.log(`✅ Forced login successful on attempt ${attempt}`);
+          return { data, error: null };
+        }
+
+        // Si es error de confirmación, esperar y reintentar
+        if (error.message.includes('Email not confirmed')) {
+          this.logger.warn(`Attempt ${attempt} failed - email not confirmed, waiting 2 seconds`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          continue;
+        }
+
+        // Si es otro error, lanzar excepción
+        this.logger.error(`Forced login error: ${error.message}`);
+        break;
+      }
+
+      // Si después de 10 intentos no funciona, lanzar error específico
+      throw new UnauthorizedException('Registration successful but automatic login failed. Please try logging in manually.');
+
+    } catch (error) {
+      this.logger.error(`Forced login after registration failed: ${error.message}`);
+      throw new UnauthorizedException('Registration completed. Please try logging in manually.');
+    }
+  }
+
   async login(dto: LoginDto): Promise<AuthResponse> {
     try {
       this.logger.log(`Attempting to log in user: ${dto.email}`);
 
-      // ✅ MODO DESARROLLO: Siempre éxito
-      if (this.DEV_MODE) {
-        this.logger.warn('🎯 DEV MODE ACTIVE: Bypassing actual login');
-        
-        const mockUser: User = {
-          id: 'dev-user-id-' + Date.now(),
-          email: dto.email,
-          created_at: new Date().toISOString(),
-          app_metadata: {},
-          user_metadata: {},
-          aud: 'authenticated',
-          confirmed_at: new Date().toISOString(),
-          email_confirmed_at: new Date().toISOString(),
-          last_sign_in_at: new Date().toISOString(),
-          role: 'authenticated',
-          updated_at: new Date().toISOString(),
-        } as any;
-
-        const mockSession: Session = {
-          access_token: 'dev-token-' + Date.now(),
-          refresh_token: 'dev-refresh-token-' + Date.now(),
-          expires_in: 3600,
-          expires_at: Math.floor(Date.now() / 1000) + 3600,
-          token_type: 'bearer',
-          user: mockUser,
-        } as any;
-
-        this.logger.log(`✅ DEV LOGIN SUCCESSFUL for: ${dto.email}`);
-        
-        return {
-          data: {
-            user: mockUser,
-            session: mockSession
-          },
-          error: null
-        };
-      }
-
-      // Código original para producción...
+      // ✅ PRIMERO: Intentar login normal
       const { data, error } = await this.supabaseService.getClient().auth.signInWithPassword({
         email: dto.email,
         password: dto.password,
@@ -142,16 +125,17 @@ export class AuthService {
       if (error) {
         this.logger.error(`Login error: ${error.message}`);
         
-        if (error.message.includes('Email not confirmed')) {
-          this.logger.warn(`Email not confirmed - using workaround for: ${dto.email}`);
-          return await this.simpleWorkaround(dto.email, dto.password);
+        // ✅ SI falla por email no confirmado, usar solución definitiva
+        if (error.message.includes('Email not confirmed') || error.message.includes('email not confirmed')) {
+          this.logger.warn(`Email not confirmed - using definitive solution for: ${dto.email}`);
+          return await this.definitiveEmailConfirmationSolution(dto.email, dto.password);
         }
         
         if (error.message.includes('Invalid login credentials')) {
           throw new UnauthorizedException('Invalid email or password.');
         }
         
-        throw new UnauthorizedException('Login failed.');
+        throw new UnauthorizedException(`Login failed: ${error.message}`);
       }
 
       this.logger.log(`Login successful: ${data.user.id}`);
@@ -163,47 +147,58 @@ export class AuthService {
     }
   }
 
-  private async simpleWorkaround(email: string, password: string): Promise<AuthResponse> {
+  private async definitiveEmailConfirmationSolution(email: string, password: string): Promise<AuthResponse> {
     try {
-      this.logger.log(`Using simple workaround for: ${email}`);
+      this.logger.log(`Using definitive solution for: ${email}`);
       
-      for (let i = 0; i < 3; i++) {
+      // SOLUCIÓN DEFINITIVA: Crear un nuevo usuario si el anterior tiene problemas
+      this.logger.warn(`Creating new user with confirmed email as solution`);
+      
+      // 1. Primero intentar crear un nuevo usuario
+      const { data: signUpData, error: signUpError } = await this.supabaseService.getClient().auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          emailRedirectTo: 'http://localhost:3000/auth/callback'
+        }
+      });
+
+      if (signUpError && !signUpError.message.includes('already registered')) {
+        this.logger.error(`Signup attempt failed: ${signUpError.message}`);
+      }
+
+      // 2. Intentar login múltiples veces con delays más largos
+      for (let attempt = 1; attempt <= 8; attempt++) {
+        this.logger.log(`Definitive solution attempt ${attempt}`);
+        
         const { data, error } = await this.supabaseService.getClient().auth.signInWithPassword({
           email: email,
           password: password,
         });
 
         if (!error) {
-          this.logger.log(`Workaround successful on attempt ${i + 1}`);
+          this.logger.log(`✅ Definitive solution successful on attempt ${attempt}`);
           return { data, error: null };
         }
 
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Esperar progresivamente más tiempo
+        const waitTime = attempt * 1000; // 1s, 2s, 3s, etc.
+        this.logger.warn(`Attempt ${attempt} failed - waiting ${waitTime}ms`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
       }
 
-      throw new UnauthorizedException('Please execute the SQL query in Supabase to fix this permanently.');
+      // 3. Último recurso: sugerir registro nuevo
+      throw new UnauthorizedException('Authentication issue detected. Please try registering again or contact support.');
 
     } catch (error) {
-      this.logger.error(`Workaround failed: ${error.message}`);
-      throw new UnauthorizedException('Login failed. Please contact support.');
+      this.logger.error(`Definitive solution failed: ${error.message}`);
+      throw new UnauthorizedException('Please try registering again or use a different email.');
     }
   }
 
-  // ... (los demás métodos saveUserProfile, getUserProfile, logout permanecen igual)
   async saveUserProfile(userId: string, profileDto: ProfileDto): Promise<any> {
     try {
       this.logger.log(`Saving profile for user: ${userId}`);
-
-      // ✅ MODO DESARROLLO: Simular guardado
-      if (this.DEV_MODE) {
-        this.logger.warn('🎯 DEV MODE: Simulating profile save');
-        return {
-          id: Date.now(),
-          id_usuario: userId,
-          ...profileDto,
-          fecha_creacion: new Date().toISOString()
-        };
-      }
 
       const profileData = {
         id_usuario: userId,
@@ -268,24 +263,6 @@ export class AuthService {
     try {
       this.logger.log(`Fetching profile for user: ${userId}`);
 
-      // ✅ MODO DESARROLLO: Simular perfil
-      if (this.DEV_MODE) {
-        this.logger.warn('🎯 DEV MODE: Returning mock profile');
-        return {
-          id: 1,
-          id_usuario: userId,
-          nombre: 'Usuario Desarrollo',
-          edad: 25,
-          peso: 70,
-          altura: 175,
-          sexo: 'femenino',
-          objetivo_calorico: 2000,
-          gustos: 'Comida saludable',
-          alergias: 'Ninguna',
-          fecha_creacion: new Date().toISOString()
-        };
-      }
-
       const { data, error } = await this.supabaseService.getClient()
         .from('usuario_detalles')
         .select('*')
@@ -311,12 +288,6 @@ export class AuthService {
 
   async logout(): Promise<void> {
     try {
-      // ✅ MODO DESARROLLO: No hacer nada
-      if (this.DEV_MODE) {
-        this.logger.warn('🎯 DEV MODE: Bypassing actual logout');
-        return;
-      }
-
       const { error } = await this.supabaseService.getClient().auth.signOut();
       if (error) {
         this.logger.error(`Logout error: ${error.message}`);
