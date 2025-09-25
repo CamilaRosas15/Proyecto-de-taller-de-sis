@@ -1,22 +1,82 @@
-<div class="analisis-imagen-container">
-  <h1>Análisis de Imagen de Comida</h1>
+<div class="app-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <img src="assets/logo.png" alt="Logo">
+      <h2>Nutrichef IA</h2>
+    </div>
 
-  <div class="upload-section">
-    <input type="file" (change)="onFileSelected($event)" accept="image/*">
-    <button (click)="uploadImage()" [disabled]="!selectedFile">Subir y Analizar</button>
-  </div>
+    <nav class="menu">
+      <button class="menu-btn">📖 Generador de Recetas</button>
+      <button class="menu-btn active">📸 Calorías en una foto</button>
+      <div class="historial">
+        <button class="historial-btn">Historial 1</button>
+        <button class="historial-btn">Historial 2</button>
+        <button class="historial-btn">Historial 3</button>
+      </div>
+    </nav>
 
-  <div *ngIf="imageUrl" class="image-preview">
-    <h2>Imagen Seleccionada</h2>
-    <img [src]="imageUrl" alt="Imagen de comida">
-  </div>
+    <div class="user-info">
+      <img src="assets/user.png" alt="Usuario" class="avatar">
+      <div>
+        <p class="username">Username</p>
+        <p class="user-handle">@username</p>
+      </div>
+    </div>
+  </aside>
 
-  <div *ngIf="analysisResult" class="analysis-results">
-    <h2>Resultados del Análisis</h2>
-    <pre>{{ analysisResult | json }}</pre>
-  </div>
+  <!-- Main content -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="header">
+      <button class="progress-btn">♡ Mi Progreso</button>
+    </header>
 
-  <div *ngIf="errorMessage" class="error-message">
-    <p>Error: {{ errorMessage }}</p>
-  </div>
+    <!-- Análisis de imagen -->
+    <div class="analisis-imagen-container">
+      <!-- Subir imagen -->
+      <div class="upload-section" *ngIf="!imageUrl && !analysisResult">
+        <h2>Sube una imagen de tu comida</h2>
+        <label class="upload-btn">
+          Cargar imagen
+          <input type="file" (change)="onFileSelected($event)" accept="image/*">
+        </label>
+        <p class="hint">o Arrastra tu imagen</p>
+      </div>
+
+      <!-- Vista previa -->
+      <div *ngIf="imageUrl && !analysisResult" class="image-preview">
+        <img [src]="imageUrl" alt="Imagen de comida">
+        <button class="analyze-btn" (click)="uploadImage()">Analizar Imagen</button>
+      </div>
+
+      <!-- Resultados -->
+      <div *ngIf="analysisResult" class="analysis-results">
+        <div class="results-header">
+          <img [src]="imageUrl" alt="Imagen de comida" class="result-img">
+        </div>
+        <h3>He analizado la imagen y detecto estos alimentos en tu plato:</h3>
+        <ul>
+          <li *ngFor="let item of analysisResult.items">
+            {{item.nombre}} → {{item.calorias}} kcal
+          </li>
+        </ul>
+        <p class="total">
+          Total aproximado del plato:
+          <strong>{{analysisResult.total}} kcal</strong>
+        </p>
+      </div>
+
+      <!-- JSON -->
+      <div *ngIf="analysisResult" class="analysis-json">
+        <h2>Resultados del Análisis (JSON)</h2>
+        <pre>{{ analysisResult | json }}</pre>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="errorMessage" class="error-message">
+        <p>Error: {{ errorMessage }}</p>
+      </div>
+    </div>
+  </main>
 </div>
