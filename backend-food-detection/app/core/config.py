@@ -5,6 +5,7 @@ import os
 class Settings(BaseModel):
     # 🔑 Gemini Configuration
     GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY")
+    GEMINI_MODEL_NAME: str = os.getenv("GEMINI_MODEL_NAME", "gemini-1.5-flash")
     GEMINI_CONFIDENCE_THRESHOLD: float = 0.7
     
     # 🔐 Security

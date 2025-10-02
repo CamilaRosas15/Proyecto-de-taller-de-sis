@@ -24,7 +24,7 @@ class GeminiFoodDetector:
     def __init__(self):
         self.api_key = settings.GEMINI_API_KEY
         self.confidence_threshold = settings.GEMINI_CONFIDENCE_THRESHOLD
-        self.api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key}"
+        self.api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.GEMINI_MODEL_NAME}:generateContent?key={self.api_key}"
         
         # Nutritional database mapping
         self.nutritional_data = {

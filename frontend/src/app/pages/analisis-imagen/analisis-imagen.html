@@ -57,14 +57,22 @@
         </div>
         <h3>He analizado la imagen y detecto estos alimentos en tu plato:</h3>
         <ul>
-          <li *ngFor="let item of analysisResult.items">
-            {{item.nombre}} → {{item.calorias}} kcal
+          <li *ngFor="let food of analysisResult.foods_detected">
+            {{ food.name | titlecase }} ({{ food.estimated_weight_grams }}g) → {{ food.total_nutrition?.calories }} kcal
           </li>
         </ul>
         <p class="total">
           Total aproximado del plato:
-          <strong>{{analysisResult.total}} kcal</strong>
+          <strong>{{ analysisResult.meal_analysis?.total_calories }} kcal</strong>
         </p>
+        <div *ngIf="analysisResult.meal_analysis?.recommendations?.length > 0" class="recommendations">
+          <h4>Recomendaciones:</h4>
+          <ul>
+            <li *ngFor="let recommendation of analysisResult.meal_analysis?.recommendations">
+              {{ recommendation }}
+            </li>
+          </ul>
+        </div>
       </div>
 
       <!-- JSON -->
