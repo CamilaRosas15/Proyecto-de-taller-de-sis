@@ -1,5 +1,5 @@
-<!-- src/app/pages/recetas/recetas.html (de tu proyecto Angular - Standalone) -->
-<div class="principal-container"> <!-- O el contenedor que uses en tu página de recetas, basado en tu estructura -->
+<div class="principal-container">
+  <!-- Navbar -->
   <nav class="navbar">
     <div class="logo">
       <i class="fas fa-utensils"></i>
@@ -14,27 +14,30 @@
   </nav>
 
   <div class="recetas-container">
+    <!-- ======================= RECETA DESTACADA (Supabase) ======================= -->
     <header class="recetas-header">
       <h1>RECETA DESTACADA</h1>
       <p class="subtitle">Aquí tienes una receta especial de nuestra base de datos inteligente.</p>
     </header>
 
-    <!-- Sección para mostrar la ÚNICA receta cargada por ID desde Supabase -->
-    <div *ngIf="isLoading" style="text-align: center; margin-top: 20px;">Cargando receta desde Supabase...</div>
-    <div *ngIf="error" style="color: red; text-align: center; margin-top: 20px;">Error: {{ error }}</div>
+    <div *ngIf="isLoading" style="text-align: center; margin-top: 20px;">
+      Cargando receta desde Supabase...
+    </div>
+    <div *ngIf="error" style="color: red; text-align: center; margin-top: 20px;">
+      Error: {{ error }}
+    </div>
 
     <div class="recipes-grid" *ngIf="currentRecipe && !isLoading && !error">
-      <div class="recipe-card"> <!-- Ya no hay *ngFor, solo se muestra una card -->
+      <div class="recipe-card">
         <img [src]="currentRecipe.imagen_url" [alt]="currentRecipe.nombre" class="recipe-image">
         <div class="recipe-content">
           <h2 class="recipe-title">{{ currentRecipe.nombre }} (ID: {{ currentRecipe.id_receta }})</h2>
           <span class="recipe-category">{{ currentRecipe.categoria }}</span>
-          <p class="recipe-description">{{ currentRecipe.descripcion }}</p> <!-- ✅ CORREGIDO: de 'description' a 'descripcion' -->
+          <p class="recipe-description">{{ currentRecipe.descripcion }}</p>
           <div class="recipe-meta">
-            <span><i class="fas fa-clock"></i> {{ currentRecipe.tiempo_preparacion }} min</span> <!-- ✅ CORREGIDO: de 'tempo_preparacion' a 'tiempo_preparacion' -->
+            <span><i class="fas fa-clock"></i> {{ currentRecipe.tiempo_preparacion }} min</span>
             <span><i class="fas fa-fire"></i> {{ currentRecipe.calorias_totales }} kcal</span>
           </div>
-          <!-- Puedes añadir las instrucciones aquí, si quieres que aparezcan en la card -->
           <h4>Instrucciones:</h4>
           <p style="white-space: pre-wrap;">{{ currentRecipe.instrucciones }}</p>
         </div>
@@ -44,5 +47,77 @@
       No hay receta disponible para el ID 1 en Supabase.
     </div>
 
+    <!-- ======================= PEDIR RECETA A LA IA LOCAL ======================= -->
+    <hr />
+    <h2>¿Qué te gustaría cocinar? 🍴</h2>
+
+    <input
+      type="text"
+      [(ngModel)]="pregunta"
+      placeholder="Pregunta lo que quieras"
+    />
+
+    <button (click)="pedirReceta()">🔍 Buscar</button>
+
+    <div *ngIf="receta">
+      <h3>{{ receta.titulo }}</h3>
+      <p><b>Kcal:</b> {{ receta.kcal_totales }}</p>
+
+      <h4>Ingredientes:</h4>
+      <ul>
+        <li *ngFor="let ing of receta.ingredientes">
+          {{ ing.cantidad }} {{ ing.unidad }} de {{ ing.nombre }}
+        </li>
+      </ul>
+
+      <h4>Pasos:</h4>
+      <ol>
+        <li *ngFor="let paso of receta.pasos">{{ paso }}</li>
+      </ol>
+
+      <h4>Motivos de la recomendación:</h4>
+      <ul>
+        <li *ngFor="let m of receta.motivos">{{ m }}</li>
+      </ul>
+    </div>
+
+    <!-- ======================= SEGUNDA PÁGINA VISUAL (Historial + Chat + Cards) ======================= -->
+    <div class="chat-layout">
+      <!-- Sidebar Historial -->
+      <aside class="sidebar">
+        <h3>Historial de Recetas</h3>
+        <ul class="historial">
+          <li *ngFor="let h of historial">{{ h.titulo }}</li>
+        </ul>
+        <button class="calorias-btn">Calorías en una foto</button>
+      </aside>
+
+      <!-- Chat + Opciones -->
+      <main class="chat-area">
+        <div class="chat-messages">
+          <div class="msg user">Hola, quiero preparar un pique...</div>
+          <div class="msg bot">¡Claro! Dime qué ingredientes tienes...</div>
+          <div class="msg user">Tengo pollo, papas, cebolla, tomate y salchichas.</div>
+          <div class="msg bot">Aquí tienes tres opciones: clásica, ligera y exprés.</div>
+        </div>
+
+        <!-- Tarjetas de recetas (maqueta no funcional) -->
+        <div class="recetas-cards">
+          <div class="card">
+            <img src="https://via.placeholder.com/200" alt="Pique de Pollo y Salchichas">
+            <h4>Pique de Pollo y Salchichas</h4>
+            <p>Total aproximado: 2470 kcal</p>
+            <button class="prefer-btn">Prefiero esta receta</button>
+          </div>
+
+          <div class="card">
+            <img src="https://via.placeholder.com/200" alt="Pique Light de Pollo">
+            <h4>Pique Light de Pollo (menos frito)</h4>
+            <p>Total aproximado: 1800 kcal</p>
+            <button class="prefer-btn">Prefiero esta receta</button>
+          </div>
+        </div>
+      </main>
+    </div>
   </div>
 </div>

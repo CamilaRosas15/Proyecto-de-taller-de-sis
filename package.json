@@ -1,5 +1,10 @@
 {
   "dependencies": {
-    "@supabase/supabase-js": "^2.57.4"
+    "@angular/common": "^20.3.3",
+    "@angular/core": "^20.3.3",
+    "@angular/forms": "^20.3.3",
+    "@nestjs/common": "^11.1.6",
+    "@supabase/supabase-js": "^2.57.4",
+    "node-fetch": "^3.3.2"
   }
 }
