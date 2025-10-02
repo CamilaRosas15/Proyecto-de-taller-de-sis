@@ -1,0 +1,173 @@
+/* src/app/pages/registro/registro.css */
+.registro-container {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 20px;
+}
+
+/* Fondo animado con imágenes de recetas */
+.registro-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  background: url("https://images.unsplash.com/photo-1504674900247-0877df9cc836") repeat;
+  background-size: cover;
+  animation: moveRecipes 60s linear infinite;
+  opacity: 0.25;
+  z-index: -1;
+}
+
+/* Animación lenta del fondo */
+@keyframes moveRecipes {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-20%, -20%);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+/* Tarjeta principal */
+.registro-card {
+  background: rgba(64, 224, 208, 0.9); /* Verde turquesa suave */
+  padding: 30px 40px;
+  border-radius: 16px;
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.25);
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  animation: fadeIn 1.2s ease-in-out;
+}
+
+/* Animación de aparición */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Encabezados */
+.registro-card h2 {
+  margin-bottom: 20px;
+  font-size: 2rem;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.registro-card h3 {
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+  color: #004d4d;
+}
+
+/* Inputs */
+.form-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #003333;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  transition: border 0.3s, box-shadow 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #40e0d0;
+  box-shadow: 0 0 8px rgba(64, 224, 208, 0.6);
+  outline: none;
+}
+
+/* Botones */
+button {
+  background: #008080;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background: #00b3b3;
+}
+
+/* Botones pequeños */
+.input-with-button {
+  display: flex;
+  gap: 8px;
+}
+
+.input-with-button button {
+  background: #006666;
+  padding: 10px 15px;
+  font-size: 0.9rem;
+}
+
+.input-with-button button:hover {
+  background: #00a3a3;
+}
+
+/* Tags (alergias, gustos, no me gusta) */
+.tags-container {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  background: #ffffff;
+  border: 1px solid #00cccc;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: #004d4d;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+}
+
+.tag span {
+  cursor: pointer;
+  color: red;
+  font-weight: bold;
+}
+
+/* Errores */
+.error-message {
+  margin-top: 10px;
+  color: #ff3333;
+  font-weight: bold;
+}

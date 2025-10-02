@@ -1,0 +1,199 @@
+/* Layout general */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background-color: #8ed1c2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 10px;
+  color: white;
+}
+
+.sidebar .logo {
+  text-align: center;
+}
+
+.sidebar .logo img {
+  width: 50px;
+  border-radius: 50%;
+}
+
+.sidebar h2 {
+  margin-top: 8px;
+  font-size: 18px;
+}
+
+.menu {
+  margin-top: 20px;
+}
+
+.menu-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: white;
+  border: none;
+  border-radius: 8px;
+  color: #333;
+  margin-bottom: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.menu-btn.active {
+  background: #fdd835;
+}
+
+.historial-btn {
+  display: block;
+  width: 100%;
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: white;
+  color: #333;
+}
+
+/* User info */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.user-info .avatar {
+  width: 35px;
+  border-radius: 50%;
+}
+
+.username {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.user-handle {
+  font-size: 12px;
+  color: #eee;
+}
+
+/* Main content */
+.main-content {
+  flex-grow: 1;
+  background: #fafafa;
+  padding: 20px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.progress-btn {
+  background-color: #8ed1c2;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+/* Contenedor análisis */
+.analisis-imagen-container {
+  text-align: center;
+}
+
+/* Upload */
+.upload-section h2 {
+  color: #6cb5ab;
+  margin-bottom: 20px;
+}
+
+.upload-btn {
+  background-color: #fdd835;
+  padding: 12px 25px;
+  border-radius: 25px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  font-weight: bold;
+}
+
+.upload-btn input[type="file"] {
+  position: absolute;
+  opacity: 0;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hint {
+  margin-top: 10px;
+  color: #aaa;
+  font-size: 14px;
+}
+
+/* Preview */
+.image-preview img {
+  max-width: 280px;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+.analyze-btn {
+  margin-top: 15px;
+  background-color: #6cb5ab;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+/* Results */
+.analysis-results {
+  margin-top: 30px;
+  text-align: left;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.result-img {
+  width: 120px;
+  border-radius: 12px;
+  float: right;
+  margin-left: 10px;
+}
+
+/* JSON */
+.analysis-json {
+  background: #f3f3f3;
+  border: 1px solid #ddd;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 25px;
+  text-align: left;
+}
+
+/* Error */
+.error-message {
+  background-color: #ffe0e0;
+  color: #d32f2f;
+  border: 1px solid #d32f2f;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
