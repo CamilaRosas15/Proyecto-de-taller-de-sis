@@ -1,0 +1,32 @@
+# Archivos de prueba
+test_*.py
+
+# Archivos de base de datos
+*.db
+
+# Archivos de configuración local
+.env
+.env.*
+!.env.example
+
+# Directorios innecesarios
+__pycache__/
+alembic/
+docs/
+
+# Archivos de documentación
+*.md
+!README.md
+
+# Imágenes de prueba
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+
+# Archivos temporales
+*.pyc
+*.pyo
+*.pyd
+.Python

@@ -1,0 +1,1 @@
+# Archivo vacío para hacer que endpoints sea un paquete Python

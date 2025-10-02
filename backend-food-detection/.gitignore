@@ -1,0 +1,47 @@
+# Archivos de entorno
+.env
+.env.*
+!.env.example
+
+# Archivos de caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribución / empaquetado
+dist/
+build/
+*.egg-info/
+
+# Entornos virtuales
+venv/
+env/
+ENV/
+
+# Base de datos SQLite
+*.db
+*.sqlite3
+
+# Archivos de registro
+*.log
+
+# Archivos de imagen de prueba
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+
+# Carpeta de uploads
+uploads/*
+!uploads/.gitkeep
+
+# Archivos específicos de IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Archivos específicos del sistema operativo
+.DS_Store
+Thumbs.db
