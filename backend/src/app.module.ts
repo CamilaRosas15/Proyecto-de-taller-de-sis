@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { SupabaseModule } from './supabase/supabase.module';
 import { RecipesController } from './recipes/recipes.controller'; // <--- ¡Importaremos este controlador aquí!
 import { AuthModule } from './auth/auth.module';
+import { RecipesModule } from './recipes/recipes.module';
 
 @Module({
   imports: [
@@ -15,12 +16,13 @@ import { AuthModule } from './auth/auth.module';
       envFilePath: '.env', // ✅ Asegura que .env sea reconocido
     }),
     SupabaseModule,        // ✅ ¡Añade tu SupabaseModule aquí!
-    AuthModule,
+    AuthModule, 
+    RecipesModule,
   ],
   controllers: [
     AppController,
     NutrichefAiController, // Tu controlador de IA
-    RecipesController      // ✅ ¡Añade tu controlador de Recetas aquí!
+    //RecipesController      // ✅ ¡Añade tu controlador de Recetas aquí!
   ],
   providers: [
     AppService,
