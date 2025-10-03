@@ -1,11 +1,16 @@
 from pydantic import BaseModel
 from typing import Optional
 import os
+from dotenv import load_dotenv  # 👈 importa dotenv
+
+# 👇 carga el archivo .env al arrancar
+load_dotenv()
+
 
 class Settings(BaseModel):
     # 🔑 Gemini Configuration
     GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY")
-    GEMINI_MODEL_NAME: str = os.getenv("GEMINI_MODEL_NAME", "gemini-1.5-flash")
+    GEMINI_MODEL_NAME: str = os.getenv("GEMINI_MODEL_NAME", "gemini-2.0-flash-exp")
     GEMINI_CONFIDENCE_THRESHOLD: float = 0.7
     
     # 🔐 Security

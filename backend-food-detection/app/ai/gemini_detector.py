@@ -24,7 +24,13 @@ class GeminiFoodDetector:
     def __init__(self):
         self.api_key = settings.GEMINI_API_KEY
         self.confidence_threshold = settings.GEMINI_CONFIDENCE_THRESHOLD
-        self.api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.GEMINI_MODEL_NAME}:generateContent?key={self.api_key}"
+        
+        # Usar el modelo correcto disponible
+        model_name = settings.GEMINI_MODEL_NAME
+        if model_name == "gemini-2.5-flash":
+            model_name = "gemini-2.0-flash-exp"  # Corregir al modelo real disponible
+        
+        self.api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={self.api_key}"
         
         # Nutritional database mapping
         self.nutritional_data = {
@@ -103,6 +109,7 @@ class GeminiFoodDetector:
         try:
             # Convert image to base64
             base64_image = base64.b64encode(image_data).decode('utf-8')
+            logger.info(f"Imagen convertida a base64 (tamaño: {len(base64_image)} caracteres)")
             
             # Prepare the prompt for food analysis
             prompt = self._create_food_analysis_prompt()
@@ -133,15 +140,32 @@ class GeminiFoodDetector:
                 "Content-Type": "application/json"
             }
             
+            logger.info(f"Enviando solicitud a Gemini API: {self.api_url}")
             response = requests.post(self.api_url, json=payload, headers=headers)
+            
+            # Log response status
+            logger.info(f"Respuesta de Gemini - Status: {response.status_code}")
+            
+            if response.status_code != 200:
+                logger.error(f"Error en respuesta de Gemini: {response.status_code} - {response.text}")
+                return self._simulate_detection()
+            
             response.raise_for_status()
             result = response.json()
+            
+            logger.info(f"Respuesta JSON recibida de Gemini: {json.dumps(result, indent=2)[:500]}...")
             
             # Process Gemini response
             return self._process_gemini_response(result)
             
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error de conexión con Gemini API: {str(e)}")
+            return self._simulate_detection()
+        except json.JSONDecodeError as e:
+            logger.error(f"Error decodificando respuesta JSON de Gemini: {str(e)}")
+            return self._simulate_detection()
         except Exception as e:
-            logger.error(f"Error in Gemini food detection: {str(e)}")
+            logger.error(f"Error inesperado en Gemini food detection: {str(e)}")
             return self._simulate_detection()
 
     def _create_food_analysis_prompt(self) -> str:
@@ -232,11 +256,35 @@ class GeminiFoodDetector:
         """
         try:
             # Extract text from Gemini response
+            logger.info(f"Procesando respuesta de Gemini: {response}")
+            
             if "candidates" in response and len(response["candidates"]) > 0:
-                content = response["candidates"][0]["content"]["parts"][0]["text"]
+                candidate = response["candidates"][0]
+                
+                # Verificar estructura de la respuesta
+                if "content" not in candidate:
+                    logger.error("No se encontró 'content' en la respuesta de Gemini")
+                    return self._simulate_detection()
+                
+                content_data = candidate["content"]
+                if "parts" not in content_data:
+                    logger.error("No se encontró 'parts' en el content de Gemini")
+                    return self._simulate_detection()
+                
+                if len(content_data["parts"]) == 0:
+                    logger.error("Array 'parts' está vacío en la respuesta de Gemini")
+                    return self._simulate_detection()
+                
+                if "text" not in content_data["parts"][0]:
+                    logger.error("No se encontró 'text' en parts[0] de la respuesta de Gemini")
+                    return self._simulate_detection()
+                
+                content = content_data["parts"][0]["text"]
                 
                 # Clean the response (remove markdown formatting if present)
                 content = content.strip()
+                logger.info(f"Contenido extraído de Gemini: {content[:200]}...")
+                
                 if content.startswith("```json"):
                     content = content[7:]
                 if content.endswith("```"):
@@ -244,12 +292,24 @@ class GeminiFoodDetector:
                 content = content.strip()
                 
                 # Parse JSON
-                gemini_result = json.loads(content)
+                try:
+                    gemini_result = json.loads(content)
+                    logger.info(f"JSON parseado exitosamente. Estructura: {list(gemini_result.keys())}")
+                except json.JSONDecodeError as e:
+                    logger.error(f"Error parseando JSON de Gemini: {str(e)}")
+                    logger.error(f"Contenido que falló: {content}")
+                    return self._simulate_detection()
                 
                 # Convert to our internal format with enhanced nutrition
                 detections = []
-                for food in gemini_result.get("foods_detected", []):
-                    if food.get("confidence", 0) >= self.confidence_threshold:
+                foods_detected = gemini_result.get("foods_detected", [])
+                logger.info(f"Alimentos detectados en respuesta: {len(foods_detected)}")
+                
+                for food in foods_detected:
+                    confidence = food.get("confidence", 0)
+                    logger.info(f"Procesando alimento: {food.get('name', 'unknown')} con confianza: {confidence}")
+                    
+                    if confidence >= self.confidence_threshold:
                         # Use Gemini nutrition data if available, fallback to local database
                         nutrition_data = food.get("total_nutrition", {})
                         if not nutrition_data:
@@ -308,10 +368,15 @@ class GeminiFoodDetector:
                     "confidence_avg": sum(d["confidence"] for d in detections) / len(detections) if detections else 0,
                     "nutrition_source": "gemini_enhanced"
                 }
+            else:
+                logger.warning("No se encontraron candidates en la respuesta de Gemini")
             
         except Exception as e:
             logger.error(f"Error processing Gemini response: {str(e)}")
+            import traceback
+            logger.error(f"Traceback completo: {traceback.format_exc()}")
         
+        logger.info("Usando detección simulada como fallback")
         return self._simulate_detection()
 
     def _get_nutrition_info(self, food_name: str) -> Dict:
