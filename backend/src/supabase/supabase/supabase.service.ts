@@ -26,14 +26,13 @@ export class SupabaseService {
     return this.supabase;
   }
 
-  // Método para obtener una receta por ID (usando la estructura de tu tabla 'recetas')
   async getRecetaById(id: number): Promise<any | null> {
     this.logger.log(`Fetching recipe with ID: ${id}`);
     const { data, error } = await this.supabase
-      .from('recetas') // Nombre de tu tabla de recetas
+      .from('recetas')
       .select('*')
-      .eq('id_receta', id) // 'id_receta' es el nombre de tu columna ID
-      .single(); // Para obtener un solo registro
+      .eq('id_receta', id)
+      .single(); 
 
     if (error) {
       this.logger.error(`Error fetching recipe ${id}: ${error.message}`);
@@ -42,11 +41,9 @@ export class SupabaseService {
     return data;
   }
 
-  // Devuelve receta + ingredientes (join receta_ingredientes -> ingredientes)
 async getRecetaCompletaById(id: number): Promise<any | null> {
   this.logger.log(`Fetching full recipe with ID: ${id}`);
 
-  // 1) receta base
   const { data: receta, error: recErr } = await this.supabase
     .from('recetas')
     .select('*')
@@ -57,7 +54,6 @@ async getRecetaCompletaById(id: number): Promise<any | null> {
     return null;
   }
 
-  // 2) ingredientes (join manual en dos pasos)
   const { data: enlaces, error: linkErr } = await this.supabase
     .from('receta_ingredientes')
     .select('id_ingrediente, cantidad')
@@ -77,7 +73,6 @@ async getRecetaCompletaById(id: number): Promise<any | null> {
     if (ingErr) {
       this.logger.error(`Error ingredientes receta ${id}: ${ingErr.message}`);
     } else {
-      // merge cantidad
       const mapCant = new Map(enlaces.map(e => [e.id_ingrediente, e.cantidad]));
       ingredientes = ing.map(x => ({
         ...x,
@@ -90,13 +85,12 @@ async getRecetaCompletaById(id: number): Promise<any | null> {
 }
 
 
-  // Método para obtener los detalles de un usuario por ID (uuid) desde usuario_detalles
 async getUserDetails(userId: string): Promise<any | null> {
   this.logger.log(`Fetching user details for ID: ${userId}`);
   const { data, error } = await this.supabase
     .from('usuario_detalles')
     .select('*')
-    .eq('id', userId)        // 👈 columna correcta si tu PK/FK es 'id' (uuid de auth.users)
+    .eq('id', userId)        
     .single();
 
   if (error) {
@@ -106,7 +100,4 @@ async getUserDetails(userId: string): Promise<any | null> {
   return data;
 }
 
-
-  // Puedes añadir más métodos para interactuar con otras tablas según necesites
-  
 }

@@ -31,7 +31,6 @@ export class RecipeService {
 
   constructor(private http: HttpClient) {}
 
-  // 👇 acepta string | number y normaliza
   getRecipeById(id: string | number): Observable<Receta> {
     const numId = typeof id === 'string' ? Number(id) : id;
     if (Number.isNaN(numId)) {

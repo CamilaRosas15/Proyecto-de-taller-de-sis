@@ -2,12 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from 'src/supabase/supabase/supabase.service';
 
 export interface RecommendRequestDto {
-  userId?: string;          // si llega y el body viene vacío, tomamos preferencias del perfil
+  userId?: string;          
   alergias?: string[];
   no_me_gusta?: string[];
   gustos?: string[];
-  kcal_diarias?: number;    // objetivo diario aprox.
-  tiempo_max?: number;      // minutos máximos deseados
+  kcal_diarias?: number;    
+  tiempo_max?: number;     
 }
 
 export interface IngredienteOut {
@@ -44,24 +44,14 @@ export class RecipesService {
 
   constructor(private readonly supabase: SupabaseService) {}
 
-  /**
-   * Devuelve una receta por ID, incluyendo sus ingredientes (con cantidad),
-   * usando el join receta_ingredientes -> ingredientes.
-   */
   async getById(id: number): Promise<RecetaOut | null> {
     this.logger.log(`Leyendo receta ${id} desde Supabase`);
     // Implementado en SupabaseService: getRecetaCompletaById
     return this.supabase.getRecetaCompletaById(id);
   }
 
-  /**
-   * Recomendador simple:
-   * - Si llega userId y el body no trae preferencias, carga el perfil (usuario_detalles).
-   * - Aplica reglas básicas vs alergias / no me gusta / tiempo / kcal.
-   * - (Demo) prueba con la receta 1; luego podemos expandir a ranking/filtrado real.
-   */
+  
   async recomendarReceta(req: RecommendRequestDto) {
-    // Valores base
     let alergias = (req.alergias ?? []).map(s => s.toLowerCase());
     let noMeGusta = (req.no_me_gusta ?? []).map(s => s.toLowerCase());
     let gustos = (req.gustos ?? []).map(s => s.toLowerCase());
@@ -95,7 +85,6 @@ export class RecipesService {
       };
     }
 
-    // Texto para chequeos simples
     const texto = [
       candidata.nombre,
       candidata.descripcion,
@@ -105,7 +94,6 @@ export class RecipesService {
       .join(' ')
       .toLowerCase();
 
-    // Reglas
     const pegaAlergia = alergias.find(a => a && texto.includes(a));
     const pegaNoMeGusta = noMeGusta.find(n => n && texto.includes(n));
 
@@ -119,7 +107,7 @@ export class RecipesService {
       motivos.push(`Calorías altas vs objetivo (${kcal} kcal/día)`);
     }
 
-    // (Opcional) Registrar historial_recetas aquí si lo necesitas
+    //Registrar historial_recetas
     // if (req.userId) {
     //   await this.supabase.getClient().from('historial_recetas').insert({
     //     id_usuario: req.userId,
@@ -148,8 +136,6 @@ export class RecipesService {
         grasas: i.grasas ?? null,
       })),
       motivos: motivos.length ? motivos : ['Apta según tu perfil/preferencias.'],
-      // Puedes agregar aquí “sustitutos_posibles” si quieres que la IA proponga cambios:
-      // sustitutos: (candidata.ingredientes ?? []).map((i: any) => i.sustitutos_posibles ?? null),
     };
   }
 }
