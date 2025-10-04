@@ -100,4 +100,48 @@ async getUserDetails(userId: string): Promise<any | null> {
   return data;
 }
 
+async listRecetas(limit = 200): Promise<any[]> {
+  const { data, error } = await this.supabase
+    .from('recetas')
+    .select('id_receta, nombre, descripcion, categoria, tiempo_preparacion, calorias_totales, instrucciones, imagen_url')
+    .limit(limit);
+
+  if (error) {
+    this.logger.error(`listRecetas error: ${error.message}`);
+    return [];
+  }
+  return data ?? [];
+}
+
+async getIngredientesPorRecetas(recetaIds: number[]): Promise<Map<number, any[]>> {
+  const out = new Map<number, any[]>();
+  if (!recetaIds.length) return out;
+
+  const { data: enlaces, error: e1 } = await this.supabase
+    .from('receta_ingredientes')
+    .select('id_receta, id_ingrediente, cantidad')
+    .in('id_receta', recetaIds);
+
+  if (e1 || !enlaces?.length) return out;
+
+  const ingIds = Array.from(new Set(enlaces.map(e => e.id_ingrediente)));
+  const { data: ing, error: e2 } = await this.supabase
+    .from('ingredientes')
+    .select('id_ingrediente, nombre, unidad, calorias, proteinas, carbohidratos, grasas')
+    .in('id_ingrediente', ingIds);
+
+  if (e2 || !ing?.length) return out;
+
+  const mapIng = new Map(ing.map(x => [x.id_ingrediente, x]));
+  for (const e of enlaces) {
+    const base = mapIng.get(e.id_ingrediente);
+    if (!base) continue;
+    const item = { ...base, cantidad: e.cantidad ?? null };
+    const arr = out.get(e.id_receta) ?? [];
+    arr.push(item);
+    out.set(e.id_receta, arr);
+  }
+  return out;
+}
+
 }
