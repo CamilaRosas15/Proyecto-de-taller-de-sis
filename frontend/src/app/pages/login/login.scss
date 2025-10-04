@@ -1,27 +1,24 @@
-/* src/app/pages/login/login.scss */
+@use 'sass:color';
 
-// 🎨 Variables de colores
-$primary-color: #00897b; // Verde turquesa oscuro
-$secondary-color: #4db6ac; // Verde turquesa más suave
+$primary-color: #00897b; 
+$secondary-color: #4db6ac; 
 $text-color: #333333;
 $error-color: #e53935;
 $input-border-color: #ddd;
-$input-focus-color: #26a69a; // Verde aqua para focus
-$card-background: rgba(224, 247, 250, 0.9); // Verde turquesa muy suave con transparencia
+$input-focus-color: #26a69a; 
+$card-background: rgba(224, 247, 250, 0.9); 
 
-// 🌆 Fondo de la página con imagen animada
 .login-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   background: url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80")
-    no-repeat center center fixed; // ✅ Imagen de recetas
+    no-repeat center center fixed; 
   background-size: cover;
   padding: 20px;
   box-sizing: border-box;
 
-  // Animación del fondo (parallax effect suave)
   animation: moveBackground 30s linear infinite;
 }
 
@@ -31,7 +28,6 @@ $card-background: rgba(224, 247, 250, 0.9); // Verde turquesa muy suave con tran
   100% { background-position: 0% 50%; }
 }
 
-// 💳 Tarjeta de login con verde turquesa suave
 .login-card {
   background-color: $card-background;
   padding: 50px 40px;
@@ -40,7 +36,7 @@ $card-background: rgba(224, 247, 250, 0.9); // Verde turquesa muy suave con tran
   width: 100%;
   max-width: 420px;
   text-align: center;
-  backdrop-filter: blur(10px); // Efecto vidrio esmerilado
+  backdrop-filter: blur(10px); 
   animation: fadeInUp 0.8s ease both;
 
   h2 {
@@ -52,19 +48,11 @@ $card-background: rgba(224, 247, 250, 0.9); // Verde turquesa muy suave con tran
   }
 }
 
-// ✨ Animación de entrada
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0);    }
 }
 
-// 📑 Formulario
 .form-group {
   margin-bottom: 25px;
   text-align: left;
@@ -97,7 +85,6 @@ input[type="password"] {
   }
 }
 
-// 🔘 Botón degradado verde turquesa
 button[type="submit"] {
   width: 100%;
   padding: 15px 20px;
@@ -121,20 +108,19 @@ button[type="submit"] {
   }
 
   &:disabled {
-    background: lighten($primary-color, 20%);
+    background: color.adjust($primary-color, $lightness: 20%); // antes lighten(...)
     cursor: not-allowed;
     opacity: 0.7;
   }
 }
 
-// ❌ Mensaje de error con animación
 .error-message {
   color: $error-color;
   margin-top: 15px;
   font-size: 0.9em;
   font-weight: 500;
-  background-color: lighten($error-color, 45%);
-  border: 1px solid lighten($error-color, 20%);
+  background-color: color.adjust($error-color, $lightness: 45%); // antes lighten(...)
+  border: 1px solid color.adjust($error-color, $lightness: 20%); // antes lighten(...)
   border-radius: 8px;
   padding: 12px;
   animation: shake 0.3s ease;
@@ -148,7 +134,6 @@ button[type="submit"] {
   80% { transform: translateX(5px); }
 }
 
-// 🔗 Texto con enlace
 p {
   margin-top: 25px;
   color: $text-color;
@@ -162,12 +147,11 @@ p {
 
     &:hover {
       text-decoration: underline;
-      color: darken($primary-color, 10%);
+      color: color.adjust($primary-color, $lightness: -10%); // antes darken(...)
     }
   }
 }
 
-// ⏳ Spinner
 .spinner {
   display: inline-block;
   width: 20px;

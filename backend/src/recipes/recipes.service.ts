@@ -1,218 +1,270 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import Ajv from 'ajv';
+import { Injectable, Logger } from '@nestjs/common';
+import { SupabaseService } from 'src/supabase/supabase/supabase.service';
 
-// Puedes sobreescribir por .env
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? 'qwen3:4b';
+export interface RecommendRequestDto {
+  userId?: string;         
+  alergias?: string[];
+  no_me_gusta?: string[];
+  gustos?: string[];
+  kcal_diarias?: number;   
+  tiempo_max?: number;     
+  use_llm?: boolean;        
+  top_n?: number;          
+  exclude_ids?: number[];   
+  random?: boolean;         
+  seed?: number;           
+}
 
-/**
- * Schema de salida esperado para la receta.
- * IMPORTANTE: tiene "default" en campos clave y AJV está configurado con useDefaults:true,
- * así, si el modelo omite algún valor requerido, se completa con defaults.
- */
-const schema = {
-  type: 'object',
-  required: ['titulo', 'ingredientes', 'pasos', 'macros', 'kcal_totales', 'motivos'],
-  properties: {
-    titulo: { type: 'string', default: 'Receta' },
-    ingredientes: {
-      type: 'array',
-      default: [],
-      items: {
-        type: 'object',
-        required: ['nombre', 'cantidad', 'unidad'],
-        properties: {
-          nombre:   { type: 'string', default: 'ingrediente' },
-          cantidad: { type: 'number', default: 1 },
-          unidad:   { type: 'string', default: 'unidad' }
-        }
-      }
-    },
-    pasos: { type: 'array', items: { type: 'string' }, default: [] },
-    kcal_totales: { type: 'number', default: 0 },
-    macros: {
-      type: 'object',
-      required: ['proteinas', 'carbohidratos', 'grasas'],
-      default: { proteinas: 0, carbohidratos: 0, grasas: 0 },
-      properties: {
-        proteinas:     { type: 'number', default: 0 },
-        carbohidratos: { type: 'number', default: 0 },
-        grasas:        { type: 'number', default: 0 }
-      }
-    },
-    motivos: { type: 'array', items: { type: 'string' }, default: [] }
-  }
-};
+export interface IngredienteOut {
+  id_ingrediente: number;
+  nombre: string;
+  unidad: string | null;
+  cantidad: number | null;
+  calorias: number | null;
+  proteinas: number | null;
+  carbohidratos: number | null;
+  grasas: number | null;
+}
+
+export interface OpcionOut {
+  id_receta: number;
+  titulo: string;
+  descripcion: string | null;
+  categoria: string | null;
+  tiempo_preparacion: number | null;
+  kcal_totales: number | null;
+  pasos: string[];
+  imagen_url: string | null;
+  ingredientes: IngredienteOut[];
+  motivos: string[];               
+  ia_explicacion?: string | null;  
+}
 
 @Injectable()
 export class RecipesService {
-  // AJV con defaults y todos los errores
-  private ajv = new Ajv({ useDefaults: true, allErrors: true });
-  private validator = this.ajv.compile(schema);
+  private readonly logger = new Logger(RecipesService.name);
 
-  // ---- MOCK: luego reemplazas por SELECT a Supabase (filtrando alergias/no_me_gusta) ----
-  private async obtenerCandidatosMock() {
-    return [
-      {
-        nombre: 'Ensalada de pollo',
-        descripcion: 'Pollo, vegetales frescos y aderezo ligero',
-        ingredientes_txt: 'pechuga de pollo, lechuga, tomate, pepino, aceite de oliva, sal'
-      },
-      {
-        nombre: 'Pasta con tomate',
-        descripcion: 'Pasta al dente con salsa de tomate casera',
-        ingredientes_txt: 'pasta, tomate, ajo, aceite de oliva, albahaca, sal'
-      }
-    ];
+  constructor(private readonly supabase: SupabaseService) {}
+
+  async getById(id: number): Promise<any | null> {
+    this.logger.log(`Leyendo receta ${id} desde Supabase`);
+    return this.supabase.getRecetaCompletaById(id);
   }
 
-  // Construye prompt con perfil, contexto y SCHEMA
-  private construirPrompt(perfil: any, candidatos: any[]) {
-    const schemaStr = JSON.stringify(schema);
-    const objetivoPlato = Math.round(((perfil?.kcal_diarias ?? 2000) / 3));
+  private async askOllama(prompt: string): Promise<string> {
+    const base = process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434';
+    const model = process.env.OLLAMA_MODEL || 'qwen3:4b';
 
-    return `
-Eres NutriChefAI. Responde EXCLUSIVAMENTE en JSON válido.
-REGLAS:
-1) PROHIBIDO usar ingredientes presentes en "alergias" o "no_me_gusta".
-2) kcal del plato objetivo ≈ ${objetivoPlato} ± 10%.
-3) Usa SOLO el contexto de candidatos. Si no alcanza, devuelve {"motivo":"no_encontrado"}.
-4) "ingredientes" DEBE ser un array de OBJETOS con { "nombre": string, "cantidad": number, "unidad": string } (NUNCA strings).
-5) Cumple EXACTAMENTE este SCHEMA: ${schemaStr}
-6) En "motivos", menciona textualmente las listas recibidas:
-   Alergias = ${perfil?.alergias?.join(', ') || 'ninguna'},
-   No me gusta = ${perfil?.no_me_gusta?.join(', ') || 'ninguno'}.
-
-EJEMPLO ESTRICTO de "ingredientes":
-"ingredientes": [
-  {"nombre":"pechuga de pollo","cantidad":150,"unidad":"g"},
-  {"nombre":"aceite de oliva","cantidad":1,"unidad":"cda"}
-]
-
-Perfil:
-- Alergias: ${Array.isArray(perfil?.alergias) ? perfil.alergias.join(', ') : 'ninguna'}
-- No me gusta: ${Array.isArray(perfil?.no_me_gusta) ? perfil.no_me_gusta.join(', ') : 'ninguno'}
-- Gustos: ${Array.isArray(perfil?.gustos) ? perfil.gustos.join(', ') : 'no especificado'}
-- Tiempo máximo: ${perfil?.tiempo_max ?? 'no especificado'}
-
-Contexto de recetas candidatas:
-${candidatos.map((r, i) => `[${i + 1}] ${r.nombre} – ${r.descripcion}
-Ingredientes: ${r.ingredientes_txt}`).join('\n\n')}
-
-Solicitud:
-Devuelve UNA receta óptima (formato JSON válido) con campos del SCHEMA y "motivos".
-`.trim();
-  }
-
-  /**
-   * Llama a Ollama /api/generate leyendo el stream.
-   * Acumula evt.response hasta evt.done === true.
-   * Con format:"json" la salida completa debe ser JSON parseable.
-   */
-  private async callOllamaGenerate(prompt: string, model = OLLAMA_MODEL) {
-    const resp = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
+    const res = await fetch(`${base}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model,
-        prompt,
-        format: 'json',                 // fuerza JSON
-        options: { temperature: 0.0, num_ctx: 4096 } // baja temperatura = JSON estable
-      })
+        messages: [{ role: 'user', content: prompt }],
+        stream: false,
+        options: { temperature: 0.7 },
+      }),
     });
 
-    if (!resp.body) {
-      throw new InternalServerErrorException('Respuesta vacía de Ollama');
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Ollama error ${res.status}: ${text}`);
+    }
+    const json = await res.json();
+    return (json?.message?.content ?? '').trim();
+  }
+
+private sanitizeLlmAnswer(txt: string): string {
+  if (!txt) return txt;
+  txt = txt.replace(/<\/?think>/gi, '');
+  txt = txt.replace(/<think[\s\S]*?<\/think>/gi, '');
+  txt = txt.replace(/^(ok(ay)?[,.\s-]*)?/i, '');
+  txt = txt.replace(/^(let me think[,.\s-]*)?/i, '');
+  txt = txt.replace(/^the (user|task).*\n?/i, '');
+
+  const lines = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const top4 = lines.slice(0, 4);
+  const result = top4.join('\n').trim();
+
+  return result || 'Encaja con tus gustos y tiempo. Sustituir mayonesa por yogur natural para aligerar.';
+}
+
+  async recomendarReceta(req: RecommendRequestDto): Promise<{ opciones: OpcionOut[]; mensaje?: string }> {
+    let alergias = (req.alergias ?? []).map(s => s.toLowerCase());
+    let noMeGusta = (req.no_me_gusta ?? []).map(s => s.toLowerCase());
+    let gustos = (req.gustos ?? []).map(s => s.toLowerCase());
+    let kcal = req.kcal_diarias ?? 2000;
+    let tiempoMax = req.tiempo_max ?? 30;
+
+    const bodyVacio =
+      !(req.alergias?.length) &&
+      !(req.no_me_gusta?.length) &&
+      !(req.gustos?.length) &&
+      !req.kcal_diarias &&
+      !req.tiempo_max;
+
+    if (req.userId && bodyVacio) {
+      this.logger.log(`Cargando preferencias desde perfil de usuario ${req.userId}`);
+      const perfil = await this.supabase.getUserDetails(req.userId);
+      if (perfil) {
+        const split = (t?: string | null) =>
+          t ? t.split(',').map((x: string) => x.trim().toLowerCase()).filter(Boolean) : [];
+        alergias = split(perfil.alergias);
+        gustos = split(perfil.gustos);
+        if (perfil.objetivo_calorico) kcal = perfil.objetivo_calorico;
+      }
     }
 
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let acc = '';
+    const recetas = await this.supabase.listRecetas(200);             
+    const ids = recetas.map((r: any) => r.id_receta);
+    const mapIngs = await this.supabase.getIngredientesPorRecetas(ids); 
 
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
+    type Cand = {
+      receta: any;
+      ingredientes: any[];
+      score: number;
+      motivos: string[];
+      texto: string;
+    };
 
-      const chunk = decoder.decode(value, { stream: true });
-      for (const line of chunk.split('\n')) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-        let evt: any;
-        try { evt = JSON.parse(trimmed); } catch { continue; }
-        if (typeof evt.response === 'string') acc += evt.response;
-        if (evt.done === true) {
-          try {
-            return JSON.parse(acc);
-          } catch {
-            throw new InternalServerErrorException('El modelo no devolvió JSON válido.');
-          }
+    const toTexto = (r: any, ings: any[]) =>
+      [r.nombre, r.descripcion, r.instrucciones, ...ings.map(i => i.nombre)]
+        .join(' ')
+        .toLowerCase();
+
+    const candidatos: Cand[] = recetas.map((r: any) => {
+      const ings = mapIngs.get(r.id_receta) ?? [];
+      const texto = toTexto(r, ings);
+
+      const motivos: string[] = [];
+      let score = 0;
+
+      const aler = alergias.find(a => a && texto.includes(a));
+      if (aler) motivos.push(`Contiene alérgeno: ${aler}`);
+
+      const nog = noMeGusta.find(n => n && texto.includes(n));
+      if (nog) motivos.push(`Incluye ingrediente no deseado: ${nog}`);
+
+      if (r.tiempo_preparacion && r.tiempo_preparacion > tiempoMax) {
+        motivos.push(`Supera el tiempo máximo (${tiempoMax} min)`);
+      }
+      if (r.calorias_totales && r.calorias_totales > kcal * 0.6) {
+        motivos.push(`Calorías altas vs objetivo (${kcal} kcal/día)`);
+      }
+
+      const gustoHits = gustos.filter(g => g && texto.includes(g)).length;
+      score += gustoHits * 2;
+
+      if (aler || nog) score -= 1000;
+      if (r.tiempo_preparacion && r.tiempo_preparacion > tiempoMax) score -= 5;
+      if (r.calorias_totales && r.calorias_totales > kcal * 0.6) score -= 3;
+
+      return { receta: r, ingredientes: ings, score, motivos, texto };
+    });
+
+    let aptos = candidatos.filter(c => c.score > -1000);
+
+    if (Array.isArray(req.exclude_ids) && req.exclude_ids.length) {
+      const ex = new Set(req.exclude_ids.map(Number));
+      aptos = aptos.filter(c => !ex.has(Number(c.receta.id_receta)));
+    }
+
+    aptos = aptos.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      const at = a.receta.tiempo_preparacion ?? 999;
+      const bt = b.receta.tiempo_preparacion ?? 999;
+      if (at !== bt) return at - bt;
+      return Number(b.receta.id_receta) - Number(a.receta.id_receta);
+    });
+
+    if (req.random) {
+      let seed = typeof req.seed === 'number' ? req.seed : Date.now();
+      const rng = () => {
+        seed = (seed * 1664525 + 1013904223) % 4294967296;
+        return seed / 4294967296;
+      };
+      for (let i = aptos.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [aptos[i], aptos[j]] = [aptos[j], aptos[i]];
+      }
+    }
+
+    const topN = Math.max(1, Math.min(req.top_n ?? 3, 10));
+    const top = aptos.slice(0, topN);
+
+    if (!top.length) {
+      return {
+        opciones: [],
+        mensaje: 'No se encontraron recetas que cumplan alergias/no_me_gusta/tiempo/kcal.',
+      };
+    }
+
+    const opcionesBase: OpcionOut[] = top.map((t) => ({
+      id_receta: Number(t.receta.id_receta),
+      titulo: String(t.receta.nombre),
+      descripcion: t.receta.descripcion ?? null,
+      categoria: t.receta.categoria ?? null,
+      tiempo_preparacion: t.receta.tiempo_preparacion ?? null,
+      kcal_totales: t.receta.calorias_totales ?? null,
+      pasos: (t.receta.instrucciones || '').split('\n').filter(Boolean),
+      imagen_url: t.receta.imagen_url ?? null,
+      ingredientes: (t.ingredientes ?? []).map((i: any) => ({
+        id_ingrediente: Number(i.id_ingrediente),
+        nombre: String(i.nombre),
+        unidad: i.unidad ?? null,
+        cantidad: i.cantidad ?? null,
+        calorias: i.calorias ?? null,
+        proteinas: i.proteinas ?? null,
+        carbohidratos: i.carbohidratos ?? null,
+        grasas: i.grasas ?? null,
+      })),
+      motivos: Array.isArray(t.motivos) ? t.motivos : [],
+    }));
+
+    //Explicación IA (Ollama)
+    const useLlm = req.use_llm ?? true;
+    if (!useLlm) {
+      return { opciones: opcionesBase };
+    }
+
+    const opcionesConIA: OpcionOut[] = await Promise.all(
+      opcionesBase.map(async (op) => {
+        const prompt = `
+Eres NutriChef IA. Responde en español y SOLO con el siguiente formato exacto (máximo 4 líneas):
+- Encaje: <1–2 líneas por qué encaja con tiempo/objetivo/gustos>
+- Sugerencia: <si hay conflicto menor, una sola sustitución "X por Y"; si no, "ninguna">
+
+Perfil:
+- Alergias: ${alergias.join(', ') || 'ninguna'}
+- No me gusta: ${noMeGusta.join(', ') || 'ninguno'}
+- Gustos: ${gustos.join(', ') || 'no especificados'}
+- Objetivo kcal/día: ${kcal}
+- Tiempo máx (min): ${tiempoMax}
+
+Receta: ${op.titulo}
+Ingredientes:
+${op.ingredientes.map(i => `- ${i.nombre}${i.cantidad ? `: ${i.cantidad} ${i.unidad ?? ''}` : ''}`).join('\n')}
+
+Recuerda: NO incluyas razonamientos, ni explicaciones meta, ni inglés, ni cálculos largos. Solo las 2 líneas pedidas.
+`.trim();
+
+
+        let ia_explicacion: string | null = null;
+        try {
+          ia_explicacion = await this.askOllama(prompt);
+          ia_explicacion = this.sanitizeLlmAnswer(ia_explicacion);
+          
+        } catch (e) {
+          this.logger.warn(`Ollama no respondió: ${(e as Error).message}`);
+          ia_explicacion = null;
         }
-      }
-    }
 
-    throw new InternalServerErrorException('Stream de Ollama finalizó sin done:true');
-  }
 
-  // Normaliza ingredientes (strings u objetos incompletos) y completa defaults "duros"
-  private normalizarIngredientes(json: any) {
-    if (!json || !Array.isArray(json.ingredientes)) return json;
 
-    json.ingredientes = json.ingredientes.map((it: any) => {
-      if (!it) return { nombre: 'ingrediente', cantidad: 1, unidad: 'unidad' };
-      if (typeof it === 'string') {
-        return { nombre: it, cantidad: 1, unidad: 'unidad' };
-      }
-      const nombre   = typeof it.nombre   === 'string' ? it.nombre   : 'ingrediente';
-      const cantidad = typeof it.cantidad === 'number' ? it.cantidad : 1;
-      const unidad   = typeof it.unidad   === 'string' ? it.unidad   : 'unidad';
-      return { nombre, cantidad, unidad };
-    });
+        return { ...op, ia_explicacion };
+      })
+    );
 
-    // “defaults duros” por seguridad adicional
-    if (typeof json?.kcal_totales !== 'number') json.kcal_totales = 0;
-    if (!json?.macros) json.macros = { proteinas: 0, carbohidratos: 0, grasas: 0 };
-    ['proteinas', 'carbohidratos', 'grasas'].forEach(k => {
-      if (typeof json.macros[k] !== 'number') json.macros[k] = 0;
-    });
-    if (!Array.isArray(json.pasos)) json.pasos = [];
-    if (!Array.isArray(json.motivos)) json.motivos = [];
-    if (typeof json.titulo !== 'string') json.titulo = 'Receta';
-
-    return json;
-  }
-
-  // Valida contra el schema (con Ajv useDefaults)
-  private validarSalida(json: any) {
-    const ok = this.validator(json);
-    if (!ok) {
-      const errs = (this.validator.errors ?? [])
-        .map((e: any) => `${e.instancePath ?? e.dataPath ?? ''} ${e.message}`)
-        .join('; ');
-      throw new InternalServerErrorException(`JSON inválido según schema: ${errs}`);
-    }
-    return true;
-  }
-
-  // Chequeo de alérgenos
-  private verificarAlergias(json: any, alergias: string[] = []) {
-    const ing: string[] = (json?.ingredientes ?? []).map((x: any) => `${x?.nombre}`.toLowerCase());
-    const choque = (alergias ?? [])
-      .map(a => a.toLowerCase())
-      .filter(a => ing.some(i => i.includes(a)));
-    if (choque.length > 0) {
-      throw new InternalServerErrorException(`La receta propuesta contiene alérgenos: ${choque.join(', ')}`);
-    }
-  }
-
-  // Endpoint principal llamado por el controller
-  async recomendarReceta(perfil: any) {
-    const candidatos = await this.obtenerCandidatosMock();
-    const prompt = this.construirPrompt(perfil, candidatos);
-
-    let json = await this.callOllamaGenerate(prompt);
-    json = this.normalizarIngredientes(json);  // normaliza ANTES de validar
-    this.validarSalida(json);
-    this.verificarAlergias(json, perfil?.alergias ?? []);
-    return json;
+    return { opciones: opcionesConIA };
   }
 }

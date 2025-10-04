@@ -26,14 +26,13 @@ export class SupabaseService {
     return this.supabase;
   }
 
-  // Método para obtener una receta por ID (usando la estructura de tu tabla 'recetas')
   async getRecetaById(id: number): Promise<any | null> {
     this.logger.log(`Fetching recipe with ID: ${id}`);
     const { data, error } = await this.supabase
-      .from('recetas') // Nombre de tu tabla de recetas
+      .from('recetas')
       .select('*')
-      .eq('id_receta', id) // 'id_receta' es el nombre de tu columna ID
-      .single(); // Para obtener un solo registro
+      .eq('id_receta', id)
+      .single(); 
 
     if (error) {
       this.logger.error(`Error fetching recipe ${id}: ${error.message}`);
@@ -42,22 +41,107 @@ export class SupabaseService {
     return data;
   }
 
-  // Método para obtener los detalles de un usuario por ID (para la IA, si ya tienes la tabla usuario_detalles)
-  async getUserDetails(userId: number): Promise<any | null> {
-    this.logger.log(`Fetching user details for ID: ${userId}`);
-    const { data, error } = await this.supabase
-        .from('usuario_detalles') // Nombre de tu tabla de detalles de usuario
-        .select('*')
-        .eq('id_usuario', userId) // Asume una columna 'id_usuario'
-        .single();
+async getRecetaCompletaById(id: number): Promise<any | null> {
+  this.logger.log(`Fetching full recipe with ID: ${id}`);
 
-    if (error) {
-        this.logger.error(`Error fetching user details ${userId}: ${error.message}`);
-        return null;
-    }
-    return data;
+  const { data: receta, error: recErr } = await this.supabase
+    .from('recetas')
+    .select('*')
+    .eq('id_receta', id)
+    .single();
+  if (recErr) {
+    this.logger.error(`Error receta ${id}: ${recErr.message}`);
+    return null;
   }
 
-  // Puedes añadir más métodos para interactuar con otras tablas según necesites
-  
+  const { data: enlaces, error: linkErr } = await this.supabase
+    .from('receta_ingredientes')
+    .select('id_ingrediente, cantidad')
+    .eq('id_receta', id);
+  if (linkErr) {
+    this.logger.error(`Error enlaces receta ${id}: ${linkErr.message}`);
+    return { ...receta, ingredientes: [] };
+  }
+
+  const ids = (enlaces ?? []).map(e => e.id_ingrediente);
+  let ingredientes: any[] = [];
+  if (ids.length) {
+    const { data: ing, error: ingErr } = await this.supabase
+      .from('ingredientes')
+      .select('*')
+      .in('id_ingrediente', ids);
+    if (ingErr) {
+      this.logger.error(`Error ingredientes receta ${id}: ${ingErr.message}`);
+    } else {
+      const mapCant = new Map(enlaces.map(e => [e.id_ingrediente, e.cantidad]));
+      ingredientes = ing.map(x => ({
+        ...x,
+        cantidad: mapCant.get(x.id_ingrediente) ?? null,
+      }));
+    }
+  }
+
+  return { ...receta, ingredientes };
+}
+
+
+async getUserDetails(userId: string): Promise<any | null> {
+  this.logger.log(`Fetching user details for ID: ${userId}`);
+  const { data, error } = await this.supabase
+    .from('usuario_detalles')
+    .select('*')
+    .eq('id', userId)        
+    .single();
+
+  if (error) {
+    this.logger.error(`Error fetching user details ${userId}: ${error.message}`);
+    return null;
+  }
+  return data;
+}
+
+async listRecetas(limit = 200): Promise<any[]> {
+  const { data, error } = await this.supabase
+    .from('recetas')
+    .select('id_receta, nombre, descripcion, categoria, tiempo_preparacion, calorias_totales, instrucciones, imagen_url')
+    .limit(limit);
+
+  if (error) {
+    this.logger.error(`listRecetas error: ${error.message}`);
+    return [];
+  }
+  return data ?? [];
+}
+
+async getIngredientesPorRecetas(recetaIds: number[]): Promise<Map<number, any[]>> {
+  const out = new Map<number, any[]>();
+  if (!recetaIds.length) return out;
+
+  const { data: enlaces, error: e1 } = await this.supabase
+    .from('receta_ingredientes')
+    .select('id_receta, id_ingrediente, cantidad')
+    .in('id_receta', recetaIds);
+
+  if (e1 || !enlaces?.length) return out;
+
+  const ingIds = Array.from(new Set(enlaces.map(e => e.id_ingrediente)));
+  const { data: ing, error: e2 } = await this.supabase
+    .from('ingredientes')
+    .select('id_ingrediente, nombre, unidad, calorias, proteinas, carbohidratos, grasas')
+    .in('id_ingrediente', ingIds);
+
+  if (e2 || !ing?.length) return out;
+
+  const mapIng = new Map(ing.map(x => [x.id_ingrediente, x]));
+  for (const e of enlaces) {
+    const base = mapIng.get(e.id_ingrediente);
+    if (!base) continue;
+    const item = { ...base, cantidad: e.cantidad ?? null };
+    const arr = out.get(e.id_receta) ?? [];
+    arr.push(item);
+    out.set(e.id_receta, arr);
+  }
+  return out;
+}
+
 }

@@ -16,7 +16,6 @@ export interface ProfileDto {
   nombre_completo: string;
   edad: number;
   peso: number;
-  // ✅ HACER OPCIONALES LOS CAMPOS QUE NO ENVÍA EL FRONTEND
   altura?: number;
   sexo?: string;
   objetivo_calorico?: number;
@@ -44,9 +43,7 @@ export class AuthService {
         email: dto.email,
         password: dto.password,
         options: {
-          // ✅ Redirección después de confirmación (aunque esté desactivada)
           emailRedirectTo: 'http://localhost:3000/auth/callback',
-          // ✅ Datos adicionales para el usuario
           data: {
             signup_method: 'direct'
           }
@@ -63,7 +60,7 @@ export class AuthService {
 
       this.logger.log(`User registered successfully: ${data.user?.id}`);
       
-      // ✅ SI el usuario fue creado pero necesita confirmación, usar workaround
+      //SI el usuario fue creado pero necesita confirmación, usar workaround
       if (data.user && !data.session) {
         this.logger.log(`User created but needs confirmation, attempting auto-login`);
         return await this.forceLoginAfterRegistration(dto.email, dto.password);
@@ -81,7 +78,6 @@ export class AuthService {
     try {
       this.logger.log(`Attempting forced login after registration for: ${email}`);
       
-      // Intentar login múltiples veces después del registro
       for (let attempt = 1; attempt <= 10; attempt++) {
         this.logger.log(`Forced login attempt ${attempt}`);
         
@@ -91,23 +87,20 @@ export class AuthService {
         });
 
         if (!error) {
-          this.logger.log(`✅ Forced login successful on attempt ${attempt}`);
+          this.logger.log(`Forced login successful on attempt ${attempt}`);
           return { data, error: null };
         }
 
-        // Si es error de confirmación, esperar y reintentar
         if (error.message.includes('Email not confirmed')) {
           this.logger.warn(`Attempt ${attempt} failed - email not confirmed, waiting 2 seconds`);
           await new Promise(resolve => setTimeout(resolve, 2000));
           continue;
         }
 
-        // Si es otro error, lanzar excepción
         this.logger.error(`Forced login error: ${error.message}`);
         break;
       }
 
-      // Si después de 10 intentos no funciona, lanzar error específico
       throw new UnauthorizedException('Registration successful but automatic login failed. Please try logging in manually.');
 
     } catch (error) {
@@ -120,7 +113,6 @@ export class AuthService {
     try {
       this.logger.log(`Attempting to log in user: ${dto.email}`);
 
-      // ✅ PRIMERO: Intentar login normal
       const { data, error } = await this.supabaseService.getClient().auth.signInWithPassword({
         email: dto.email,
         password: dto.password,
@@ -129,7 +121,6 @@ export class AuthService {
       if (error) {
         this.logger.error(`Login error: ${error.message}`);
         
-        // ✅ SI falla por email no confirmado, usar solución definitiva
         if (error.message.includes('Email not confirmed') || error.message.includes('email not confirmed')) {
           this.logger.warn(`Email not confirmed - using definitive solution for: ${dto.email}`);
           return await this.definitiveEmailConfirmationSolution(dto.email, dto.password);
@@ -155,10 +146,8 @@ export class AuthService {
     try {
       this.logger.log(`Using definitive solution for: ${email}`);
       
-      // SOLUCIÓN DEFINITIVA: Crear un nuevo usuario si el anterior tiene problemas
       this.logger.warn(`Creating new user with confirmed email as solution`);
       
-      // 1. Primero intentar crear un nuevo usuario
       const { data: signUpData, error: signUpError } = await this.supabaseService.getClient().auth.signUp({
         email: email,
         password: password,
@@ -171,7 +160,6 @@ export class AuthService {
         this.logger.error(`Signup attempt failed: ${signUpError.message}`);
       }
 
-      // 2. Intentar login múltiples veces con delays más largos
       for (let attempt = 1; attempt <= 8; attempt++) {
         this.logger.log(`Definitive solution attempt ${attempt}`);
         
@@ -181,17 +169,15 @@ export class AuthService {
         });
 
         if (!error) {
-          this.logger.log(`✅ Definitive solution successful on attempt ${attempt}`);
+          this.logger.log(`Definitive solution successful on attempt ${attempt}`);
           return { data, error: null };
         }
 
-        // Esperar progresivamente más tiempo
-        const waitTime = attempt * 1000; // 1s, 2s, 3s, etc.
+        const waitTime = attempt * 1000;
         this.logger.warn(`Attempt ${attempt} failed - waiting ${waitTime}ms`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
       }
 
-      // 3. Último recurso: sugerir registro nuevo
       throw new UnauthorizedException('Authentication issue detected. Please try registering again or contact support.');
 
     } catch (error) {
@@ -201,111 +187,71 @@ export class AuthService {
   }
 
   async saveUserProfile(userId: string, profileDto: ProfileDto): Promise<any> {
-    try {
-      this.logger.log(`Saving profile for user: ${userId}`);
-      
-      // ✅ LOG PARA DEBUG: Ver qué datos están llegando
-      this.logger.log(`Datos recibidos para perfil:`, JSON.stringify(profileDto, null, 2));
+  try {
+    this.logger.log(`Saving profile for user: ${userId}`);
+    this.logger.log(`Datos recibidos para perfil: ${JSON.stringify(profileDto, null, 2)}`);
 
-      // ✅ VALIDACIÓN CRÍTICA: Verificar campos requeridos
-      if (!profileDto.nombre_completo || profileDto.nombre_completo.trim() === '') {
-        throw new InternalServerErrorException('El campo nombre_completo es requerido');
-      }
-
-      const profileData = {
-        id_usuario: userId,
-        nombre: profileDto.nombre_completo,
-        edad: profileDto.edad || 0,
-        peso: profileDto.peso || 0,
-        altura: profileDto.altura || 0,
-        // ✅ CORREGIDO: Usar el valor exacto que espera la constraint
-        sexo: 'Otro', // Con 'O' mayúscula como requiere la base de datos
-        objetivo_calorico: profileDto.objetivo_calorico || 0,
-        gustos: Array.isArray(profileDto.gustos) ? profileDto.gustos.join(', ') : (profileDto.gustos || 'No especificado'),
-        alergias: Array.isArray(profileDto.alergias) ? profileDto.alergias.join(', ') : (profileDto.alergias || 'Ninguna'),
-        objetivo_salud: profileDto.objetivo_salud || 'No especificado',
-        no_me_gusta: Array.isArray(profileDto.no_me_gusta) ? profileDto.no_me_gusta.join(', ') : (profileDto.no_me_gusta || 'Ninguno'),
-        calorias_diarias_objetivo: profileDto.calorias_diarias_objetivo || 0,
-        fecha_creacion: new Date().toISOString()
-      };
-
-      this.logger.log(`Datos a guardar en BD:`, JSON.stringify(profileData, null, 2));
-
-      const { data: existingProfile, error: fetchError } = await this.supabaseService.getClient()
-        .from('usuario_detalles')
-        .select('*')
-        .eq('id_usuario', userId)
-        .single();
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        this.logger.error(`Error fetching profile: ${fetchError.message}`);
-        throw new InternalServerErrorException('Error retrieving user profile.');
-      }
-
-      let result;
-      if (existingProfile) {
-        const { data, error } = await this.supabaseService.getClient()
-          .from('usuario_detalles')
-          .update(profileData)
-          .eq('id_usuario', userId)
-          .select()
-          .single();
-        
-        result = { data, error };
-        this.logger.log(`Profile updated for user: ${userId}`);
-      } else {
-        const { data, error } = await this.supabaseService.getClient()
-          .from('usuario_detalles')
-          .insert(profileData)
-          .select()
-          .single();
-        
-        result = { data, error };
-        this.logger.log(`Profile created for user: ${userId}`);
-      }
-
-      if (result.error) {
-        this.logger.error(`Error saving profile: ${result.error.message}`);
-        this.logger.error(`Error details:`, result.error);
-        throw new InternalServerErrorException('Failed to save profile.');
-      }
-
-      this.logger.log(`Profile saved successfully: ${JSON.stringify(result.data)}`);
-      return result.data;
-
-    } catch (error) {
-      this.logger.error(`Unexpected error saving profile: ${error.message}`);
-      this.logger.error(`Error stack: ${error.stack}`);
-      throw new InternalServerErrorException('Failed to save user profile.');
+    if (!profileDto.nombre_completo || profileDto.nombre_completo.trim() === '') {
+      throw new InternalServerErrorException('El campo nombre_completo es requerido');
     }
-  }
 
-  async getUserProfile(userId: string): Promise<any | null> {
-    try {
-      this.logger.log(`Fetching profile for user: ${userId}`);
+    const allowedSexo = new Set(['Masculino', 'Femenino', 'Otro']);
+    const sexo = profileDto.sexo && allowedSexo.has(profileDto.sexo) ? profileDto.sexo : 'Otro';
 
-      const { data, error } = await this.supabaseService.getClient()
-        .from('usuario_detalles')
-        .select('*')
-        .eq('id_usuario', userId)
-        .single();
+    const profileData = {
+      id: userId, //FK a auth.users.id
+      nombre: profileDto.nombre_completo,
+      edad: profileDto.edad ?? null,
+      sexo,
+      altura: profileDto.altura ?? null,
+      peso: profileDto.peso ?? null,
+      objetivo_calorico: profileDto.objetivo_calorico ?? profileDto.calorias_diarias_objetivo ?? null,
+      gustos: Array.isArray(profileDto.gustos) ? profileDto.gustos.join(', ') : (profileDto.gustos ?? null),
+      alergias: Array.isArray(profileDto.alergias) ? profileDto.alergias.join(', ') : (profileDto.alergias ?? null),
+      fecha_creacion: new Date().toISOString(),
+    };
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          this.logger.log(`No profile found for user: ${userId}`);
-          return null;
-        }
-        this.logger.error(`Error fetching profile: ${error.message}`);
-        throw new InternalServerErrorException('Error retrieving profile.');
-      }
+    this.logger.log(`Datos a guardar en BD: ${JSON.stringify(profileData, null, 2)}`);
 
-      return data;
+    const { data, error } = await this.supabaseService.getClient()
+      .from('usuario_detalles')
+      .upsert(profileData, { onConflict: 'id' })
+      .select()
+      .single();
 
-    } catch (error) {
-      this.logger.error(`Unexpected error fetching profile: ${error.message}`);
-      throw new InternalServerErrorException('Failed to fetch user profile.');
+    if (error) {
+      this.logger.error(`Error saving profile: ${error.message}`);
+      throw new InternalServerErrorException('Failed to save profile.');
     }
+
+    this.logger.log(`Profile saved successfully: ${JSON.stringify(data)}`);
+    return data;
+  } catch (error) {
+    this.logger.error(`Unexpected error saving profile: ${error.message}`);
+    throw new InternalServerErrorException('Failed to save user profile.');
   }
+}
+
+async getUserProfile(userId: string): Promise<any | null> {
+  try {
+    const { data, error } = await this.supabaseService.getClient()
+      .from('usuario_detalles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      this.logger.error(`Error fetching profile: ${error.message}`);
+      throw new InternalServerErrorException('Error retrieving profile.');
+    }
+    return data;
+  } catch (error) {
+    this.logger.error(`Unexpected error fetching profile: ${error.message}`);
+    throw new InternalServerErrorException('Failed to fetch user profile.');
+  }
+}
+
 
   async logout(): Promise<void> {
     try {
