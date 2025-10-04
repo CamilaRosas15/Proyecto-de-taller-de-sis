@@ -201,111 +201,72 @@ export class AuthService {
   }
 
   async saveUserProfile(userId: string, profileDto: ProfileDto): Promise<any> {
-    try {
-      this.logger.log(`Saving profile for user: ${userId}`);
-      
-      // ✅ LOG PARA DEBUG: Ver qué datos están llegando
-      this.logger.log(`Datos recibidos para perfil:`, JSON.stringify(profileDto, null, 2));
+  try {
+    this.logger.log(`Saving profile for user: ${userId}`);
+    this.logger.log(`Datos recibidos para perfil: ${JSON.stringify(profileDto, null, 2)}`);
 
-      // ✅ VALIDACIÓN CRÍTICA: Verificar campos requeridos
-      if (!profileDto.nombre_completo || profileDto.nombre_completo.trim() === '') {
-        throw new InternalServerErrorException('El campo nombre_completo es requerido');
-      }
-
-      const profileData = {
-        id_usuario: userId,
-        nombre: profileDto.nombre_completo,
-        edad: profileDto.edad || 0,
-        peso: profileDto.peso || 0,
-        altura: profileDto.altura || 0,
-        // ✅ CORREGIDO: Usar el valor exacto que espera la constraint
-        sexo: 'Otro', // Con 'O' mayúscula como requiere la base de datos
-        objetivo_calorico: profileDto.objetivo_calorico || 0,
-        gustos: Array.isArray(profileDto.gustos) ? profileDto.gustos.join(', ') : (profileDto.gustos || 'No especificado'),
-        alergias: Array.isArray(profileDto.alergias) ? profileDto.alergias.join(', ') : (profileDto.alergias || 'Ninguna'),
-        objetivo_salud: profileDto.objetivo_salud || 'No especificado',
-        no_me_gusta: Array.isArray(profileDto.no_me_gusta) ? profileDto.no_me_gusta.join(', ') : (profileDto.no_me_gusta || 'Ninguno'),
-        calorias_diarias_objetivo: profileDto.calorias_diarias_objetivo || 0,
-        fecha_creacion: new Date().toISOString()
-      };
-
-      this.logger.log(`Datos a guardar en BD:`, JSON.stringify(profileData, null, 2));
-
-      const { data: existingProfile, error: fetchError } = await this.supabaseService.getClient()
-        .from('usuario_detalles')
-        .select('*')
-        .eq('id_usuario', userId)
-        .single();
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        this.logger.error(`Error fetching profile: ${fetchError.message}`);
-        throw new InternalServerErrorException('Error retrieving user profile.');
-      }
-
-      let result;
-      if (existingProfile) {
-        const { data, error } = await this.supabaseService.getClient()
-          .from('usuario_detalles')
-          .update(profileData)
-          .eq('id_usuario', userId)
-          .select()
-          .single();
-        
-        result = { data, error };
-        this.logger.log(`Profile updated for user: ${userId}`);
-      } else {
-        const { data, error } = await this.supabaseService.getClient()
-          .from('usuario_detalles')
-          .insert(profileData)
-          .select()
-          .single();
-        
-        result = { data, error };
-        this.logger.log(`Profile created for user: ${userId}`);
-      }
-
-      if (result.error) {
-        this.logger.error(`Error saving profile: ${result.error.message}`);
-        this.logger.error(`Error details:`, result.error);
-        throw new InternalServerErrorException('Failed to save profile.');
-      }
-
-      this.logger.log(`Profile saved successfully: ${JSON.stringify(result.data)}`);
-      return result.data;
-
-    } catch (error) {
-      this.logger.error(`Unexpected error saving profile: ${error.message}`);
-      this.logger.error(`Error stack: ${error.stack}`);
-      throw new InternalServerErrorException('Failed to save user profile.');
+    if (!profileDto.nombre_completo || profileDto.nombre_completo.trim() === '') {
+      throw new InternalServerErrorException('El campo nombre_completo es requerido');
     }
-  }
 
-  async getUserProfile(userId: string): Promise<any | null> {
-    try {
-      this.logger.log(`Fetching profile for user: ${userId}`);
+    const allowedSexo = new Set(['Masculino', 'Femenino', 'Otro']);
+    const sexo = profileDto.sexo && allowedSexo.has(profileDto.sexo) ? profileDto.sexo : 'Otro';
 
-      const { data, error } = await this.supabaseService.getClient()
-        .from('usuario_detalles')
-        .select('*')
-        .eq('id_usuario', userId)
-        .single();
+    const profileData = {
+      id: userId, // 👈 FK a auth.users.id
+      nombre: profileDto.nombre_completo,
+      edad: profileDto.edad ?? null,
+      sexo,
+      altura: profileDto.altura ?? null,
+      peso: profileDto.peso ?? null,
+      objetivo_calorico: profileDto.objetivo_calorico ?? profileDto.calorias_diarias_objetivo ?? null,
+      gustos: Array.isArray(profileDto.gustos) ? profileDto.gustos.join(', ') : (profileDto.gustos ?? null),
+      alergias: Array.isArray(profileDto.alergias) ? profileDto.alergias.join(', ') : (profileDto.alergias ?? null),
+      fecha_creacion: new Date().toISOString(),
+    };
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          this.logger.log(`No profile found for user: ${userId}`);
-          return null;
-        }
-        this.logger.error(`Error fetching profile: ${error.message}`);
-        throw new InternalServerErrorException('Error retrieving profile.');
-      }
+    this.logger.log(`Datos a guardar en BD: ${JSON.stringify(profileData, null, 2)}`);
 
-      return data;
+    // UPSERT por PK id
+    const { data, error } = await this.supabaseService.getClient()
+      .from('usuario_detalles')
+      .upsert(profileData, { onConflict: 'id' })
+      .select()
+      .single();
 
-    } catch (error) {
-      this.logger.error(`Unexpected error fetching profile: ${error.message}`);
-      throw new InternalServerErrorException('Failed to fetch user profile.');
+    if (error) {
+      this.logger.error(`Error saving profile: ${error.message}`);
+      throw new InternalServerErrorException('Failed to save profile.');
     }
+
+    this.logger.log(`Profile saved successfully: ${JSON.stringify(data)}`);
+    return data;
+  } catch (error) {
+    this.logger.error(`Unexpected error saving profile: ${error.message}`);
+    throw new InternalServerErrorException('Failed to save user profile.');
   }
+}
+
+async getUserProfile(userId: string): Promise<any | null> {
+  try {
+    const { data, error } = await this.supabaseService.getClient()
+      .from('usuario_detalles')
+      .select('*')
+      .eq('id', userId) // 👈 por PK id
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      this.logger.error(`Error fetching profile: ${error.message}`);
+      throw new InternalServerErrorException('Error retrieving profile.');
+    }
+    return data;
+  } catch (error) {
+    this.logger.error(`Unexpected error fetching profile: ${error.message}`);
+    throw new InternalServerErrorException('Failed to fetch user profile.');
+  }
+}
+
 
   async logout(): Promise<void> {
     try {

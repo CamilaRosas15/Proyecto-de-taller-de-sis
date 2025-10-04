@@ -42,21 +42,70 @@ export class SupabaseService {
     return data;
   }
 
-  // Método para obtener los detalles de un usuario por ID (para la IA, si ya tienes la tabla usuario_detalles)
-  async getUserDetails(userId: number): Promise<any | null> {
-    this.logger.log(`Fetching user details for ID: ${userId}`);
-    const { data, error } = await this.supabase
-        .from('usuario_detalles') // Nombre de tu tabla de detalles de usuario
-        .select('*')
-        .eq('id_usuario', userId) // Asume una columna 'id_usuario'
-        .single();
+  // Devuelve receta + ingredientes (join receta_ingredientes -> ingredientes)
+async getRecetaCompletaById(id: number): Promise<any | null> {
+  this.logger.log(`Fetching full recipe with ID: ${id}`);
 
-    if (error) {
-        this.logger.error(`Error fetching user details ${userId}: ${error.message}`);
-        return null;
-    }
-    return data;
+  // 1) receta base
+  const { data: receta, error: recErr } = await this.supabase
+    .from('recetas')
+    .select('*')
+    .eq('id_receta', id)
+    .single();
+  if (recErr) {
+    this.logger.error(`Error receta ${id}: ${recErr.message}`);
+    return null;
   }
+
+  // 2) ingredientes (join manual en dos pasos)
+  const { data: enlaces, error: linkErr } = await this.supabase
+    .from('receta_ingredientes')
+    .select('id_ingrediente, cantidad')
+    .eq('id_receta', id);
+  if (linkErr) {
+    this.logger.error(`Error enlaces receta ${id}: ${linkErr.message}`);
+    return { ...receta, ingredientes: [] };
+  }
+
+  const ids = (enlaces ?? []).map(e => e.id_ingrediente);
+  let ingredientes: any[] = [];
+  if (ids.length) {
+    const { data: ing, error: ingErr } = await this.supabase
+      .from('ingredientes')
+      .select('*')
+      .in('id_ingrediente', ids);
+    if (ingErr) {
+      this.logger.error(`Error ingredientes receta ${id}: ${ingErr.message}`);
+    } else {
+      // merge cantidad
+      const mapCant = new Map(enlaces.map(e => [e.id_ingrediente, e.cantidad]));
+      ingredientes = ing.map(x => ({
+        ...x,
+        cantidad: mapCant.get(x.id_ingrediente) ?? null,
+      }));
+    }
+  }
+
+  return { ...receta, ingredientes };
+}
+
+
+  // Método para obtener los detalles de un usuario por ID (uuid) desde usuario_detalles
+async getUserDetails(userId: string): Promise<any | null> {
+  this.logger.log(`Fetching user details for ID: ${userId}`);
+  const { data, error } = await this.supabase
+    .from('usuario_detalles')
+    .select('*')
+    .eq('id', userId)        // 👈 columna correcta si tu PK/FK es 'id' (uuid de auth.users)
+    .single();
+
+  if (error) {
+    this.logger.error(`Error fetching user details ${userId}: ${error.message}`);
+    return null;
+  }
+  return data;
+}
+
 
   // Puedes añadir más métodos para interactuar con otras tablas según necesites
   

@@ -1,24 +1,34 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, NotFoundException } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
 
 class RecommendRequestDto {
+  userId?: string;
   alergias?: string[] = [];
   no_me_gusta?: string[] = [];
   gustos?: string[] = [];
-  kcal_diarias?: number;   // ej: 2000
-  tiempo_max?: number;     // ej: minutos
+  kcal_diarias?: number;
+  tiempo_max?: number;
 }
 
-@Controller('recomendaciones')
+@Controller('recipes')
 export class RecipesController {
   constructor(private readonly recipesService: RecipesService) {}
 
-  @Post()
+  @Get(':id')
+  async getById(@Param('id') id: string) {
+    const numId = Number(id);
+    if (Number.isNaN(numId)) throw new NotFoundException('El ID de receta debe ser numérico.');
+    const receta = await this.recipesService.getById(numId);
+    if (!receta) throw new NotFoundException(`No se encontró la receta con ID ${numId}.`);
+    return receta;
+  }
+
+  @Post('recomendaciones')
   async recomendar(@Body() body: RecommendRequestDto) {
-    // En una versión con BD: aquí leerías perfil desde Supabase si body viene vacío.
     return this.recipesService.recomendarReceta(body);
   }
 }
+
 
 /*import { Controller,  Get, Param, ParseIntPipe, NotFoundException, Logger } from '@nestjs/common';
 import { SupabaseService } from 'src/supabase/supabase/supabase.service';
