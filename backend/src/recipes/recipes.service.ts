@@ -52,9 +52,15 @@ export class RecipesService {
   }
 
   private async askOllama(prompt: string): Promise<string> {
-    const base = process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434';
-    const model = process.env.OLLAMA_MODEL || 'qwen3:4b';
+  const base = process.env.OLLAMA_BASE_URL || 'https://approachable-dale-macroptic.ngrok-free.dev';
+  const model = process.env.OLLAMA_MODEL || 'qwen3:4b';
 
+  console.log('🔍 DEPURACIÓN OLLAMA:');
+  console.log('📍 URL:', base);
+  console.log('🤖 Modelo:', model);
+  console.log('📝 Prompt (inicio):', prompt.substring(0, 200) + '...');
+
+  try {
     const res = await fetch(`${base}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -66,27 +72,103 @@ export class RecipesService {
       }),
     });
 
+    console.log('📡 Status respuesta:', res.status);
+    
     if (!res.ok) {
       const text = await res.text();
+      console.error('❌ Error Ollama:', text);
       throw new Error(`Ollama error ${res.status}: ${text}`);
     }
+    
     const json = await res.json();
-    return (json?.message?.content ?? '').trim();
+    const respuesta = (json?.message?.content ?? '').trim();
+    
+    console.log('✅ Respuesta RAW Ollama:', respuesta.substring(0, 200) + '...');
+    return respuesta;
+    
+  } catch (error) {
+    console.error('💥 Error en askOllama:', error);
+    throw error;
   }
+}
 
 private sanitizeLlmAnswer(txt: string): string {
-  if (!txt) return txt;
+  if (!txt) return 'Encaja con tus gustos y tiempo. Sustituir mayonesa por yogur natural para aligerar.';
+  
+  // Eliminar contenido entre etiquetas think
   txt = txt.replace(/<\/?think>/gi, '');
   txt = txt.replace(/<think[\s\S]*?<\/think>/gi, '');
-  txt = txt.replace(/^(ok(ay)?[,.\s-]*)?/i, '');
-  txt = txt.replace(/^(let me think[,.\s-]*)?/i, '');
-  txt = txt.replace(/^the (user|task).*\n?/i, '');
-
-  const lines = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-  const top4 = lines.slice(0, 4);
-  const result = top4.join('\n').trim();
-
-  return result || 'Encaja con tus gustos y tiempo. Sustituir mayonesa por yogur natural para aligerar.';
+  
+  // Eliminar frases introductorias comunes en inglés
+  const englishIntroPatterns = [
+    /^(ok(ay)?[,.\s-]*)/i,
+    /^(let me think[,.\s-]*)/i,
+    /^(let me see[,.\s-]*)/i,
+    /^(alright[,.\s-]*)/i,
+    /^(so[,.\s-]*)/i,
+    /^(well[,.\s-]*)/i,
+    /^(now[,.\s-]*)/i,
+    /^(the (user|task)[^.\n]*)/i,
+    /^(based on[^.\n]*)/i,
+    /^(considering[^.\n]*)/i,
+    /^(looking at[^.\n]*)/i,
+    /^(i see that[^.\n]*)/i,
+    /^(i notice that[^.\n]*)/i,
+    /^(first[,.\s-]*)/i,
+    /^(in this case[^.\n]*)/i,
+    /^(regarding[^.\n]*)/i,
+    /^(as requested[^.\n]*)/i,
+    /^(here is[^.\n]*)/i,
+    /^(here are[^.\n]*)/i
+  ];
+  
+  englishIntroPatterns.forEach(pattern => {
+    txt = txt.replace(pattern, '');
+  });
+  
+  // Eliminar frases meta en español también
+  const spanishMetaPatterns = [
+    /^(veamos[,.\s-]*)/i,
+    /^(analizando[^.\n]*)/i,
+    /^(considerando[^.\n]*)/i,
+    /^(basándome en[^.\n]*)/i,
+    /^(observando[^.\n]*)/i,
+    /^(en este caso[^.\n]*)/i,
+    /^(procedamos[^.\s-]*)/i,
+    /^(de acuerdo[^.\n]*)/i,
+    /^(perfecto[,.\s-]*)/i,
+    /^(entonces[,.\s-]*)/i,
+    /^(ahora[,.\s-]*)/i,
+    /^(bien[,.\s-]*)/i
+  ];
+  
+  spanishMetaPatterns.forEach(pattern => {
+    txt = txt.replace(pattern, '');
+  });
+  
+  // Limpiar espacios extra y dividir en líneas
+  const lines = txt
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(line => {
+      // Filtrar líneas que sean solo meta-razonamiento
+      const lowerLine = line.toLowerCase();
+      return !lowerLine.match(/^(i need to|i should|i will|let me|we can|we should|this recipe|the recipe|user wants|user has|user's)/) &&
+             !lowerLine.match(/^(necesito|debo|voy a|podemos|debemos|esta receta|la receta|el usuario)/) &&
+             line.length > 0;
+    })
+    .filter(Boolean);
+  
+  // Tomar máximo 4 líneas y unir
+  const topLines = lines.slice(0, 4);
+  let result = topLines.join('\n').trim();
+  
+  // Si después de todo el cleaning queda vacío, usar respuesta por defecto
+  if (!result) {
+    return 'Encaja con tus gustos y tiempo. Sustituir mayonesa por yogur natural para aligerar.';
+  }
+  
+  return result;
 }
 
   async recomendarReceta(req: RecommendRequestDto): Promise<{ opciones: OpcionOut[]; mensaje?: string }> {
@@ -230,7 +312,8 @@ private sanitizeLlmAnswer(txt: string): string {
     const opcionesConIA: OpcionOut[] = await Promise.all(
       opcionesBase.map(async (op) => {
         const prompt = `
-Eres NutriChef IA. Responde en español y SOLO con el siguiente formato exacto (máximo 4 líneas):
+Eres NutriChef IA. Responde ÚNICAMENTE en español y SOLO con este formato exacto (máximo 4 líneas):
+
 - Encaje: <1–2 líneas por qué encaja con tiempo/objetivo/gustos>
 - Sugerencia: <si hay conflicto menor, una sola sustitución "X por Y"; si no, "ninguna">
 
@@ -245,7 +328,7 @@ Receta: ${op.titulo}
 Ingredientes:
 ${op.ingredientes.map(i => `- ${i.nombre}${i.cantidad ? `: ${i.cantidad} ${i.unidad ?? ''}` : ''}`).join('\n')}
 
-Recuerda: NO incluyas razonamientos, ni explicaciones meta, ni inglés, ni cálculos largos. Solo las 2 líneas pedidas.
+IMPORTANTE: NO incluyas razonamientos, explicaciones meta, inglés, cálculos, ni frases introductorias. Comienza DIRECTAMENTE con "- Encaje:".
 `.trim();
 
 
