@@ -7,7 +7,7 @@ import { RecipeService, RecommendRequest, RecommendResponse } from '../../servic
 @Component({
   selector: 'app-chat-ia',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule], // Agregar HttpClientModule
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './chat-ia.html',
   styleUrls: ['./chat-ia.scss']
 })
@@ -30,7 +30,10 @@ export class ChatIAComponent {
 
   // Enviar mensaje
   sendMessage() {
-    if (!this.userMessage.trim()) return;
+    if (!this.userMessage.trim()) {
+      // Si no hay mensaje, usar parámetros por defecto
+      this.userMessage = "Recomiéndame recetas";
+    }
 
     this.cargando = true;
     this.errorMessage = '';
@@ -73,28 +76,10 @@ export class ChatIAComponent {
     return palabras.filter(palabra => mensaje.includes(palabra));
   }
 
-  // Acciones rápidas
-  quickAction(accion: string) {
-    switch(accion) {
-      case 'recomendacion':
-        this.userMessage = 'Dame una recomendación de receta';
-        break;
-      case 'rapida':
-        this.userMessage = 'Quiero una receta rápida de menos de 20 minutos';
-        this.preferencias.tiempoMax = 20;
-        break;
-      case 'saludable':
-        this.userMessage = 'Recomiéndame algo saludable y bajo en calorías';
-        this.preferencias.kcalDiarias = 1800;
-        break;
-    }
-    this.sendMessage();
-  }
-
   // Generar recomendaciones
   generarRecomendaciones() {
     const params: RecommendRequest = {
-      top_n: 3,
+      top_n: 3,  // Siempre pedir 3 recetas
       use_llm: true,
       alergias: this.preferencias.alergias,
       no_me_gusta: this.preferencias.noMeGusta,

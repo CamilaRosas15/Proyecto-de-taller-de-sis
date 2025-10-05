@@ -52,9 +52,15 @@ export class RecipesService {
   }
 
   private async askOllama(prompt: string): Promise<string> {
-    const base = process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434';
-    const model = process.env.OLLAMA_MODEL || 'qwen3:4b';
+  const base = process.env.OLLAMA_BASE_URL || 'https://approachable-dale-macroptic.ngrok-free.dev';
+  const model = process.env.OLLAMA_MODEL || 'qwen3:4b';
 
+  console.log('🔍 DEPURACIÓN OLLAMA:');
+  console.log('📍 URL:', base);
+  console.log('🤖 Modelo:', model);
+  console.log('📝 Prompt (inicio):', prompt.substring(0, 200) + '...');
+
+  try {
     const res = await fetch(`${base}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -66,13 +72,25 @@ export class RecipesService {
       }),
     });
 
+    console.log('📡 Status respuesta:', res.status);
+    
     if (!res.ok) {
       const text = await res.text();
+      console.error('❌ Error Ollama:', text);
       throw new Error(`Ollama error ${res.status}: ${text}`);
     }
+    
     const json = await res.json();
-    return (json?.message?.content ?? '').trim();
+    const respuesta = (json?.message?.content ?? '').trim();
+    
+    console.log('✅ Respuesta RAW Ollama:', respuesta.substring(0, 200) + '...');
+    return respuesta;
+    
+  } catch (error) {
+    console.error('💥 Error en askOllama:', error);
+    throw error;
   }
+}
 
 private sanitizeLlmAnswer(txt: string): string {
   if (!txt) return 'Encaja con tus gustos y tiempo. Sustituir mayonesa por yogur natural para aligerar.';
