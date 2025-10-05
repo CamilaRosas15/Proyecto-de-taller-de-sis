@@ -2,17 +2,17 @@ import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from 'src/supabase/supabase/supabase.service';
 
 export interface RecommendRequestDto {
-  userId?: string;         
+  userId?: string;
   alergias?: string[];
   no_me_gusta?: string[];
   gustos?: string[];
-  kcal_diarias?: number;   
-  tiempo_max?: number;     
-  use_llm?: boolean;        
-  top_n?: number;          
-  exclude_ids?: number[];   
-  random?: boolean;         
-  seed?: number;           
+  kcal_diarias?: number;
+  tiempo_max?: number;
+  use_llm?: boolean;
+  top_n?: number;
+  exclude_ids?: number[];
+  random?: boolean;
+  seed?: number;
 }
 
 export interface IngredienteOut {
@@ -36,8 +36,13 @@ export interface OpcionOut {
   pasos: string[];
   imagen_url: string | null;
   ingredientes: IngredienteOut[];
-  motivos: string[];               
-  ia_explicacion?: string | null;  
+  motivos: string[];
+  ia_explicacion?: string | null;
+}
+
+function isValidUuid(v?: string): boolean {
+  if (!v) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 }
 
 @Injectable()
@@ -52,154 +57,129 @@ export class RecipesService {
   }
 
   private async askOllama(prompt: string): Promise<string> {
-  const base = process.env.OLLAMA_BASE_URL || 'https://approachable-dale-macroptic.ngrok-free.dev';
-  const model = process.env.OLLAMA_MODEL || 'qwen3:4b';
+    const base = process.env.OLLAMA_BASE_URL || 'https://approachable-dale-macroptic.ngrok-free.dev';
+    const model = process.env.OLLAMA_MODEL || 'qwen3:4b';
 
-  console.log('🔍 DEPURACIÓN OLLAMA:');
-  console.log('📍 URL:', base);
-  console.log('🤖 Modelo:', model);
-  console.log('📝 Prompt (inicio):', prompt.substring(0, 200) + '...');
+    console.log('DEPURACIÓN OLLAMA:');
+    console.log('URL:', base);
+    console.log('Modelo:', model);
+    console.log('Prompt (inicio):', prompt.substring(0, 200) + '...');
 
-  try {
-    const res = await fetch(`${base}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'user', content: prompt }],
-        stream: false,
-        options: { temperature: 0.7 },
-      }),
-    });
+    try {
+      const res = await fetch(`${base}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          stream: false,
+          options: { temperature: 0.7 },
+        }),
+      });
 
-    console.log('📡 Status respuesta:', res.status);
-    
-    if (!res.ok) {
-      const text = await res.text();
-      console.error('❌ Error Ollama:', text);
-      throw new Error(`Ollama error ${res.status}: ${text}`);
+      console.log('Status respuesta:', res.status);
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Error Ollama:', text);
+        throw new Error(`Ollama error ${res.status}: ${text}`);
+      }
+
+      const json = await res.json();
+      const respuesta = (json?.message?.content ?? '').trim();
+
+      console.log('Respuesta RAW Ollama:', respuesta.substring(0, 200) + '...');
+      return respuesta;
+    } catch (error) {
+      console.error('Error en askOllama:', error);
+      throw error;
     }
-    
-    const json = await res.json();
-    const respuesta = (json?.message?.content ?? '').trim();
-    
-    console.log('✅ Respuesta RAW Ollama:', respuesta.substring(0, 200) + '...');
-    return respuesta;
-    
-  } catch (error) {
-    console.error('💥 Error en askOllama:', error);
-    throw error;
   }
-}
 
-private sanitizeLlmAnswer(txt: string): string {
-  if (!txt) return 'Encaja con tus gustos y tiempo. Sustituir mayonesa por yogur natural para aligerar.';
-  
-  // Eliminar contenido entre etiquetas think
-  txt = txt.replace(/<\/?think>/gi, '');
-  txt = txt.replace(/<think[\s\S]*?<\/think>/gi, '');
-  
-  // Eliminar frases introductorias comunes en inglés
-  const englishIntroPatterns = [
-    /^(ok(ay)?[,.\s-]*)/i,
-    /^(let me think[,.\s-]*)/i,
-    /^(let me see[,.\s-]*)/i,
-    /^(alright[,.\s-]*)/i,
-    /^(so[,.\s-]*)/i,
-    /^(well[,.\s-]*)/i,
-    /^(now[,.\s-]*)/i,
-    /^(the (user|task)[^.\n]*)/i,
-    /^(based on[^.\n]*)/i,
-    /^(considering[^.\n]*)/i,
-    /^(looking at[^.\n]*)/i,
-    /^(i see that[^.\n]*)/i,
-    /^(i notice that[^.\n]*)/i,
-    /^(first[,.\s-]*)/i,
-    /^(in this case[^.\n]*)/i,
-    /^(regarding[^.\n]*)/i,
-    /^(as requested[^.\n]*)/i,
-    /^(here is[^.\n]*)/i,
-    /^(here are[^.\n]*)/i
-  ];
-  
-  englishIntroPatterns.forEach(pattern => {
-    txt = txt.replace(pattern, '');
-  });
-  
-  // Eliminar frases meta en español también
-  const spanishMetaPatterns = [
-    /^(veamos[,.\s-]*)/i,
-    /^(analizando[^.\n]*)/i,
-    /^(considerando[^.\n]*)/i,
-    /^(basándome en[^.\n]*)/i,
-    /^(observando[^.\n]*)/i,
-    /^(en este caso[^.\n]*)/i,
-    /^(procedamos[^.\s-]*)/i,
-    /^(de acuerdo[^.\n]*)/i,
-    /^(perfecto[,.\s-]*)/i,
-    /^(entonces[,.\s-]*)/i,
-    /^(ahora[,.\s-]*)/i,
-    /^(bien[,.\s-]*)/i
-  ];
-  
-  spanishMetaPatterns.forEach(pattern => {
-    txt = txt.replace(pattern, '');
-  });
-  
-  // Limpiar espacios extra y dividir en líneas
-  const lines = txt
-    .split(/\r?\n/)
-    .map(line => line.trim())
-    .filter(line => {
-      // Filtrar líneas que sean solo meta-razonamiento
-      const lowerLine = line.toLowerCase();
-      return !lowerLine.match(/^(i need to|i should|i will|let me|we can|we should|this recipe|the recipe|user wants|user has|user's)/) &&
-             !lowerLine.match(/^(necesito|debo|voy a|podemos|debemos|esta receta|la receta|el usuario)/) &&
-             line.length > 0;
-    })
-    .filter(Boolean);
-  
-  // Tomar máximo 4 líneas y unir
-  const topLines = lines.slice(0, 4);
-  let result = topLines.join('\n').trim();
-  
-  // Si después de todo el cleaning queda vacío, usar respuesta por defecto
-  if (!result) {
-    return 'Encaja con tus gustos y tiempo. Sustituir mayonesa por yogur natural para aligerar.';
+  private sanitizeLlmAnswer(txt: string): string {
+    if (!txt) return 'Encaja con tus gustos y tiempo. Sustituir mayonesa por yogur natural para aligerar.';
+
+    txt = txt.replace(/<\/?think>/gi, '');
+    txt = txt.replace(/<think[\s\S]*?<\/think>/gi, '');
+
+    const englishIntroPatterns = [
+      /^(ok(ay)?[,.\s-]*)/i,
+      /^(let me (think|see)[,.\s-]*)/i,
+      /^(alright[,.\s-]*)/i,
+      /^(so[,.\s-]*)/i,
+      /^(well[,.\s-]*)/i,
+      /^(now[,.\s-]*)/i,
+      /^(the (user|task)[^.\n]*)/i,
+      /^(based on[^.\n]*)/i,
+      /^(considering[^.\n]*)/i,
+      /^(looking at[^.\n]*)/i,
+      /^(i (see|notice) that[^.\n]*)/i,
+      /^(first[,.\s-]*)/i,
+      /^(in this case[^.\n]*)/i,
+      /^(regarding[^.\n]*)/i,
+      /^(as requested[^.\n]*)/i,
+      /^(here (is|are)[^.\n]*)/i,
+    ];
+    englishIntroPatterns.forEach((p) => (txt = txt.replace(p, '')));
+
+    const spanishMetaPatterns = [
+      /^(veamos[,.\s-]*)/i,
+      /^(analizando[^.\n]*)/i,
+      /^(considerando[^.\n]*)/i,
+      /^(basándome en[^.\n]*)/i,
+      /^(observando[^.\n]*)/i,
+      /^(en este caso[^.\n]*)/i,
+      /^(procedamos[^.\s-]*)/i,
+      /^(de acuerdo[^.\n]*)/i,
+      /^(perfecto[,.\s-]*)/i,
+      /^(entonces[,.\s-]*)/i,
+      /^(ahora[,.\s-]*)/i,
+      /^(bien[,.\s-]*)/i,
+    ];
+    spanishMetaPatterns.forEach((p) => (txt = txt.replace(p, '')));
+
+    const lines = txt
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((line) => {
+        const lower = line.toLowerCase();
+        return (
+          !lower.match(/^(i need to|i should|i will|let me|we can|we should|this recipe|the recipe|user wants|user has|user's)/) &&
+          !lower.match(/^(necesito|debo|voy a|podemos|debemos|esta receta|la receta|el usuario)/) &&
+          line.length > 0
+        );
+      });
+
+    const result = lines.slice(0, 4).join('\n').trim();
+    return result || 'Encaja con tus gustos y tiempo. Sustituir mayonesa por yogur natural para aligerar.';
   }
-  
-  return result;
-}
 
   async recomendarReceta(req: RecommendRequestDto): Promise<{ opciones: OpcionOut[]; mensaje?: string }> {
-    let alergias = (req.alergias ?? []).map(s => s.toLowerCase());
-    let noMeGusta = (req.no_me_gusta ?? []).map(s => s.toLowerCase());
-    let gustos = (req.gustos ?? []).map(s => s.toLowerCase());
+    let alergias = (req.alergias ?? []).map((s) => s.toLowerCase());
+    let noMeGusta = (req.no_me_gusta ?? []).map((s) => s.toLowerCase());
+    let gustos = (req.gustos ?? []).map((s) => s.toLowerCase());
     let kcal = req.kcal_diarias ?? 2000;
     let tiempoMax = req.tiempo_max ?? 30;
 
-    const bodyVacio =
-      !(req.alergias?.length) &&
-      !(req.no_me_gusta?.length) &&
-      !(req.gustos?.length) &&
-      !req.kcal_diarias &&
-      !req.tiempo_max;
-
-    if (req.userId && bodyVacio) {
-      this.logger.log(`Cargando preferencias desde perfil de usuario ${req.userId}`);
-      const perfil = await this.supabase.getUserDetails(req.userId);
+    if (isValidUuid(req.userId)) {
+      this.logger.log(`Fusionando preferencias con perfil del usuario ${req.userId}`);
+      const perfil = await this.supabase.getUserDetails(req.userId!);
       if (perfil) {
         const split = (t?: string | null) =>
           t ? t.split(',').map((x: string) => x.trim().toLowerCase()).filter(Boolean) : [];
-        alergias = split(perfil.alergias);
-        gustos = split(perfil.gustos);
-        if (perfil.objetivo_calorico) kcal = perfil.objetivo_calorico;
+
+        if (!alergias.length) alergias = split(perfil.alergias);
+        if (!noMeGusta.length && (perfil as any).no_me_gusta) noMeGusta = split((perfil as any).no_me_gusta);
+        if (!gustos.length) gustos = split(perfil.gustos);
+        if (!req.kcal_diarias && perfil.objetivo_calorico) kcal = perfil.objetivo_calorico;
       }
+    } else if (req.userId) {
+      this.logger.warn(`userId inválido recibido: "${req.userId}". Se ignora y se usan solo preferencias del body.`);
     }
 
-    const recetas = await this.supabase.listRecetas(200);             
+    const recetas = await this.supabase.listRecetas(200);
     const ids = recetas.map((r: any) => r.id_receta);
-    const mapIngs = await this.supabase.getIngredientesPorRecetas(ids); 
+    const mapIngs = await this.supabase.getIngredientesPorRecetas(ids);
 
     type Cand = {
       receta: any;
@@ -210,9 +190,7 @@ private sanitizeLlmAnswer(txt: string): string {
     };
 
     const toTexto = (r: any, ings: any[]) =>
-      [r.nombre, r.descripcion, r.instrucciones, ...ings.map(i => i.nombre)]
-        .join(' ')
-        .toLowerCase();
+      [r.nombre, r.descripcion, r.instrucciones, ...ings.map((i) => i.nombre)].join(' ').toLowerCase();
 
     const candidatos: Cand[] = recetas.map((r: any) => {
       const ings = mapIngs.get(r.id_receta) ?? [];
@@ -221,20 +199,16 @@ private sanitizeLlmAnswer(txt: string): string {
       const motivos: string[] = [];
       let score = 0;
 
-      const aler = alergias.find(a => a && texto.includes(a));
+      const aler = alergias.find((a) => a && texto.includes(a));
       if (aler) motivos.push(`Contiene alérgeno: ${aler}`);
 
-      const nog = noMeGusta.find(n => n && texto.includes(n));
+      const nog = noMeGusta.find((n) => n && texto.includes(n));
       if (nog) motivos.push(`Incluye ingrediente no deseado: ${nog}`);
 
-      if (r.tiempo_preparacion && r.tiempo_preparacion > tiempoMax) {
-        motivos.push(`Supera el tiempo máximo (${tiempoMax} min)`);
-      }
-      if (r.calorias_totales && r.calorias_totales > kcal * 0.6) {
-        motivos.push(`Calorías altas vs objetivo (${kcal} kcal/día)`);
-      }
+      if (r.tiempo_preparacion && r.tiempo_preparacion > tiempoMax) motivos.push(`Supera el tiempo máximo (${tiempoMax} min)`);
+      if (r.calorias_totales && r.calorias_totales > kcal * 0.6) motivos.push(`Calorías altas vs objetivo (${kcal} kcal/día)`);
 
-      const gustoHits = gustos.filter(g => g && texto.includes(g)).length;
+      const gustoHits = gustos.filter((g) => g && texto.includes(g)).length;
       score += gustoHits * 2;
 
       if (aler || nog) score -= 1000;
@@ -244,11 +218,11 @@ private sanitizeLlmAnswer(txt: string): string {
       return { receta: r, ingredientes: ings, score, motivos, texto };
     });
 
-    let aptos = candidatos.filter(c => c.score > -1000);
+    let aptos = candidatos.filter((c) => c.score > -1000);
 
     if (Array.isArray(req.exclude_ids) && req.exclude_ids.length) {
       const ex = new Set(req.exclude_ids.map(Number));
-      aptos = aptos.filter(c => !ex.has(Number(c.receta.id_receta)));
+      aptos = aptos.filter((c) => !ex.has(Number(c.receta.id_receta)));
     }
 
     aptos = aptos.sort((a, b) => {
@@ -303,7 +277,6 @@ private sanitizeLlmAnswer(txt: string): string {
       motivos: Array.isArray(t.motivos) ? t.motivos : [],
     }));
 
-    //Explicación IA (Ollama)
     const useLlm = req.use_llm ?? true;
     if (!useLlm) {
       return { opciones: opcionesBase };
@@ -326,23 +299,19 @@ Perfil:
 
 Receta: ${op.titulo}
 Ingredientes:
-${op.ingredientes.map(i => `- ${i.nombre}${i.cantidad ? `: ${i.cantidad} ${i.unidad ?? ''}` : ''}`).join('\n')}
+${op.ingredientes.map((i) => `- ${i.nombre}${i.cantidad ? `: ${i.cantidad} ${i.unidad ?? ''}` : ''}`).join('\n')}
 
 IMPORTANTE: NO incluyas razonamientos, explicaciones meta, inglés, cálculos, ni frases introductorias. Comienza DIRECTAMENTE con "- Encaje:".
 `.trim();
-
 
         let ia_explicacion: string | null = null;
         try {
           ia_explicacion = await this.askOllama(prompt);
           ia_explicacion = this.sanitizeLlmAnswer(ia_explicacion);
-          
         } catch (e) {
           this.logger.warn(`Ollama no respondió: ${(e as Error).message}`);
           ia_explicacion = null;
         }
-
-
 
         return { ...op, ia_explicacion };
       })

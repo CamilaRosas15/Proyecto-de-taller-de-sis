@@ -208,6 +208,7 @@ export class AuthService {
       objetivo_calorico: profileDto.objetivo_calorico ?? profileDto.calorias_diarias_objetivo ?? null,
       gustos: Array.isArray(profileDto.gustos) ? profileDto.gustos.join(', ') : (profileDto.gustos ?? null),
       alergias: Array.isArray(profileDto.alergias) ? profileDto.alergias.join(', ') : (profileDto.alergias ?? null),
+      no_me_gusta: Array.isArray(profileDto.no_me_gusta) ? profileDto.no_me_gusta.join(', ') : (profileDto.no_me_gusta ?? null),
       fecha_creacion: new Date().toISOString(),
     };
 

@@ -17,7 +17,6 @@ export class ChatIAComponent {
   cargando: boolean = false;
   errorMessage: string = '';
 
-  // Preferencias por defecto
   preferencias = {
     alergias: [] as string[],
     noMeGusta: [] as string[],
@@ -26,87 +25,112 @@ export class ChatIAComponent {
     tiempoMax: 30
   };
 
+  ultimoPayload: any = null;
+
   constructor(private recipeService: RecipeService) {}
 
-  // Enviar mensaje
   sendMessage() {
+    this.preferencias = {
+      alergias: [],
+      noMeGusta: [],
+      gustos: [],
+      kcalDiarias: 2000,
+      tiempoMax: 30
+    };
+
     if (!this.userMessage.trim()) {
-      // Si no hay mensaje, usar parámetros por defecto
-      this.userMessage = "Recomiéndame recetas";
+      this.userMessage = 'Recomiéndame recetas';
     }
 
     this.cargando = true;
     this.errorMessage = '';
 
-    // Procesar el mensaje para extraer preferencias
     this.procesarMensaje(this.userMessage);
-    
-    // Generar recomendaciones
+
     this.generarRecomendaciones();
   }
 
-  // Procesar el mensaje del usuario para extraer preferencias
   procesarMensaje(mensaje: string) {
-    const mensajeLower = mensaje.toLowerCase();
+    const normalize = (s: string) => s
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); 
 
-    // Detectar gustos
-    if (mensajeLower.includes('pollo') || mensajeLower.includes('pasta') || mensajeLower.includes('ensalada')) {
-      this.preferencias.gustos = this.extraerPalabrasClave(mensajeLower, ['pollo', 'pasta', 'ensalada', 'verduras', 'frutas']);
+    const msg = normalize(mensaje);
+
+    const catalogoGustos = ['pollo','pasta','ensalada','verduras','frutas','wrap','arroz','sopa','pescado'];
+    this.preferencias.gustos = catalogoGustos.filter(x => msg.includes(x));
+
+    const alergias: string[] = [];
+    const reAlergia = /(alergi\w*\s+a|intoleran\w*\s+a)\s+([^.,;]+)/g; 
+    let m: RegExpExecArray | null;
+    while ((m = reAlergia.exec(msg)) !== null) {
+      const lista = m[2].split(/,| y | e |\/|;/).map(s => s.trim()).filter(Boolean);
+      alergias.push(...lista);
     }
 
-    // Detectar alergias
-    if (mensajeLower.includes('alergia') || mensajeLower.includes('intolerancia')) {
-      this.preferencias.alergias = this.extraerPalabrasClave(mensajeLower, ['mariscos', 'nueces', 'lactosa', 'gluten']);
-    }
+    const catalogoAlergenos = ['gluten','lactosa','mariscos','nueces','mani','maní','huevo','soya','soja','avena','fresa','fresas'];
+    catalogoAlergenos.forEach(x => { if (msg.includes(x)) alergias.push(x); });
+    this.preferencias.alergias = Array.from(new Set(alergias));
 
-    // Detectar tiempo
-    const tiempoMatch = mensajeLower.match(/(\d+)\s*min/);
+    const dislikes: string[] = [];
+    const reDislike = /(no\s+me\s+gustan?|odio|evito)\s+([^.,;]+)/g;
+    while ((m = reDislike.exec(msg)) !== null) {
+      const lista = m[2].split(/,| y | e |\/|;/).map(s => s.trim()).filter(Boolean);
+      dislikes.push(...lista);
+    }
+    const catalogoNoMeGusta = ['tomate','cebolla','pimiento','picante','cilantro','pepino','berenjena','aceituna'];
+    catalogoNoMeGusta.forEach(x => {
+      if (msg.includes(`no me gusta ${x}`) || msg.includes(`odio ${x}`) || msg.includes(`evito ${x}`)) dislikes.push(x);
+    });
+    this.preferencias.noMeGusta = Array.from(new Set(dislikes));
+
+    const tiempoMatch = msg.match(/(\d+)\s*min/);
     if (tiempoMatch) {
-      this.preferencias.tiempoMax = parseInt(tiempoMatch[1]);
+      this.preferencias.tiempoMax = parseInt(tiempoMatch[1], 10);
     }
 
-    // Detectar calorías
-    const kcalMatch = mensajeLower.match(/(\d+)\s*kcal/);
+    const kcalMatch = msg.match(/(\d+)\s*kcal/);
     if (kcalMatch) {
-      this.preferencias.kcalDiarias = parseInt(kcalMatch[1]);
+      this.preferencias.kcalDiarias = parseInt(kcalMatch[1], 10);
     }
   }
 
-  extraerPalabrasClave(mensaje: string, palabras: string[]): string[] {
-    return palabras.filter(palabra => mensaje.includes(palabra));
-  }
-
-  // Generar recomendaciones
   generarRecomendaciones() {
+    const userId = localStorage.getItem('userId') || undefined;
+
     const params: RecommendRequest = {
-      top_n: 3,  // Siempre pedir 3 recetas
-      use_llm: true,
-      alergias: this.preferencias.alergias,
-      no_me_gusta: this.preferencias.noMeGusta,
-      gustos: this.preferencias.gustos,
-      kcal_diarias: this.preferencias.kcalDiarias,
-      tiempo_max: this.preferencias.tiempoMax
+      userId,           // deja que el back fusione con lo guardado en perfil
+      top_n: 2,
+      use_llm: true
     };
+
+    if (this.preferencias.alergias.length)   params.alergias     = this.preferencias.alergias;
+    if (this.preferencias.noMeGusta.length)  params.no_me_gusta  = this.preferencias.noMeGusta;
+    if (this.preferencias.gustos.length)     params.gustos       = this.preferencias.gustos;
+    if (this.preferencias.kcalDiarias !== 2000) params.kcal_diarias = this.preferencias.kcalDiarias;
+    if (this.preferencias.tiempoMax !== 30)     params.tiempo_max   = this.preferencias.tiempoMax;
+
+    this.ultimoPayload = params; 
 
     this.recipeService.recomendarRecetas(params).subscribe({
       next: (response: RecommendResponse) => {
         this.cargando = false;
-        this.opcionesRecetas = response.opciones;
-        console.log('Recomendaciones con IA:', this.opcionesRecetas);
+        this.opcionesRecetas = response.opciones || [];
+        console.log('Recomendaciones:', this.opcionesRecetas);
       },
-      error: (error: Error) => {
+      error: (error: any) => {
         this.cargando = false;
-        this.errorMessage = 'Error al generar recomendaciones: ' + error.message;
+        this.errorMessage = 'Error al generar recomendaciones: ' + (error?.message || error?.statusText || 'desconocido');
         console.error('Error:', error);
       }
     });
   }
 
-  // Limpiar chat
   clearChat() {
     this.userMessage = '';
     this.opcionesRecetas = [];
     this.errorMessage = '';
+    this.ultimoPayload = null;
     this.preferencias = {
       alergias: [],
       noMeGusta: [],
