@@ -1,0 +1,178 @@
+<div class="app-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <img src="assets/logo.png" alt="Logo" class="logo-img">
+      <h2>Nutrichef IA</h2>
+    </div>
+
+    <nav class="menu">
+      <button class="menu-btn" routerLink="/principal">🏠 Inicio</button>
+      <button class="menu-btn" routerLink="/recetas">📖 Recetas</button>
+      <button class="menu-btn active">💬 Chat con IA</button>
+      <button class="menu-btn" routerLink="/analisis-imagen">📸 Analizar Imagen</button>
+      
+      <div class="historial">
+        <h4>Historial de Recetas</h4>
+        <button class="historial-btn">Smoothie Energético</button>
+        <button class="historial-btn">Wrap de Pollo</button>
+        <button class="historial-btn">Ensalada César</button>
+      </div>
+    </nav>
+
+    <div class="user-info">
+      <img src="assets/user.png" alt="Usuario" class="avatar">
+      <div>
+        <p class="username">Username</p>
+        <p class="user-handle">@Username</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="header">
+      <h1>💬 ¿Qué te gustaría cocinar?</h1>
+      <button class="progress-btn">⏰</button>
+    </header>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+      <!-- Mensaje inicial del bot -->
+      <div class="message bot-message">
+        <div class="message-avatar">🤖</div>
+        <div class="message-content">
+          <div class="message-text">
+            ¡Hola! Soy NutriChef IA. Cuéntame tus preferencias y te recomendaré recetas personalizadas. 
+            Puedes contarme sobre tus gustos, alergias, tiempo disponible y objetivo calórico.
+          </div>
+          <div class="message-time">Ahora</div>
+        </div>
+      </div>
+
+      <!-- Input del usuario -->
+      <div class="user-input-section">
+        <div class="input-container">
+          <input 
+            type="text" 
+            [(ngModel)]="userMessage" 
+            placeholder="Pregunta lo que quieras..."
+            (keyup.enter)="sendMessage()"
+            class="message-input">
+          <button (click)="sendMessage()" class="send-btn">➤</button>
+        </div>
+        
+        <!-- Botones rápidos -->
+        <div class="quick-buttons">
+          <button class="quick-btn" (click)="quickAction('recomendacion')">
+            🍽️ Dame una recomendación
+          </button>
+          <button class="quick-btn" (click)="quickAction('rapida')">
+            ⏱️ Receta rápida
+          </button>
+          <button class="quick-btn" (click)="quickAction('saludable')">
+            🥗 Algo saludable
+          </button>
+        </div>
+      </div>
+
+      <!-- Mensajes del chat -->
+      <div class="messages-container">
+        <!-- Mensaje del usuario -->
+        <div *ngIf="userMessage" class="message user-message">
+          <div class="message-content">
+            <div class="message-text">{{ userMessage }}</div>
+            <div class="message-time">Ahora</div>
+          </div>
+          <div class="message-avatar">👤</div>
+        </div>
+
+        <!-- Respuesta de la IA con recetas -->
+        <div *ngIf="opcionesRecetas.length > 0" class="recipes-response">
+          <div class="message bot-message">
+            <div class="message-avatar">🤖</div>
+            <div class="message-content">
+              <div class="message-text">
+                ¡Perfecto! Basándome en tus preferencias, te recomiendo estas opciones:
+              </div>
+              <div class="message-time">Ahora</div>
+            </div>
+          </div>
+
+          <!-- Cards de recetas -->
+          <div *ngFor="let receta of opcionesRecetas" class="recipe-card">
+            <div class="recipe-header">
+              <h3>{{ receta.titulo }}</h3>
+              <div class="recipe-meta">
+                <span class="meta-item">⏱️ {{ receta.tiempo_preparacion }} min</span>
+                <span class="meta-item">🔥 {{ receta.kcal_totales }} kcal</span>
+                <span class="meta-item">📁 {{ receta.categoria }}</span>
+              </div>
+            </div>
+
+            <p class="recipe-description">{{ receta.descripcion }}</p>
+
+            <!-- Explicación de la IA -->
+            <div *ngIf="receta.ia_explicacion" class="ia-explanation">
+              <div class="explanation-header">
+                <strong>💡 Por qué te recomiendo esta receta:</strong>
+              </div>
+              <div class="explanation-content">
+                {{ receta.ia_explicacion }}
+              </div>
+            </div>
+
+            <!-- Ingredientes -->
+            <div class="ingredients-section">
+              <h4>🛒 Ingredientes:</h4>
+              <div class="ingredients-grid">
+                <span *ngFor="let ing of receta.ingredientes" class="ingredient-tag">
+                  {{ ing.nombre }}
+                  <span *ngIf="ing.cantidad" class="quantity">
+                    ({{ ing.cantidad }} {{ ing.unidad || 'un' }})
+                  </span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Pasos de preparación -->
+            <div class="steps-section">
+              <h4>👩‍🍳 Preparación:</h4>
+              <ol class="steps-list">
+                <li *ngFor="let paso of receta.pasos; let i = index" class="step-item">
+                  {{ paso }}
+                </li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="cargando" class="message bot-message">
+          <div class="message-avatar">🤖</div>
+          <div class="message-content">
+            <div class="message-text">
+              <div class="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              Analizando tus preferencias y buscando las mejores recetas para ti...
+            </div>
+          </div>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="errorMessage" class="message bot-message error">
+          <div class="message-avatar">🤖</div>
+          <div class="message-content">
+            <div class="message-text">
+              ❌ {{ errorMessage }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

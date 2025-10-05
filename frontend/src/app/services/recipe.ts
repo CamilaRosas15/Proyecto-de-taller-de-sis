@@ -25,18 +25,60 @@ export interface Receta {
   ingredientes?: IngredienteReceta[];
 }
 
+// Nuevas interfaces para las recomendaciones
+export interface RecommendRequest {
+  userId?: string;
+  alergias?: string[];
+  no_me_gusta?: string[];
+  gustos?: string[];
+  kcal_diarias?: number;
+  tiempo_max?: number;
+  use_llm?: boolean;
+  top_n?: number;
+  exclude_ids?: number[];
+  random?: boolean;
+  seed?: number;
+}
+
+export interface OpcionOut {
+  id_receta: number;
+  titulo: string;
+  descripcion: string | null;
+  categoria: string | null;
+  tiempo_preparacion: number | null;
+  kcal_totales: number | null;
+  pasos: string[];
+  imagen_url: string | null;
+  ingredientes: IngredienteReceta[];
+  motivos: string[];
+  ia_explicacion?: string | null;
+}
+
+export interface RecommendResponse {
+  opciones: OpcionOut[];
+  mensaje?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class RecipeService {
   private baseUrl = 'http://localhost:3000/api/recipes';
 
   constructor(private http: HttpClient) {}
 
+  // Método existente
   getRecipeById(id: string | number): Observable<Receta> {
     const numId = typeof id === 'string' ? Number(id) : id;
     if (Number.isNaN(numId)) {
       return throwError(() => new Error('El ID de la receta debe ser numérico.'));
     }
     return this.http.get<Receta>(`${this.baseUrl}/${numId}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // NUEVO MÉTODO: Para obtener recomendaciones de recetas con IA
+  recomendarRecetas(params: RecommendRequest): Observable<RecommendResponse> {
+    return this.http.post<RecommendResponse>(`${this.baseUrl}/recomendaciones`, params).pipe(
       catchError(this.handleError)
     );
   }
