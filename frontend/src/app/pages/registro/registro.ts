@@ -53,7 +53,6 @@ export class Registro implements OnInit {
         this.userEmail = response.email;
         this.profileData.email = response.email;
 
-        // ✅ CORREGIDO: Ahora accessToken existe en la interfaz
         if (response.accessToken) {
           this.authService.setSession(response.accessToken);
           console.log('Sesión automática iniciada después del registro');
