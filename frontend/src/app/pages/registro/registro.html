@@ -45,17 +45,16 @@
           <input type="number" id="peso" [(ngModel)]="profileData.peso" name="peso" required min="30" max="300">
         </div>
 
-        <!-- NUEVO: Sexo -->
         <div class="form-group sexo">
           <label for="sexo">Sexo:</label>
           <select id="sexo" [(ngModel)]="profileData.sexo" name="sexo" required>
             <option value="">Seleccione</option>
             <option value="F">Femenino</option>
             <option value="M">Masculino</option>
+            <option Value="Otro">Prefiero no decir</option>
           </select>
         </div>
 
-        <!-- NUEVO: Altura -->
         <div class="form-group altura">
           <label for="altura">Altura (cm):</label>
           <input 

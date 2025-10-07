@@ -195,14 +195,14 @@ export class AuthService {
       throw new InternalServerErrorException('El campo nombre_completo es requerido');
     }
 
-    const allowedSexo = new Set(['Masculino', 'Femenino', 'Otro']);
-    const sexo = profileDto.sexo && allowedSexo.has(profileDto.sexo) ? profileDto.sexo : 'Otro';
+    //const allowedSexo = new Set(['Masculino', 'Femenino', 'Otro']);
+    //const sexo = profileDto.sexo && allowedSexo.has(profileDto.sexo) ? profileDto.sexo : 'Otro';
 
     const profileData = {
       id: userId, //FK a auth.users.id
       nombre: profileDto.nombre_completo,
       edad: profileDto.edad ?? null,
-      sexo,
+      sexo: profileDto.sexo,
       altura: profileDto.altura ?? null,
       peso: profileDto.peso ?? null,
       objetivo_calorico: profileDto.objetivo_calorico ?? profileDto.calorias_diarias_objetivo ?? null,
