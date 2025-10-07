@@ -1,4 +1,4 @@
-// registro.ts - VERSIÓN CORREGIDA
+// registro.ts - VERSIÓN CORREGIDA CON SEXO Y ESTATURA
 import { Component, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -20,10 +20,13 @@ export class Registro implements OnInit {
 
   userId: string | null = null;
   userEmail: string | null = null;
+
   profileData: UserProfileData = {
       nombre_completo: '',
       edad: 0,
       peso: 0,
+      sexo: '', 
+      altura: 0, 
       objetivo_salud: 'Mantener peso',
       calorias_diarias_objetivo: 2000,
       alergias: [],
@@ -31,6 +34,7 @@ export class Registro implements OnInit {
       no_me_gusta: [],
       email: ''
   };
+
   nuevaAlergia = '';
   nuevoGusto = '';
   nuevoNoMeGusta = '';
@@ -53,7 +57,6 @@ export class Registro implements OnInit {
         this.userEmail = response.email;
         this.profileData.email = response.email;
 
-        // ✅ CORREGIDO: Ahora accessToken existe en la interfaz
         if (response.accessToken) {
           this.authService.setSession(response.accessToken);
           console.log('Sesión automática iniciada después del registro');
@@ -80,6 +83,16 @@ export class Registro implements OnInit {
         return;
     }
 
+    
+    if (!this.profileData.sexo) {
+      this.errorMessageProfile = 'Por favor, selecciona tu sexo.';
+      return;
+    }
+    if (this.profileData.altura <= 0) {
+      this.errorMessageProfile = 'Por favor, ingresa una altura válida.';
+      return;
+    }
+
     this.errorMessageProfile = null;
     this.isLoadingProfile = true;
 
@@ -87,9 +100,6 @@ export class Registro implements OnInit {
       next: (response) => {
         this.isLoadingProfile = false;
         console.log('Perfil de usuario guardado exitosamente:', response.profile);
-        
-        // ✅ Redirigir a la página principal en lugar de al login
-        // ya que ya estamos autenticados
         this.router.navigate(['/principal']);
       },
       error: (err) => {
