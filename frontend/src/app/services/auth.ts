@@ -11,6 +11,8 @@ interface LoginResponse {
   user: { 
     id: string; 
     email: string; 
+    sexo: string;
+    altura: number;
     /* ...otros datos */ 
   } 
 }
@@ -24,16 +26,19 @@ interface RegisterResponse {
 }
 
 export interface UserProfileData {
-    nombre_completo: string;
-    edad: number;
-    peso: number;
-    objetivo_salud: string;
-    calorias_diarias_objetivo: number;
-    alergias: string[];
-    gustos: string[];
-    no_me_gusta: string[];
-    email: string;
+  nombre_completo: string;
+  edad: number;
+  peso: number;
+  sexo: string;            // ✅ Nuevo campo
+  altura: number;        // ✅ Nuevo campo
+  objetivo_salud: string;
+  calorias_diarias_objetivo: number;
+  alergias: string[];
+  gustos: string[];
+  no_me_gusta: string[];
+  email: string;
 }
+
 
 @Injectable({
   providedIn: 'root'

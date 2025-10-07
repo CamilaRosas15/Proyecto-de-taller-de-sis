@@ -75,7 +75,7 @@
   color: #004d4d;
 }
 
-/* Inputs */
+/* Inputs y selects */
 .form-group {
   margin-bottom: 15px;
   text-align: left;
@@ -170,4 +170,52 @@ button:hover {
   margin-top: 10px;
   color: #ff3333;
   font-weight: bold;
+}
+
+/* Campos adicionales: Sexo y Altura */
+
+/* Campo Sexo */
+.form-group.sexo label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #003333;
+}
+
+.form-group.sexo select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  transition: border 0.3s, box-shadow 0.3s;
+}
+
+.form-group.sexo select:focus {
+  border-color: #40e0d0;
+  box-shadow: 0 0 8px rgba(64, 224, 208, 0.6);
+  outline: none;
+}
+
+/* Campo Altura */
+.form-group.altura label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #003333;
+}
+
+.form-group.altura input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  transition: border 0.3s, box-shadow 0.3s;
+}
+
+.form-group.altura input:focus {
+  border-color: #40e0d0;
+  box-shadow: 0 0 8px rgba(64, 224, 208, 0.6);
+  outline: none;
 }

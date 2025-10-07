@@ -29,18 +29,46 @@
     <div *ngIf="registrationStep === 2">
       <h3>Paso 2: Completa tu Perfil (Usuario: {{ userEmail }})</h3>
       <form (ngSubmit)="onSaveProfile(profileForm)" #profileForm="ngForm">
+
         <div class="form-group">
           <label for="nombreCompleto">Nombre Completo:</label>
           <input type="text" id="nombreCompleto" [(ngModel)]="profileData.nombre_completo" name="nombreCompleto" required>
         </div>
+
         <div class="form-group">
           <label for="edad">Edad:</label>
           <input type="number" id="edad" [(ngModel)]="profileData.edad" name="edad" required min="12" max="120">
         </div>
+
         <div class="form-group">
           <label for="peso">Peso (kg):</label>
           <input type="number" id="peso" [(ngModel)]="profileData.peso" name="peso" required min="30" max="300">
         </div>
+
+        <!-- NUEVO: Sexo -->
+        <div class="form-group sexo">
+          <label for="sexo">Sexo:</label>
+          <select id="sexo" [(ngModel)]="profileData.sexo" name="sexo" required>
+            <option value="">Seleccione</option>
+            <option value="F">Femenino</option>
+            <option value="M">Masculino</option>
+          </select>
+        </div>
+
+        <!-- NUEVO: Altura -->
+        <div class="form-group altura">
+          <label for="altura">Altura (cm):</label>
+          <input 
+          type="number" 
+          [(ngModel)]="profileData.altura" 
+          name="altura" 
+          step="0.1" 
+          min="0" 
+          required 
+/>
+
+        </div>
+
         <div class="form-group">
           <label for="objetivoSalud">Objetivo de Salud:</label>
           <select id="objetivoSalud" [(ngModel)]="profileData.objetivo_salud" name="objetivoSalud" required>
@@ -50,6 +78,7 @@
             <option value="Comer más saludable">Comer más saludable</option>
           </select>
         </div>
+
         <div class="form-group">
           <label for="caloriasObjetivo">Calorías Diarias Objetivo:</label>
           <input type="number" id="caloriasObjetivo" [(ngModel)]="profileData.calorias_diarias_objetivo" name="caloriasObjetivo" required min="1000" max="5000">
