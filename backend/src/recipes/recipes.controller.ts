@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, NotFoundException, Logger } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
 
 class RecommendRequestDto {
@@ -10,12 +10,31 @@ class RecommendRequestDto {
   tiempo_max?: number;
 }
 
-@Controller('recipes')
+@Controller('recipes') 
 export class RecipesController {
-  constructor(private readonly recipesService: RecipesService) {}
+  private readonly logger = new Logger(RecipesController.name);
+
+  constructor(private readonly recipesService: RecipesService) {
+    this.logger.log('✅ RecipesController inicializado');
+  }
+
+  // NUEVO ENDPOINT: Obtener todas las recetas
+  @Get()
+  async getAll() {
+    this.logger.log('📋 GET /recipes llamado');
+    try {
+      const result = await this.recipesService.getAll();
+      this.logger.log(`✅ Retornando ${result?.length} recetas`);
+      return result;
+    } catch (error) {
+      this.logger.error('❌ Error en GET /recipes:', error);
+      throw error;
+    }
+  }
 
   @Get(':id')
   async getById(@Param('id') id: string) {
+    this.logger.log(`🔍 GET /recipes/${id} llamado`);
     const numId = Number(id);
     if (Number.isNaN(numId)) throw new NotFoundException('El ID de receta debe ser numérico.');
     const receta = await this.recipesService.getById(numId);
@@ -25,6 +44,7 @@ export class RecipesController {
 
   @Post('recomendaciones')
   async recomendar(@Body() body: RecommendRequestDto) {
+    this.logger.log('🤖 POST /recipes/recomendaciones llamado');
     return this.recipesService.recomendarReceta(body);
   }
 }

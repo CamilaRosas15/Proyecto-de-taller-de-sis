@@ -1,5 +1,5 @@
-<!-- src/app/pages/recetas/recetas.html (de tu proyecto Angular - Standalone) -->
-<div class="principal-container"> <!-- O el contenedor que uses en tu página de recetas, basado en tu estructura -->
+<!-- src/app/pages/recetas/recetas.html -->
+<div class="principal-container">
   <nav class="navbar">
     <div class="logo">
       <i class="fas fa-utensils"></i>
@@ -8,7 +8,7 @@
     <ul class="nav-links">
       <li><a routerLink="/principal">HOME</a></li>
       <li><a routerLink="/analisis-imagen">ANÁLISIS IMAGEN</a></li>
-      <li><a routerLink="/chat-ia">CHAT IA</a></li> <!-- ← Nuevo enlace -->
+      <li><a routerLink="/chat-ia">CHAT IA</a></li>
       <li><a routerLink="/sobre-nosotros">SOBRE NOSOTROS</a></li>
       <li><a routerLink="/login">LOGIN</a></li>
       <li><a routerLink="/contacto">CONTÁCTANOS</a></li>
@@ -17,34 +17,42 @@
 
   <div class="recetas-container">
     <header class="recetas-header">
-      <h1>RECETA DESTACADA</h1>
-      <p class="subtitle">Aquí tienes una receta especial de nuestra base de datos inteligente.</p>
+      <h1>TODAS NUESTRAS RECETAS</h1>
+      <p class="subtitle">Explora nuestra completa colección de recetas inteligentes.</p>
     </header>
 
-    <!-- Sección para mostrar la ÚNICA receta cargada por ID desde Supabase -->
-    <div *ngIf="isLoading" style="text-align: center; margin-top: 20px;">Cargando receta desde Supabase...</div>
-    <div *ngIf="error" style="color: red; text-align: center; margin-top: 20px;">Error: {{ error }}</div>
+    <!-- Loading state -->
+    <div *ngIf="isLoading" style="text-align: center; margin-top: 20px;">
+      Cargando recetas desde Supabase...
+    </div>
 
-    <div class="recipes-grid" *ngIf="currentRecipe && !isLoading && !error">
-      <div class="recipe-card"> <!-- Ya no hay *ngFor, solo se muestra una card -->
-        <img [src]="currentRecipe.imagen_url" [alt]="currentRecipe.nombre" class="recipe-image">
+    <!-- Error state -->
+    <div *ngIf="error" style="color: red; text-align: center; margin-top: 20px;">
+      Error: {{ error }}
+    </div>
+
+    <!-- Grid de recetas -->
+    <!-- Mantén todo igual pero cambia esta parte: -->
+    <div class="recipes-grid" *ngIf="recipes.length > 0 && !isLoading && !error">
+      <div class="recipe-card" *ngFor="let recipe of recipes">
+        <img [src]="recipe.imagen_url || 'assets/default-recipe.jpg'" [alt]="recipe.nombre || 'Receta'" class="recipe-image">
         <div class="recipe-content">
-          <h2 class="recipe-title">{{ currentRecipe.nombre }} (ID: {{ currentRecipe.id_receta }})</h2>
-          <span class="recipe-category">{{ currentRecipe.categoria }}</span>
-          <p class="recipe-description">{{ currentRecipe.descripcion }}</p> <!-- ✅ CORREGIDO: de 'description' a 'descripcion' -->
+          <h2 class="recipe-title">{{ recipe.nombre || 'Sin nombre' }}</h2>
+          <span class="recipe-category">{{ recipe.categoria || 'Sin categoría' }}</span>
+          <p class="recipe-description">{{ recipe.descripcion || 'Sin descripción' }}</p>
           <div class="recipe-meta">
-            <span><i class="fas fa-clock"></i> {{ currentRecipe.tiempo_preparacion }} min</span> <!-- ✅ CORREGIDO: de 'tempo_preparacion' a 'tiempo_preparacion' -->
-            <span><i class="fas fa-fire"></i> {{ currentRecipe.calorias_totales }} kcal</span>
+            <span><i class="fas fa-clock"></i> {{ (recipe.tiempo_preparacion || 0) }} min</span>
+            <span><i class="fas fa-fire"></i> {{ (recipe.calorias_totales || 0) }} kcal</span>
           </div>
-          <!-- Puedes añadir las instrucciones aquí, si quieres que aparezcan en la card -->
           <h4>Instrucciones:</h4>
-          <p style="white-space: pre-wrap;">{{ currentRecipe.instrucciones }}</p>
+          <p style="white-space: pre-wrap;">{{ recipe.instrucciones || 'No hay instrucciones disponibles' }}</p>
         </div>
       </div>
     </div>
-    <div *ngIf="!isLoading && !currentRecipe && !error" style="text-align: center; margin-top: 20px;">
-      No hay receta disponible para el ID 1 en Supabase.
-    </div>
 
+    <!-- No recipes state -->
+    <div *ngIf="!isLoading && recipes.length === 0 && !error" style="text-align: center; margin-top: 20px;">
+      No hay recetas disponibles en la base de datos.
+    </div>
   </div>
 </div>

@@ -97,17 +97,21 @@ export class Registro implements OnInit {
     this.isLoadingProfile = true;
 
     this.authService.saveUserProfile(this.userId, this.profileData).subscribe({
-      next: (response) => {
-        this.isLoadingProfile = false;
-        console.log('Perfil de usuario guardado exitosamente:', response.profile);
-        this.router.navigate(['/principal']);
-      },
-      error: (err) => {
-        this.isLoadingProfile = false;
-        this.errorMessageProfile = err.message || 'Error al guardar el perfil del usuario.';
-        console.error('Error al guardar el perfil:', err);
-      }
-    });
+    next: (response) => {
+      this.isLoadingProfile = false;
+      console.log('Perfil de usuario guardado exitosamente:', response.profile);
+      
+      // ✅ REDIRECCIÓN CON MENSAJE
+      this.router.navigate(['/principal'], { 
+        queryParams: { message: 'register_success' } 
+      });
+    },
+    error: (err) => {
+      this.isLoadingProfile = false;
+      this.errorMessageProfile = err.message || 'Error al guardar el perfil del usuario.';
+      console.error('Error al guardar el perfil:', err);
+    }
+  });
   }
 
   // Métodos para añadir/eliminar alergias, gustos, no-gustos

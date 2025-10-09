@@ -51,6 +51,19 @@ export class RecipesService {
 
   constructor(private readonly supabase: SupabaseService) {}
 
+  // NUEVO MÉTODO: Obtener todas las recetas
+  async getAll(): Promise<any[]> {
+    this.logger.log('📋 Obteniendo todas las recetas desde Supabase');
+    try {
+      const recetas = await this.supabase.listRecetas(200);
+      this.logger.log(`✅ Se obtuvieron ${recetas?.length} recetas de Supabase`);
+      return recetas;
+    } catch (error) {
+      this.logger.error('❌ Error al obtener recetas:', error);
+      throw error;
+    }
+  }
+
   async getById(id: number): Promise<any | null> {
     this.logger.log(`Leyendo receta ${id} desde Supabase`);
     return this.supabase.getRecetaCompletaById(id);

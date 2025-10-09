@@ -28,7 +28,11 @@ export class Login { // ✅ ¡Nombre de CLASE ALINEADO a tu estructura!
     this.authService.login(this.email, this.password).subscribe({
       next: (response) => {
         this.isLoading = false;
-        this.router.navigate(['/principal']); // Redirigir a la página principal
+        
+        // ✅ REDIRECCIÓN CON MENSAJE
+        this.router.navigate(['/principal'], { 
+          queryParams: { message: 'login_success' } 
+        });
         console.log('Login exitoso:', response.user);
       },
       error: (err) => {
