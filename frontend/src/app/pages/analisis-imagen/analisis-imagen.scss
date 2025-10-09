@@ -178,6 +178,71 @@
   margin-left: 10px;
 }
 
+/* Natural language analysis */
+.natural-analysis {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid #6cb5ab;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Estilo especial para mensajes de no-comida */
+.natural-analysis.non-food-warning {
+  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+  border: 2px solid #ff9800;
+  animation: gentle-pulse 2s ease-in-out;
+}
+
+@keyframes gentle-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.natural-text {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  white-space: pre-wrap; /* Preserva saltos de línea y espacios */
+  margin: 0;
+  font-size: 14px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #6cb5ab;
+}
+
+/* Texto especial para no-comida */
+.natural-text.non-food-text {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border-left: 4px solid #f39c12;
+  color: #856404;
+  font-weight: 500;
+}
+
+.new-analysis-btn {
+  background: linear-gradient(135deg, #6cb5ab 0%, #4a9d8b 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.new-analysis-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
 /* JSON */
 .analysis-json {
   background: #f3f3f3;

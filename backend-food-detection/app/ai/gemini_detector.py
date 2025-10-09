@@ -171,88 +171,83 @@ class GeminiFoodDetector:
     def _create_food_analysis_prompt(self) -> str:
         """Create an optimized prompt for comprehensive food analysis."""
         return """
-        Analiza esta imagen de comida y proporciona una respuesta JSON detallada con la siguiente estructura.
-        IMPORTANTE: Todas las descripciones, recomendaciones y textos deben estar en ESPAÑOL.
+        Analiza esta imagen y determina si contiene comida o alimentos. 
+        
+        IMPORTANTE: Solo analizo imágenes de comida y alimentos. Si la imagen NO contiene comida, responde EXACTAMENTE esto:
 
-        {
-            "dish_identification": {
-                "dish_name": "nombre_del_plato_principal",
-                "dish_type": "ceviche/ensalada/guiso/etc",
-                "cuisine_type": "peruana/italiana/mexicana/etc",
-                "description": "Descripción breve del plato identificado EN ESPAÑOL"
-            },
-            "foods_detected": [
-                {
-                    "name": "nombre_comida_en_español",
-                    "confidence": 0.95,
-                    "portion_size": "mediana/pequeña/grande",
-                    "estimated_weight_grams": 150,
-                    "bounding_box": {
-                        "x": 0.1,
-                        "y": 0.1,
-                        "width": 0.3,
-                        "height": 0.4
-                    },
-                    "nutrition_per_100g": {
-                        "calories": 165,
-                        "protein": 31.0,
-                        "carbs": 0.0,
-                        "fat": 3.6,
-                        "fiber": 0.0,
-                        "sodium": 74,
-                        "sugar": 0.0
-                    },
-                    "total_nutrition": {
-                        "calories": 248,
-                        "protein": 46.5,
-                        "carbs": 0.0,
-                        "fat": 5.4,
-                        "fiber": 0.0
-                    }
-                }
-            ],
-            "meal_analysis": {
-                "meal_type": "desayuno/almuerzo/cena/snack",
-                "total_calories": 450,
-                "total_protein_grams": 35.2,
-                "total_carbs_grams": 45.8,
-                "total_fat_grams": 12.3,
-                "total_fiber_grams": 8.1,
-                "nutritional_balance": "equilibrado/alto_carbohidratos/alta_proteina/alta_grasa",
-                "health_score": 8.5,
-                "macronutrient_units": "Todos los macronutrientes (proteína, carbohidratos, grasa, fibra) están expresados en gramos (g). Sodio en miligramos (mg). Calorías en kilocalorías (kcal).",
-                "recommendations": ["Recomendaciones de salud EN ESPAÑOL", "Ejemplo: Excelente fuente de proteína"]
-            }
-        }
+        "¡Hola! 👋 
 
-        Instrucciones:
-        1. IDENTIFICA EL PLATO PRINCIPAL: Reconoce qué tipo de comida es (ceviche, ensalada, etc.)
-        2. Identifica TODOS los alimentos visibles en la imagen con alta precisión
-        3. Proporciona puntuaciones de confianza (0.0 a 1.0) basadas en la claridad visual
-        4. Estima tamaños de porciones y pesos de manera realista basándote en pistas visuales
-        5. Usa nombres en ESPAÑOL para los alimentos (ej: "pescado", "cebolla_roja", "lechuga", "maíz")
-        6. Proporciona coordenadas de bounding box como porcentajes (0.0 a 1.0)
-        7. Calcula valores nutricionales precisos por 100g Y totales para la porción estimada
-        8. INCLUYE las unidades en el análisis nutricional para claridad
-        9. Analiza la composición general de la comida con recomendaciones de salud EN ESPAÑOL
-        10. Proporciona una puntuación de salud (1-10) basada en el equilibrio nutricional
-        11. Sé lo más preciso posible con todas las estimaciones
-        12. TODAS las descripciones, recomendaciones, cuisine_type y textos descriptivos deben estar en ESPAÑOL
-        13. Para cuisine_type usa términos en español: "peruana", "italiana", "mexicana", "china", "japonesa", etc.
-        14. IMPORTANTE: Los nombres de alimentos en el campo "name" deben estar en ESPAÑOL (ej: "pollo", "arroz", "plátano", "tomate", "cebolla")
+        Soy una IA especializada en análisis nutricional de alimentos, pero parece que la imagen que subiste no contiene comida. 
 
-        Devuelve SOLO la respuesta JSON, sin texto adicional o formato markdown.
+        🤖 **¿Qué puedo hacer por ti?**
+        Solo puedo analizar imágenes que contengan:
+        - Platos de comida preparados
+        - Frutas y verduras 
+        - Snacks y bebidas
+        - Ingredientes para cocinar
+        - Cualquier tipo de alimento
+
+        🍽️ **¿Podrías intentar de nuevo?**
+        Sube una foto de tu comida y te daré un análisis nutricional detallado con recomendaciones personalizadas.
+
+        ¡Estoy aquí para ayudarte a llevar una alimentación más saludable! 💪✨"
+
+        ---
+
+        Si la imagen SÍ contiene comida, analízala usando esta estructura en ESPAÑOL:
+
+        **🍽️ ¿Qué estoy viendo?**
+        Identifica el plato principal y describe brevemente lo que observas en la imagen.
+
+        **🥘 Alimentos detectados:**
+        Para cada alimento que veas, menciona:
+        - Qué es exactamente
+        - Qué tan seguro estás de la identificación (muy seguro/bastante seguro/posiblemente)
+        - El tamaño de la porción (pequeña/mediana/grande)
+        - Peso estimado en gramos
+
+        **📊 Información nutricional:**
+        Para cada alimento, proporciona de manera conversacional:
+        - Calorías aproximadas de la porción
+        - Contenido de proteínas, carbohidratos y grasas
+        - Si tiene fibra significativa
+        - Cualquier nutriente destacable
+
+        **🍴 Análisis de la comida:**
+        - ¿Qué tipo de comida es? (desayuno/almuerzo/cena/snack)
+        - Calorías totales estimadas
+        - ¿Está balanceada nutricionalmente?
+        - Puntuación de salud del 1 al 10 y por qué
+
+        **💡 Recomendaciones:**
+        Da 2-3 consejos amigables sobre:
+        - Aspectos positivos de esta comida
+        - Qué se podría mejorar
+        - Sugerencias para complementar la comida
+
+        **🎯 Resumen rápido:**
+        Termina con un resumen de una línea sobre la comida.
+
+        INSTRUCCIONES IMPORTANTES: 
+        - PRIMERO determina si hay comida en la imagen
+        - Si NO hay comida, usa EXACTAMENTE el mensaje de "no es comida" de arriba
+        - Si SÍ hay comida, sigue la estructura completa de análisis
+        - Usa un tono conversacional y amigable
+        - Evita ser demasiado técnico
+        - Incluye emojis para hacer la respuesta más visual
+        - Sé específico con los números pero explícalos de forma simple
+        - Si no estás seguro de algo, dilo honestamente
         """
 
     def _process_gemini_response(self, response: Dict) -> Dict:
         """
-        Process the response from Gemini API with enhanced nutrition handling.
+        Process the response from Gemini API with natural language format.
         
         Args:
             response: Raw response from Gemini API
             
         Returns:
-            Processed detection results with Gemini nutrition data
+            Processed detection results with natural language analysis
         """
         try:
             # Extract text from Gemini response
@@ -264,109 +259,34 @@ class GeminiFoodDetector:
                 # Verificar estructura de la respuesta
                 if "content" not in candidate:
                     logger.error("No se encontró 'content' en la respuesta de Gemini")
-                    return self._simulate_detection()
+                    return self._simulate_natural_response()
                 
                 content_data = candidate["content"]
                 if "parts" not in content_data:
                     logger.error("No se encontró 'parts' en el content de Gemini")
-                    return self._simulate_detection()
+                    return self._simulate_natural_response()
                 
                 if len(content_data["parts"]) == 0:
                     logger.error("Array 'parts' está vacío en la respuesta de Gemini")
-                    return self._simulate_detection()
+                    return self._simulate_natural_response()
                 
                 if "text" not in content_data["parts"][0]:
                     logger.error("No se encontró 'text' en parts[0] de la respuesta de Gemini")
-                    return self._simulate_detection()
+                    return self._simulate_natural_response()
                 
                 content = content_data["parts"][0]["text"]
                 
                 # Clean the response (remove markdown formatting if present)
                 content = content.strip()
-                logger.info(f"Contenido extraído de Gemini: {content[:200]}...")
+                logger.info(f"Análisis natural de Gemini recibido: {content[:200]}...")
                 
-                if content.startswith("```json"):
-                    content = content[7:]
-                if content.endswith("```"):
-                    content = content[:-3]
-                content = content.strip()
-                
-                # Parse JSON
-                try:
-                    gemini_result = json.loads(content)
-                    logger.info(f"JSON parseado exitosamente. Estructura: {list(gemini_result.keys())}")
-                except json.JSONDecodeError as e:
-                    logger.error(f"Error parseando JSON de Gemini: {str(e)}")
-                    logger.error(f"Contenido que falló: {content}")
-                    return self._simulate_detection()
-                
-                # Convert to our internal format with enhanced nutrition
-                detections = []
-                foods_detected = gemini_result.get("foods_detected", [])
-                logger.info(f"Alimentos detectados en respuesta: {len(foods_detected)}")
-                
-                for food in foods_detected:
-                    confidence = food.get("confidence", 0)
-                    logger.info(f"Procesando alimento: {food.get('name', 'unknown')} con confianza: {confidence}")
-                    
-                    if confidence >= self.confidence_threshold:
-                        # Use Gemini nutrition data if available, fallback to local database
-                        nutrition_data = food.get("total_nutrition", {})
-                        if not nutrition_data:
-                            # Fallback to local database
-                            nutrition_data = self._get_nutrition_info(food["name"])
-                            estimated_weight = food.get("estimated_weight_grams", 
-                                                       self.weight_factors.get(food["name"], 100))
-                            # Calculate total nutrition from per-100g data
-                            for key, value in nutrition_data.items():
-                                nutrition_data[key] = round((value * estimated_weight) / 100, 1)
-                        
-                        detection = {
-                            "class": food["name"],
-                            "confidence": food["confidence"],
-                            "bbox": [
-                                food["bounding_box"]["x"],
-                                food["bounding_box"]["y"],
-                                food["bounding_box"]["width"],
-                                food["bounding_box"]["height"]
-                            ],
-                            "estimated_weight": food.get("estimated_weight_grams", 
-                                                       self.weight_factors.get(food["name"], 100)),
-                            "nutrition": nutrition_data,
-                            "nutrition_per_100g": food.get("nutrition_per_100g", 
-                                                         self._get_nutrition_info(food["name"])),
-                            "portion_size": food.get("portion_size", "medium")
-                        }
-                        detections.append(detection)
-                
-                # Enhanced meal analysis
-                meal_analysis = gemini_result.get("meal_analysis", {})
-                dish_info = gemini_result.get("dish_identification", {})
-                
+                # Return the natural language response directly
                 return {
-                    "dish_identification": {
-                        "dish_name": dish_info.get("dish_name", "Plato no identificado"),
-                        "dish_type": dish_info.get("dish_type", "unknown"),
-                        "cuisine_type": dish_info.get("cuisine_type", "unknown"),
-                        "description": dish_info.get("description", "")
-                    },
-                    "detections": detections,
-                    "meal_analysis": {
-                        "meal_type": meal_analysis.get("meal_type", "unknown"),
-                        "total_calories": meal_analysis.get("total_calories", 0),
-                        "total_protein_grams": meal_analysis.get("total_protein_grams", 0),
-                        "total_carbs_grams": meal_analysis.get("total_carbs_grams", 0),
-                        "total_fat_grams": meal_analysis.get("total_fat_grams", 0),
-                        "total_fiber_grams": meal_analysis.get("total_fiber_grams", 0),
-                        "nutritional_balance": meal_analysis.get("nutritional_balance", "unknown"),
-                        "health_score": meal_analysis.get("health_score", 5.0),
-                        "macronutrient_units": meal_analysis.get("macronutrient_units", 
-                            "Todos los macronutrientes (proteína, carbohidratos, grasa, fibra) están expresados en gramos (g). Sodio en miligramos (mg). Calorías en kilocalorías (kcal)."),
-                        "recommendations": meal_analysis.get("recommendations", [])
-                    },
-                    "total_items": len(detections),
-                    "confidence_avg": sum(d["confidence"] for d in detections) / len(detections) if detections else 0,
-                    "nutrition_source": "gemini_enhanced"
+                    "analysis_type": "natural_language",
+                    "gemini_analysis": content,
+                    "timestamp": "real_time",
+                    "model_used": "gemini-2.0-flash-exp",
+                    "nutrition_source": "gemini_natural"
                 }
             else:
                 logger.warning("No se encontraron candidates en la respuesta de Gemini")
@@ -376,8 +296,8 @@ class GeminiFoodDetector:
             import traceback
             logger.error(f"Traceback completo: {traceback.format_exc()}")
         
-        logger.info("Usando detección simulada como fallback")
-        return self._simulate_detection()
+        logger.info("Usando análisis simulado como fallback")
+        return self._simulate_natural_response()
 
     def _get_nutrition_info(self, food_name: str) -> Dict:
         """
@@ -401,79 +321,111 @@ class GeminiFoodDetector:
             "fiber": 2
         })
 
-    def _simulate_detection(self) -> Dict:
+    def _simulate_natural_response(self) -> Dict:
         """
-        Simulate enhanced food detection for development/testing.
+        Simulate enhanced food detection in natural language for development/testing.
         
         Returns:
-            Simulated detection results with enhanced nutrition data
+            Simulated natural language analysis
         """
+        # Simular análisis de comida válida
+        natural_analysis = """
+**🍽️ ¿Qué estoy viendo?**
+¡Veo un delicioso plato que parece ser una comida balanceada! Se trata de lo que parece ser pechuga de pollo acompañada de arroz blanco y brócoli fresco.
+
+**🥘 Alimentos detectados:**
+
+🍗 **Pechuga de pollo** - Estoy muy seguro de esta identificación
+- Porción: mediana
+- Peso estimado: 150 gramos
+- Se ve bien cocida y jugosa
+
+🍚 **Arroz blanco** - Bastante seguro de la identificación  
+- Porción: mediana
+- Peso estimado: 120 gramos
+- Parece ser arroz de grano largo
+
+🥦 **Brócoli** - Muy seguro de la identificación
+- Porción: pequeña
+- Peso estimado: 80 gramos
+- Se ve fresco y bien verde
+
+**📊 Información nutricional:**
+
+El **pollo** aporta aproximadamente 248 calorías, con un excelente contenido de proteína (46.5g) y muy poca grasa (5.4g). Es prácticamente libre de carbohidratos.
+
+El **arroz** contribuye con unas 156 calorías, principalmente de carbohidratos (33.6g), con algo de proteína (3.2g) y muy poca grasa.
+
+El **brócoli** es el héroe nutritivo con solo 27 calorías, pero rico en fibra (2.1g) y vitaminas, aportando 2.2g de proteína vegetal.
+
+**🍴 Análisis de la comida:**
+- Tipo: Definitivamente un almuerzo o cena
+- Calorías totales: Aproximadamente 431 calorías
+- Balance nutricional: ¡Muy bien balanceado! 
+- Puntuación de salud: 8.5/10 - ¡Excelente elección!
+
+**💡 Recomendaciones:**
+
+✅ **Lo que está genial:** 
+- Excelente fuente de proteína magra
+- Incluye vegetales frescos
+- Porciones adecuadas
+
+🌟 **Para mejorar:**
+- Podrías agregar un poquito de aceite de oliva o aguacate para grasas saludables
+- Una ensalada pequeña le daría más color y nutrientes
+
+💪 **Sugerencia extra:** Este plato es perfecto si estás enfocado en mantener o ganar masa muscular.
+
+**🎯 Resumen rápido:**
+Un almuerzo saludable y balanceado que cualquier nutricionista aprobaría - ¡alta proteína, carbohidratos complejos y vegetales frescos!
+        """
+        
         return {
-            "detections": [
-                {
-                    "class": "chicken_breast",
-                    "confidence": 0.92,
-                    "bbox": [0.2, 0.3, 0.3, 0.4],
-                    "estimated_weight": 150,
-                    "nutrition": {
-                        "calories": 248,
-                        "protein": 46.5,
-                        "carbs": 0,
-                        "fat": 5.4,
-                        "fiber": 0
-                    },
-                    "nutrition_per_100g": self._get_nutrition_info("chicken_breast"),
-                    "portion_size": "mediana"
-                },
-                {
-                    "class": "rice",
-                    "confidence": 0.88,
-                    "bbox": [0.5, 0.4, 0.25, 0.3],
-                    "estimated_weight": 120,
-                    "nutrition": {
-                        "calories": 156,
-                        "protein": 3.2,
-                        "carbs": 33.6,
-                        "fat": 0.4,
-                        "fiber": 0.5
-                    },
-                    "nutrition_per_100g": self._get_nutrition_info("rice"),
-                    "portion_size": "mediana"
-                },
-                {
-                    "class": "broccoli",
-                    "confidence": 0.85,
-                    "bbox": [0.1, 0.1, 0.2, 0.25],
-                    "estimated_weight": 80,
-                    "nutrition": {
-                        "calories": 27,
-                        "protein": 2.2,
-                        "carbs": 5.6,
-                        "fat": 0.3,
-                        "fiber": 2.1
-                    },
-                    "nutrition_per_100g": self._get_nutrition_info("broccoli"),
-                    "portion_size": "pequeña"
-                }
-            ],
-            "meal_analysis": {
-                "meal_type": "almuerzo",
-                "total_calories": 431,
-                "total_protein": 51.9,
-                "total_carbs": 39.2,
-                "total_fat": 6.1,
-                "nutritional_balance": "alta_proteina",
-                "health_score": 8.5,
-                "recommendations": [
-                    "Excelente contenido de proteína",
-                    "Buena inclusión de vegetales",
-                    "Considera agregar grasas saludables como aguacate"
-                ]
-            },
-            "total_items": 3,
-            "confidence_avg": 0.88,
-            "nutrition_source": "simulation_enhanced"
+            "analysis_type": "natural_language",
+            "gemini_analysis": natural_analysis,
+            "timestamp": "simulation",
+            "model_used": "simulation_mode",
+            "nutrition_source": "simulation_natural"
         }
+
+    def _simulate_non_food_response(self) -> Dict:
+        """
+        Simulate response for non-food images.
+        
+        Returns:
+            Simulated response for non-food content
+        """
+        non_food_message = """¡Hola! 👋 
+
+Soy una IA especializada en análisis nutricional de alimentos, pero parece que la imagen que subiste no contiene comida. 
+
+🤖 **¿Qué puedo hacer por ti?**
+Solo puedo analizar imágenes que contengan:
+- Platos de comida preparados
+- Frutas y verduras 
+- Snacks y bebidas
+- Ingredientes para cocinar
+- Cualquier tipo de alimento
+
+🍽️ **¿Podrías intentar de nuevo?**
+Sube una foto de tu comida y te daré un análisis nutricional detallado con recomendaciones personalizadas.
+
+¡Estoy aquí para ayudarte a llevar una alimentación más saludable! 💪✨"""
+        
+        return {
+            "analysis_type": "natural_language",
+            "gemini_analysis": non_food_message,
+            "timestamp": "simulation",
+            "model_used": "simulation_mode",
+            "nutrition_source": "non_food_detection"
+        }
+
+    def _simulate_detection(self) -> Dict:
+        """
+        Mantener método original para compatibilidad con food_detection.py
+        """
+        return self._simulate_natural_response()
 
     def get_supported_foods(self) -> Dict:
         """

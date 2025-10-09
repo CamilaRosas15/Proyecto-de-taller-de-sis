@@ -9,6 +9,7 @@ Incluye:
 """
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi.responses import PlainTextResponse
 from typing import Dict, List, Optional
 import logging
 
@@ -21,6 +22,67 @@ logger = logging.getLogger(__name__)
 
 # Instancia del servicio de análisis de productos
 product_service = ProductAnalysisService()
+
+def _convert_to_natural_language(result: Dict) -> str:
+    """
+    Convierte resultados de detección a lenguaje natural amigable.
+    """
+    if not result:
+        return "No se pudo analizar la imagen. Por favor, intenta con otra imagen."
+    
+    # Verificar si ya es análisis natural
+    if result.get("analysis_type") == "natural_language":
+        return result.get("gemini_analysis", "Análisis no disponible")
+    
+    # Convertir formato anterior a lenguaje natural
+    detections = result.get("detections", [])
+    meal_analysis = result.get("meal_analysis", {})
+    
+    if not detections:
+        return "No pude detectar alimentos claros en esta imagen. ¿Podrías probar con una imagen más clara?"
+    
+    natural_text = "🍽️ **¡Hola! Te cuento lo que veo en tu plato:**\n\n"
+    
+    # Describir alimentos detectados
+    natural_text += "**🥘 Alimentos que identifico:**\n"
+    for i, food in enumerate(detections, 1):
+        food_name = food.get("class", "alimento").replace("_", " ")
+        confidence = food.get("confidence", 0)
+        weight = food.get("estimated_weight", 0)
+        calories = food.get("nutrition", {}).get("calories", 0)
+        
+        confidence_text = "muy seguro" if confidence > 0.9 else "bastante seguro" if confidence > 0.7 else "posiblemente"
+        
+        natural_text += f"{i}. **{food_name.title()}** - Estoy {confidence_text} de esta identificación\n"
+        natural_text += f"   - Peso estimado: {weight}g\n"
+        natural_text += f"   - Calorías: {calories} kcal\n\n"
+    
+    # Análisis nutricional total
+    total_calories = meal_analysis.get("total_calories", 0)
+    meal_type = meal_analysis.get("meal_type", "comida")
+    health_score = meal_analysis.get("health_score", 5)
+    
+    natural_text += f"**📊 Análisis general:**\n"
+    natural_text += f"- Tipo de comida: {meal_type}\n"
+    natural_text += f"- Calorías totales: {total_calories} kcal\n"
+    natural_text += f"- Puntuación de salud: {health_score}/10\n\n"
+    
+    # Recomendaciones
+    recommendations = meal_analysis.get("recommendations", [])
+    if recommendations:
+        natural_text += "**💡 Mis recomendaciones:**\n"
+        for rec in recommendations:
+            natural_text += f"- {rec}\n"
+    
+    natural_text += "\n🎯 **En resumen:** "
+    if health_score >= 8:
+        natural_text += "¡Excelente elección! Esta comida está muy balanceada."
+    elif health_score >= 6:
+        natural_text += "Buena comida, con algunos ajustes podría ser perfecta."
+    else:
+        natural_text += "Está bien, pero hay muchas oportunidades para hacerla más saludable."
+    
+    return natural_text
 
 @router.get("/model-info", response_model=Dict)
 async def get_model_info():
@@ -84,6 +146,45 @@ async def test_detection(file: UploadFile = File(...)):
         raise
     except Exception as e:
         logger.error(f"Error en detección de prueba: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/analyze-food-natural")
+async def analyze_food_natural(file: UploadFile = File(...)):
+    """
+    Analiza alimentos en una imagen y devuelve respuesta en lenguaje natural directo.
+    """
+    try:
+        # Validar tipo de archivo
+        if not file.content_type.startswith('image/'):
+            raise HTTPException(
+                status_code=400, 
+                detail="El archivo debe ser una imagen"
+            )
+        
+        # Leer datos de la imagen
+        image_data = await file.read()
+        
+        # Realizar detección
+        result = await food_detector.detect_objects(image_data)
+        
+        # Si es análisis en lenguaje natural, devolver directamente el texto
+        if result.get("analysis_type") == "natural_language":
+            from fastapi.responses import PlainTextResponse
+            return PlainTextResponse(
+                content=result.get("gemini_analysis", "No se pudo analizar la imagen"),
+                media_type="text/plain; charset=utf-8"
+            )
+        else:
+            # Si es el formato antiguo, convertir a texto amigable
+            return PlainTextResponse(
+                content=_convert_to_natural_language(result),
+                media_type="text/plain; charset=utf-8"
+            )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error en análisis natural: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/nutrition-database", response_model=Dict)
