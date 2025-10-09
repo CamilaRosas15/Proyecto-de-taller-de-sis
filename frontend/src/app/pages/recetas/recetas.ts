@@ -12,7 +12,7 @@ import { RecipeService, Receta } from '../../services/recipe';
   styleUrls: ['./recetas.scss']
 })
 export class Recetas implements OnInit {
-  currentRecipe: Receta | null = null;
+  recipes: Receta[] = []; // Cambiar a array de recetas
   isLoading = false;
   error: string | null = null;
 
@@ -22,25 +22,21 @@ export class Recetas implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
-      const idParam = params.get('id');          
-      const id: string | number = idParam ?? 1; 
-      this.loadRecipe(id);
-    });
+    this.loadAllRecipes(); // Cargar todas las recetas
   }
 
-  loadRecipe(id: string | number): void {
+  loadAllRecipes(): void {
     this.isLoading = true;
     this.error = null;
-    this.currentRecipe = null;
+    this.recipes = [];
 
-    this.recipeService.getRecipeById(id).subscribe({
+    this.recipeService.getAllRecipes().subscribe({
       next: (data) => {
-        this.currentRecipe = data;
+        this.recipes = data;
         this.isLoading = false;
       },
       error: (err) => {
-        this.error = err.message || `No se pudo cargar la receta con ID ${id}.`;
+        this.error = err.message || 'No se pudieron cargar las recetas desde Supabase.';
         this.isLoading = false;
       }
     });

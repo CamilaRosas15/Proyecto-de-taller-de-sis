@@ -61,9 +61,16 @@ export interface RecommendResponse {
 
 @Injectable({ providedIn: 'root' })
 export class RecipeService {
-  private baseUrl = 'http://localhost:3000/api/recipes';
+  private baseUrl = 'http://localhost:3000/api/recipes'; 
 
   constructor(private http: HttpClient) {}
+
+  // NUEVO MÉTODO: Para obtener todas las recetas
+  getAllRecipes(): Observable<Receta[]> {
+    return this.http.get<Receta[]>(`${this.baseUrl}`).pipe(
+      catchError(this.handleError)
+    );
+  }
 
   // Método existente
   getRecipeById(id: string | number): Observable<Receta> {
@@ -76,7 +83,7 @@ export class RecipeService {
     );
   }
 
-  // NUEVO MÉTODO: Para obtener recomendaciones de recetas con IA
+  // Método existente: Para obtener recomendaciones de recetas con IA
   recomendarRecetas(params: RecommendRequest): Observable<RecommendResponse> {
     return this.http.post<RecommendResponse>(`${this.baseUrl}/recomendaciones`, params).pipe(
       catchError(this.handleError)
