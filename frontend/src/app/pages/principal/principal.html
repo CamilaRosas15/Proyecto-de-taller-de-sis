@@ -39,4 +39,13 @@
 
     <button class="discover-btn" routerLink="/recetas">Descubrir más recetas</button>
   </main>
+
+  <!-- Toast Notification Superpuesto - AGREGADO AL FINAL -->
+  <div *ngIf="successMessage" class="toast-notification">
+    <div class="toast-content">
+      <span class="toast-icon">✅</span>
+      <span class="toast-text">{{ successMessage }}</span>
+      <button class="toast-close" (click)="closeMessage()">×</button>
+    </div>
+  </div>
 </div>
