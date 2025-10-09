@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { RecipeService, RecommendRequest, RecommendResponse } from '../../services/recipe';
+import { RouterLink} from '@angular/router'; 
 
 @Component({
   selector: 'app-chat-ia',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule,RouterLink],
   templateUrl: './chat-ia.html',
   styleUrls: ['./chat-ia.scss']
 })

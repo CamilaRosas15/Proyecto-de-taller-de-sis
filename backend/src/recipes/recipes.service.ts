@@ -70,7 +70,8 @@ export class RecipesService {
   }
 
   private async askOllama(prompt: string): Promise<string> {
-    const base = process.env.OLLAMA_BASE_URL || 'https://approachable-dale-macroptic.ngrok-free.dev';
+    //const base = process.env.OLLAMA_BASE_URL || 'https://approachable-dale-macroptic.ngrok-free.dev';
+    const base = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
     const model = process.env.OLLAMA_MODEL || 'qwen3:4b';
 
     console.log('DEPURACIÓN OLLAMA:');
