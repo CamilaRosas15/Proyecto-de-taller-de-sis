@@ -6,7 +6,7 @@ $text-color: #333333;
 $error-color: #e53935;
 $input-border-color: #ddd;
 $input-focus-color: #26a69a; 
-$card-background: rgba(224, 247, 250, 0.9); 
+$card-background: rgba(224, 247, 250, 0.88); /* 🔹 Fondo más suave */
 
 .login-container {
   display: flex;
@@ -18,7 +18,6 @@ $card-background: rgba(224, 247, 250, 0.9);
   background-size: cover;
   padding: 20px;
   box-sizing: border-box;
-
   animation: moveBackground 30s linear infinite;
 }
 
@@ -30,19 +29,19 @@ $card-background: rgba(224, 247, 250, 0.9);
 
 .login-card {
   background-color: $card-background;
-  padding: 50px 40px;
-  border-radius: 16px;
+  padding: 60px 60px; /* 🔹 Más espacio interno */
+  border-radius: 18px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
   width: 100%;
-  max-width: 420px;
+  max-width: 450px; /* 🔹 Un poco más ancho */
   text-align: center;
-  backdrop-filter: blur(10px); 
+  backdrop-filter: blur(12px); /* 🔹 Efecto difuminado suave */
   animation: fadeInUp 0.8s ease both;
 
   h2 {
     color: $primary-color;
     font-size: 2.4em;
-    margin-bottom: 25px;
+    margin-bottom: 30px; /* 🔹 Más separación del título */
     font-weight: 800;
     letter-spacing: -0.5px;
   }
@@ -50,7 +49,7 @@ $card-background: rgba(224, 247, 250, 0.9);
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(30px); }
-  to   { opacity: 1; transform: translateY(0);    }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .form-group {
@@ -108,7 +107,7 @@ button[type="submit"] {
   }
 
   &:disabled {
-    background: color.adjust($primary-color, $lightness: 20%); // antes lighten(...)
+    background: color.adjust($primary-color, $lightness: 20%);
     cursor: not-allowed;
     opacity: 0.7;
   }
@@ -119,8 +118,8 @@ button[type="submit"] {
   margin-top: 15px;
   font-size: 0.9em;
   font-weight: 500;
-  background-color: color.adjust($error-color, $lightness: 45%); // antes lighten(...)
-  border: 1px solid color.adjust($error-color, $lightness: 20%); // antes lighten(...)
+  background-color: color.adjust($error-color, $lightness: 45%);
+  border: 1px solid color.adjust($error-color, $lightness: 20%);
   border-radius: 8px;
   padding: 12px;
   animation: shake 0.3s ease;
@@ -147,7 +146,7 @@ p {
 
     &:hover {
       text-decoration: underline;
-      color: color.adjust($primary-color, $lightness: -10%); // antes darken(...)
+      color: color.adjust($primary-color, $lightness: -10%);
     }
   }
 }
