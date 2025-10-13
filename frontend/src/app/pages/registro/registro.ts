@@ -62,6 +62,10 @@ export class Registro implements OnInit {
           console.log('Sesión automática iniciada después del registro');
         }
 
+        if (this.userId) {
+          sessionStorage.setItem('recentUserId', this.userId);
+        }
+
         this.registrationStep = 2;
         console.log('Registro y auto-login exitoso:', response.userId);
       },
