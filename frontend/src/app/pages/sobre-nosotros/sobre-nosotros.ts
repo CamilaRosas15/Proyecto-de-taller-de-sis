@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-sobre-nosotros',
-  imports: [],
+  standalone: true,                              
+  imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './sobre-nosotros.html',
-  styleUrl: './sobre-nosotros.scss'
+  styleUrls: ['./sobre-nosotros.scss']          
 })
-export class SobreNosotros {
-
-}
+export class SobreNosotros {}
