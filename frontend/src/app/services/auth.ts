@@ -68,6 +68,10 @@ export class AuthService {
       return this._currentUserEmail;
   }
 
+  get currentUserName(): string | null {
+      return localStorage.getItem('userName');
+  }
+
   isLoggedIn(): boolean {
       return !!this._accessToken && !!this._currentUserId;
   }
@@ -129,6 +133,7 @@ export class AuthService {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userId');
     localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName'); // Limpiar también el nombre
     this.router.navigate(['/login']);
   }
 
@@ -148,6 +153,24 @@ export class AuthService {
             'Authorization': `Bearer ${this._accessToken}`
         }
     }).pipe(
+        catchError(this.handleError)
+    );
+  }
+
+  getCurrentUser(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/me`, {
+        headers: {
+            'Authorization': `Bearer ${this._accessToken}`
+        }
+    }).pipe(
+        tap((user) => {
+          // Guardar el nombre del usuario en localStorage si está disponible
+          if (user?.profile?.nombre) {
+            localStorage.setItem('userName', user.profile.nombre);
+          } else if (user?.profile?.nombre_completo) {
+            localStorage.setItem('userName', user.profile.nombre_completo);
+          }
+        }),
         catchError(this.handleError)
     );
   }
