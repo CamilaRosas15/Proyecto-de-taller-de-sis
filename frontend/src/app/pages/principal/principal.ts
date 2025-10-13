@@ -47,14 +47,13 @@ export class Principal implements OnInit {
     });
   }
 
+  /** Muestra mensaje inicial según la información disponible */
   private setInitialWelcomeMessage(): void {
-    // Intentar obtener nombre guardado en localStorage
     const savedUserName = localStorage.getItem('user_name');
     
     if (savedUserName) {
       this.welcomeMessage = `¡Bienvenido, ${savedUserName}!`;
     } else {
-      // Intentar obtener nombre del servicio de auth
       const userName = this.authService.currentUserName;
       if (userName) {
         this.welcomeMessage = `¡Bienvenido, ${userName}!`;
@@ -64,6 +63,7 @@ export class Principal implements OnInit {
     }
   }
 
+  /** Carga los datos del usuario actual si está autenticado */
   private loadCurrentUser(): void {
     if (this.authService.isAuthenticated()) {
       this.isLoadingUser = true;
@@ -76,34 +76,26 @@ export class Principal implements OnInit {
         },
         error: (error) => {
           console.error('Error loading user:', error);
-          // Si hay error obteniendo el usuario, mantener mensaje inicial
           this.isLoadingUser = false;
         }
       });
     }
   }
 
+  /** Establece mensaje personalizado según los datos del perfil */
   private setWelcomeMessage(): void {
     if (this.currentUser?.profile?.nombre) {
-      // PRIORIDAD 1: Si tiene nombre en el perfil de la base de datos, usarlo
       this.welcomeMessage = `¡Bienvenido, ${this.currentUser.profile.nombre}!`;
-      
-      // Guardar en localStorage para próximas visitas
       localStorage.setItem('user_name', this.currentUser.profile.nombre);
-      
     } else if (this.currentUser?.profile?.nombre_completo) {
-      // PRIORIDAD 2: Si tiene nombre_completo en el perfil, usarlo  
       this.welcomeMessage = `¡Bienvenido, ${this.currentUser.profile.nombre_completo}!`;
-      
-      // Guardar en localStorage para próximas visitas
       localStorage.setItem('user_name', this.currentUser.profile.nombre_completo);
-      
     } else {
-      // PRIORIDAD 3: Mensaje genérico si no hay nombre
       this.welcomeMessage = '¡Bienvenido a NutriChef IA!';
     }
   }
 
+  /** Limpia los parámetros de la URL después de mostrar el mensaje */
   private clearQueryParams(): void {
     this.router.navigate([], {  
       relativeTo: this.route,
@@ -112,8 +104,16 @@ export class Principal implements OnInit {
     });
   }
 
-  // Método para cerrar el mensaje manualmente
+  /** Cierra manualmente el mensaje */
   closeMessage(): void {
     this.successMessage = '';
+  }
+
+  /** Desplaza suavemente hasta la sección indicada */
+  scrollToSection(id: string): void {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 }

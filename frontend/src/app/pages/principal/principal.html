@@ -1,4 +1,5 @@
 <div class="principal-container">
+  <!-- NAVBAR -->
   <nav class="navbar">
     <div class="logo">
       <img src="assets/logo.png" alt="Nutrichef IA">
@@ -8,7 +9,7 @@
       <li><a routerLink="/recetas">RECETAS</a></li>
       <li><a routerLink="/analisis-imagen">ANÁLISIS IMAGEN</a></li>
       <li><a routerLink="/chat-ia">CHAT IA</a></li>
-      <li><a routerLink="/sobre-nosotros">SOBRE NOSOTROS</a></li>
+      <li><a (click)="scrollToSection('sobre-nosotros')">SOBRE NOSOTROS</a></li>
       <li><a routerLink="/login">LOGIN</a></li>
     </ul>
   </nav>
@@ -32,10 +33,22 @@
     <p>Cargando información del usuario...</p>
   </div>
 
+  <!-- CONTENIDO PRINCIPAL -->
   <main class="main-content">
     <h1>Descubre recetas deliciosas y saludables 🍽️</h1>
-    <p>Deja que <strong>Nutrichef IA</strong> te inspire con ideas únicas para cuidar tu cuerpo y disfrutar cada bocado.</p>
+    <p>
+      Deja que <strong>Nutrichef IA</strong> te inspire con ideas únicas para cuidar tu cuerpo y disfrutar cada bocado.
+    </p>
 
+    <!-- VIDEO PROMOCIONAL -->
+    <div class="video-container">
+      <video controls>
+        <source src="assets/nutrichef-demo.mp4" type="video/mp4">
+        Tu navegador no soporta videos HTML5.
+      </video>
+    </div>
+
+    <!-- GRID DE RECETAS -->
     <div class="recetas-grid">
       <div class="receta-card">
         <img src="https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=600&q=80" alt="Ensalada con Pollo">
@@ -44,9 +57,9 @@
       </div>
 
       <div class="receta-card">
-        <img src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=600&q=80" alt="Pasta Fit">
+        <img src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=600&q=80" alt="Smoothie Verde Detox">
         <h3>Smoothie Verde Detox</h3>
-        <p>Pasta ligera, ideal para comenzar el día con vitalidad.</p>
+        <p>Ideal para comenzar el día con vitalidad y energía natural.</p>
       </div>
 
       <div class="receta-card">
@@ -59,7 +72,31 @@
     <button class="discover-btn" routerLink="/recetas">Descubrir más recetas</button>
   </main>
 
-  <!-- Toast Notification Superpuesto - AGREGADO AL FINAL -->
+  <!-- SOBRE NOSOTROS -->
+  <section id="sobre-nosotros" class="sobre-nosotros-container">
+    <div class="contenido">
+      <h1>Sobre Nosotros 🍲</h1>
+      <p>
+        En <strong>Nutrichef IA</strong> unimos lo mejor de la tecnología y la nutrición para transformar tu experiencia en la cocina. 
+        Gracias a nuestra inteligencia artificial, podemos ofrecerte recetas personalizadas que se adaptan a tus gustos, necesidades y objetivos 
+        de salud.
+      </p>
+      <p>
+        Creemos que comer bien no debería ser complicado ni aburrido, por eso diseñamos soluciones rápidas, deliciosas y equilibradas 
+        que inspiran a cuidar tu cuerpo y tu mente. Cada receta es una oportunidad para aprender, disfrutar y crear hábitos saludables que perduren 
+        en el tiempo.
+      </p>
+      <p>
+        Con <strong>Nutrichef IA</strong>, cocinar se convierte en un placer, y alimentarte bien nunca fue tan fácil y motivador.
+      </p>
+
+      <p class="contacto">
+        📞 Contáctanos al: <strong>+591 76432109</strong>
+      </p>
+    </div>
+  </section>
+
+  <!-- TOAST NOTIFICATION -->
   <div *ngIf="successMessage" class="toast-notification">
     <div class="toast-content">
       <span class="toast-icon">✅</span>
@@ -68,3 +105,42 @@
     </div>
   </div>
 </div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-content">
+    <!-- Logo y descripción -->
+    <div class="footer-logo">
+      <img src="assets/logo.png" alt="Nutrichef IA">
+      <div class="footer-logo-text">
+        <h3>Nutrichef IA</h3>
+        <p>Inspirando salud y sabor con inteligencia artificial 🍎</p>
+      </div>
+    </div>
+
+    <!-- Redes sociales -->
+    <div class="footer-redes">
+      <h4>Síguenos</h4>
+      <div class="social-icons">
+        <a href="https://www.facebook.com/profile.php?id=61580220210686" target="_blank" aria-label="NutriChef - Facebook">
+          <img src="assets/facebook.svg" alt="Facebook">
+        </a>
+        <a href="https://www.instagram.com/nutrichefcito/" target="_blank" aria-label="NutriChef - Instagram">
+          <img src="assets/instagram.svg" alt="Instagram">
+        </a>
+      </div>
+    </div>
+
+    <!-- Contacto -->
+    <div class="footer-contacto">
+      <h4>Contáctanos</h4>
+      <p>📧 nutrichef66@gmail.com</p>
+      <p>📞 +591 76432109</p>
+      <p>📍 Cochabamba, Bolivia</p>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>© 2025 Nutrichef IA — Todos los derechos reservados</p>
+  </div>
+</footer>
