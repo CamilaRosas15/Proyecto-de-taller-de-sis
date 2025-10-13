@@ -265,4 +265,39 @@ async getUserProfile(userId: string): Promise<any | null> {
       this.logger.error(`Unexpected logout error: ${error.message}`);
     }
   }
+
+  async getCurrentUser(token: string): Promise<any> {
+    try {
+      this.logger.log('Getting current user from token');
+      
+      // Obtener el usuario usando el token
+      const { data: { user }, error } = await this.supabaseService.getClient().auth.getUser(token);
+      
+      if (error) {
+        this.logger.error(`Error getting user: ${error.message}`);
+        throw new UnauthorizedException('Invalid token');
+      }
+
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      // Obtener el perfil del usuario si existe
+      let userProfile = null;
+      try {
+        userProfile = await this.getUserProfile(user.id);
+      } catch (error) {
+        this.logger.warn(`No profile found for user ${user.id}`);
+      }
+
+      return {
+        id: user.id,
+        email: user.email,
+        profile: userProfile
+      };
+    } catch (error) {
+      this.logger.error(`Error getting current user: ${error.message}`);
+      throw new UnauthorizedException('Failed to get current user');
+    }
+  }
 }
