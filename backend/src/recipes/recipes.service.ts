@@ -70,7 +70,6 @@ export class RecipesService {
   }
 
   private async askOllama(prompt: string): Promise<string> {
-    //const base = process.env.OLLAMA_BASE_URL || 'https://approachable-dale-macroptic.ngrok-free.dev';
     const base = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
     const model = process.env.OLLAMA_MODEL || 'qwen3:4b';
 
@@ -110,62 +109,40 @@ export class RecipesService {
     }
   }
 
+  // 🔒 Sanitizado mínimo: fuerza español y el formato de 2 líneas
   private sanitizeLlmAnswer(txt: string): string {
-    if (!txt) return 'Encaja con tus gustos y tiempo. Sustituir mayonesa por yogur natural para aligerar.';
+    const fallback = 'Encaje: Cumple preferencias y tiempo.\nSugerencia: ninguna';
+    if (!txt) return fallback;
 
-    txt = txt.replace(/<\/?think>/gi, '');
-    txt = txt.replace(/<think[\s\S]*?<\/think>/gi, '');
+    // quita posibles tags de reasoning
+    txt = txt.replace(/<\/?think>/gi, '').replace(/<think[\s\S]*?<\/think>/gi, '');
 
-    const englishIntroPatterns = [
-      /^(ok(ay)?[,.\s-]*)/i,
-      /^(let me (think|see)[,.\s-]*)/i,
-      /^(alright[,.\s-]*)/i,
-      /^(so[,.\s-]*)/i,
-      /^(well[,.\s-]*)/i,
-      /^(now[,.\s-]*)/i,
-      /^(the (user|task)[^.\n]*)/i,
-      /^(based on[^.\n]*)/i,
-      /^(considering[^.\n]*)/i,
-      /^(looking at[^.\n]*)/i,
-      /^(i (see|notice) that[^.\n]*)/i,
-      /^(first[,.\s-]*)/i,
-      /^(in this case[^.\n]*)/i,
-      /^(regarding[^.\n]*)/i,
-      /^(as requested[^.\n]*)/i,
-      /^(here (is|are)[^.\n]*)/i,
+    // limpia algunas muletillas en español al inicio de líneas
+    const spanishMeta = [
+      /^(veamos[,.\s-]*)/i, /^(analizando[^.\n]*)/i, /^(considerando[^.\n]*)/i,
+      /^(basándome en[^.\n]*)/i, /^(observando[^.\n]*)/i, /^(en este caso[^.\n]*)/i,
+      /^(procedamos[^.\s-]*)/i, /^(de acuerdo[^.\n]*)/i, /^(perfecto[,.\s-]*)/i,
+      /^(entonces[,.\s-]*)/i, /^(ahora[,.\s-]*)/i, /^(bien[,.\s-]*)/i,
     ];
-    englishIntroPatterns.forEach((p) => (txt = txt.replace(p, '')));
+    spanishMeta.forEach((p) => { txt = txt.replace(p, ''); });
 
-    const spanishMetaPatterns = [
-      /^(veamos[,.\s-]*)/i,
-      /^(analizando[^.\n]*)/i,
-      /^(considerando[^.\n]*)/i,
-      /^(basándome en[^.\n]*)/i,
-      /^(observando[^.\n]*)/i,
-      /^(en este caso[^.\n]*)/i,
-      /^(procedamos[^.\s-]*)/i,
-      /^(de acuerdo[^.\n]*)/i,
-      /^(perfecto[,.\s-]*)/i,
-      /^(entonces[,.\s-]*)/i,
-      /^(ahora[,.\s-]*)/i,
-      /^(bien[,.\s-]*)/i,
-    ];
-    spanishMetaPatterns.forEach((p) => (txt = txt.replace(p, '')));
+    // normaliza líneas
+    let lines = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
 
-    const lines = txt
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter((line) => {
-        const lower = line.toLowerCase();
-        return (
-          !lower.match(/^(i need to|i should|i will|let me|we can|we should|this recipe|the recipe|user wants|user has|user's)/) &&
-          !lower.match(/^(necesito|debo|voy a|podemos|debemos|esta receta|la receta|el usuario)/) &&
-          line.length > 0
-        );
-      });
+    // guardia anti-inglés (tokens comunes); si detecta, usamos fallback en ES
+    const englishHints = /\b(the|and|with|without|is|are|replace|suggestion|fit|based|considering|now|well|here)\b/i;
+    if (englishHints.test(lines.join(' '))) {
+      return fallback;
+    }
 
-    const result = lines.slice(0, 4).join('\n').trim();
-    return result || 'Encaja con tus gustos y tiempo. Sustituir mayonesa por yogur natural para aligerar.';
+    // asegura formato "Encaje:" y "Sugerencia:"
+    const encajeLine = lines.find(l => /^-\s*Encaje\s*:/i.test(l)) || lines.find(l => /^Encaje\s*:/i.test(l));
+    const sugerLine  = lines.find(l => /^-\s*Sugerencia\s*:/i.test(l)) || lines.find(l => /^Sugerencia\s*:/i.test(l));
+
+    const encaje = encajeLine ? encajeLine.replace(/^\s*-\s*/, '') : 'Encaje: Compatible con tus gustos y tiempo.';
+    const suger  = sugerLine  ? sugerLine.replace(/^\s*-\s*/, '')  : 'Sugerencia: ninguna';
+
+    return `${encaje}\n${suger}`.trim();
   }
 
   async recomendarReceta(req: RecommendRequestDto): Promise<{ opciones: OpcionOut[]; mensaje?: string }> {
@@ -232,6 +209,7 @@ export class RecipesService {
       return { receta: r, ingredientes: ings, score, motivos, texto };
     });
 
+    // filtro duro por alergias/no-gustos/tiempo/kcal a través de score -1000 ya aplicado
     let aptos = candidatos.filter((c) => c.score > -1000);
 
     if (Array.isArray(req.exclude_ids) && req.exclude_ids.length) {
@@ -259,7 +237,8 @@ export class RecipesService {
       }
     }
 
-    const topN = Math.max(1, Math.min(req.top_n ?? 3, 10));
+    // ⬇️ default TOP 2 como pediste
+    const topN = Math.max(1, Math.min(req.top_n ?? 2, 10));
     const top = aptos.slice(0, topN);
 
     if (!top.length) {
@@ -298,8 +277,12 @@ export class RecipesService {
 
     const opcionesConIA: OpcionOut[] = await Promise.all(
       opcionesBase.map(async (op) => {
+        // PROMPT: igual estructura de 2 líneas, reforzado a español
         const prompt = `
-Eres NutriChef IA. Responde ÚNICAMENTE en español y SOLO con este formato exacto (máximo 4 líneas):
+Eres NutriChef IA. RESPONDE EXCLUSIVAMENTE en ESPAÑOL. 
+Si usas palabras en inglés, DEBES reescribir inmediatamente TODA la respuesta en español antes de finalizar.
+
+Responde SOLO con este formato exacto (máximo 4 líneas):
 
 - Encaje: <1–2 líneas por qué encaja con tiempo/objetivo/gustos>
 - Sugerencia: <si hay conflicto menor, una sola sustitución "X por Y"; si no, "ninguna">
@@ -315,7 +298,8 @@ Receta: ${op.titulo}
 Ingredientes:
 ${op.ingredientes.map((i) => `- ${i.nombre}${i.cantidad ? `: ${i.cantidad} ${i.unidad ?? ''}` : ''}`).join('\n')}
 
-IMPORTANTE: NO incluyas razonamientos, explicaciones meta, inglés, cálculos, ni frases introductorias. Comienza DIRECTAMENTE con "- Encaje:".
+PROHIBIDO: razonamientos, explicaciones meta, cálculos detallados, frases introductorias y cualquier texto en inglés.
+Comienza DIRECTAMENTE con "- Encaje:".
 `.trim();
 
         let ia_explicacion: string | null = null;
