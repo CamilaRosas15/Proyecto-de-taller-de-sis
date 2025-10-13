@@ -36,6 +36,7 @@ export class Principal implements OnInit {
     });
   }
 
+  /** Limpia los parámetros de la URL después de mostrar el mensaje */
   private clearQueryParams(): void {
     this.router.navigate([], {  
       relativeTo: this.route,
@@ -44,8 +45,16 @@ export class Principal implements OnInit {
     });
   }
 
-  // Método para cerrar el mensaje manualmente
+  /** Cierra manualmente el mensaje */
   closeMessage(): void {
     this.successMessage = '';
+  }
+
+  /** Desplaza suavemente hasta la sección indicada */
+  scrollToSection(id: string): void {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 }
