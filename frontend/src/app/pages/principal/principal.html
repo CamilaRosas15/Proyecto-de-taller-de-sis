@@ -14,6 +14,25 @@
     </ul>
   </nav>
 
+  <!-- Mensaje de Bienvenida Personalizado -->
+  <div *ngIf="welcomeMessage && !isLoadingUser" class="welcome-banner">
+    <div class="welcome-content">
+      <h2>{{ welcomeMessage }}</h2>
+      <p *ngIf="currentUser?.profile?.nombre || currentUser?.profile?.nombre_completo">
+        ¡Esperamos que disfrutes explorando nuevas recetas hoy!
+      </p>
+      <p *ngIf="!currentUser?.profile?.nombre && !currentUser?.profile?.nombre_completo">
+        ¡Te recomendamos completar tu perfil para una experiencia más personalizada!
+      </p>
+    </div>
+  </div>
+
+  <!-- Loading del usuario -->
+  <div *ngIf="isLoadingUser" class="welcome-loading">
+    <div class="loading-spinner"></div>
+    <p>Cargando información del usuario...</p>
+  </div>
+
   <!-- CONTENIDO PRINCIPAL -->
   <main class="main-content">
     <h1>Descubre recetas deliciosas y saludables 🍽️</h1>

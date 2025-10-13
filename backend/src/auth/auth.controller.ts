@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Logger, Get, Param, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Logger, Get, Param, BadRequestException, NotFoundException, Headers, UnauthorizedException } from '@nestjs/common';
 import { AuthService,ProfileDto as AuthServiceProfileDto} from './auth/auth.service';
 import { IsEmail, IsString, MinLength } from 'class-validator';
 
@@ -71,5 +71,22 @@ export class AuthController {
         throw new NotFoundException(`Profile for user ID ${userId} not found.`);
     }
     return userProfile;
+  }
+
+  @Get('me')
+  @HttpCode(HttpStatus.OK)
+  async getCurrentUser(@Headers('Authorization') authHeader: string) {
+    if (!authHeader) {
+      throw new UnauthorizedException('Authorization header is required');
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    if (!token) {
+      throw new UnauthorizedException('Token is required');
+    }
+
+    this.logger.log(`Getting current user with token`);
+    const currentUser = await this.authService.getCurrentUser(token);
+    return currentUser;
   }
 }
