@@ -34,7 +34,7 @@ export class AuthController {
   async register(@Body() dto: RegisterDto) {
     this.logger.log(`Attempting to register user: ${dto.email}`);
     const result = await this.authService.register(dto);
-    return { message: 'User registered successfully. Please complete your profile.', userId: result.data.user?.id, email: dto.email };
+    return { message: 'User registered successfully. Please complete your profile.', userId: result.data.user?.id, email: dto.email, accessToken: result.data.session?.access_token ?? null,};
   }
 
   @Post('login')

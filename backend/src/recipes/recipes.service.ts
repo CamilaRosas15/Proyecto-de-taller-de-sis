@@ -111,6 +111,8 @@ export class RecipesService {
           options: { temperature: 0.7 },
         }),
       });
+      
+      console.log('Status respuesta:', res.status);
 
       if (!res.ok) {
         const text = await res.text();
@@ -210,13 +212,13 @@ export class RecipesService {
   private async loadPerfil(userId?: string) {
     if (!userId) return null;
     try {
-      const perfil = await this.supabase.getUserDetailsFresh(userId);
+      const perfil =  await this.supabase.getUserDetails(userId);
       //this.logger.debug(`Perfil fresco → ${JSON.stringify(perfil)}`);
       return perfil;
     } catch {
       return null;
     }
-  }
+  } 
 
   private mergePreferencias(req: RecommendRequestDto, perfil: any, cfg: Cfg): Prefs {
     const pfAlergias  = this.splitCsv(perfil?.alergias);

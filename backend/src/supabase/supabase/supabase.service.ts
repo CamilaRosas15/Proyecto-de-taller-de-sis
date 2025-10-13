@@ -87,6 +87,7 @@ export class SupabaseService {
     const { data, error } = await this.supabase
       .from('usuario_detalles')   // <-- tu tabla actual
       .select('*')
+      //.or(`id_usuario.eq.${userId},id.eq.${userId}`)
       .eq('id', userId)
       .single();
 
