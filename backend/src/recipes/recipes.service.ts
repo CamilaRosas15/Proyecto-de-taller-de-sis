@@ -432,4 +432,65 @@ Comienza DIRECTAMENTE con "- Encaje:" y luego "- Sugerencia:".
       .map(x => this.normalize(x))
       .filter(Boolean);
   }
+
+  // Añadir en RecipesService
+  async saveToHistory(userId: string, idReceta: number): Promise<any> {
+    this.logger.log(`Guardando receta ${idReceta} en historial para usuario ${userId}`);
+    
+    const { data, error } = await this.supabase.getClient()
+      .from('historial_recetas')
+      .insert({
+        id_usuario: userId,
+        id_receta: idReceta,
+        fecha: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      this.logger.error(`Error guardando en historial: ${error.message}`);
+      throw new Error(`Error al guardar en historial: ${error.message}`);
+    }
+
+    this.logger.log(`Receta ${idReceta} guardada en historial correctamente`);
+    return data;
+  }
+
+  // Añadir en RecipesService - DESPUÉS del método saveToHistory
+  async getUserHistoryWithDetails(userId: string): Promise<any[]> {
+    this.logger.log(`Obteniendo historial con detalles para usuario ${userId}`);
+    
+    // Obtener el historial
+    const { data: historial, error } = await this.supabase.getClient()
+      .from('historial_recetas')
+      .select('*')
+      .eq('id_usuario', userId)
+      .order('fecha', { ascending: false });
+
+    if (error) {
+      this.logger.error(`Error obteniendo historial: ${error.message}`);
+      throw new Error(`Error al obtener historial: ${error.message}`);
+    }
+
+    // Obtener detalles completos de las recetas
+    const recetasConDetalles = await Promise.all(
+      historial.map(async (item) => {
+        try {
+          const receta = await this.supabase.getRecetaCompletaById(item.id_receta);
+          return {
+            ...item,
+            receta: receta
+          };
+        } catch (error) {
+          this.logger.error(`Error obteniendo receta ${item.id_receta}: ${error.message}`);
+          return {
+            ...item,
+            receta: null
+          };
+        }
+      })
+    );
+
+    return recetasConDetalles;
+  }
 }

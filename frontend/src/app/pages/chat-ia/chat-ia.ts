@@ -2,8 +2,10 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { RecipeService, RecommendRequest, RecommendResponse } from '../../services/recipe';
+import { RecipeService, RecommendRequest, RecommendResponse, OpcionOut } from '../../services/recipe';
 import { RouterLink} from '@angular/router'; 
+import { HistoryService } from '../../services/history.service'; // AÑADIR
+import { AuthService } from '../../services/auth'; // AÑADIR
 
 @Component({
   selector: 'app-chat-ia',
@@ -17,6 +19,8 @@ export class ChatIAComponent {
   opcionesRecetas: any[] = [];
   cargando: boolean = false;
   errorMessage: string = '';
+  historialRecetas: any[] = []; // AÑADIR
+  recetaSeleccionada: any = null; // AÑADIR
 
   preferencias = {
     alergias: [] as string[],
@@ -28,9 +32,169 @@ export class ChatIAComponent {
 
   ultimoPayload: any = null;
 
-  constructor(private recipeService: RecipeService) {}
+  constructor(
+    private recipeService: RecipeService,
+    private historyService: HistoryService, // AÑADIR
+    private authService: AuthService // AÑADIR
+  ) {
+    this.cargarHistorial(); // AÑADIR
+  }
+
+  // AÑADIR ESTOS 4 MÉTODOS NUEVOS:
+  cargarHistorial() {
+    if (!this.authService.isLoggedIn()) {
+      console.log('Usuario no autenticado, no se puede cargar historial');
+      return;
+    }
+
+    this.historyService.getUserHistory().subscribe({
+      next: (historial: any) => {
+        this.historialRecetas = historial || [];
+        console.log('📚 Historial cargado:', this.historialRecetas);
+        
+        // Debug MEJORADO
+        this.historialRecetas.forEach((item: any, index: number) => {
+          console.log(`--- Item ${index} del historial ---`);
+          console.log('ID Receta:', item.id_receta);
+          console.log('Fecha:', item.fecha);
+          
+          if (item.receta) {
+            console.log('📖 Receta completa:', item.receta);
+            console.log('🥬 Ingredientes:', item.receta.ingredientes);
+            console.log('📝 Instrucciones:', item.receta.instrucciones);
+            console.log('🔍 Tiene ingredientes array?', Array.isArray(item.receta.ingredientes));
+            console.log('🔍 Tiene instrucciones?', !!item.receta.instrucciones);
+          } else {
+            console.log('❌ NO HAY RECETA en este item');
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error cargando historial:', error);
+        this.historialRecetas = [];
+      }
+    });
+  }
+
+  async onSeleccionarReceta(receta: OpcionOut) {
+    try {
+      if (!this.authService.isLoggedIn()) {
+        this.errorMessage = 'Debes iniciar sesión para guardar recetas en tu historial';
+        return;
+      }
+
+      console.log('💾 Guardando receta en historial:', receta);
+      
+      await this.historyService.savePreferredRecipe(receta.id_receta);
+      this.errorMessage = '';
+      this.recetaSeleccionada = receta;
+      this.opcionesRecetas = [];
+      this.cargarHistorial();
+      
+      console.log('✅ Receta guardada en historial:', receta.titulo);
+      
+    } catch (error: any) {
+      console.error('❌ Error guardando receta:', error);
+      this.errorMessage = error.message || 'Error al guardar la receta en el historial';
+    }
+  }
+
+  onCargarRecetaDelHistorial(itemHistorial: any) {
+    if (itemHistorial.receta) {
+      // CONVERTIR la estructura de la receta del historial a OpcionOut
+      const recetaMapeada = this.mapearRecetaAOpcionOut(itemHistorial.receta);
+      this.recetaSeleccionada = recetaMapeada;
+      this.opcionesRecetas = [];
+      this.userMessage = '';
+      this.errorMessage = '';
+      console.log('📋 Receta cargada del historial:', recetaMapeada);
+    } else {
+      this.errorMessage = 'No se pudo cargar la receta del historial';
+    }
+  }
+
+  // AÑADIR este método para mapear la estructura
+  private mapearRecetaAOpcionOut(receta: any): any {
+    console.log('🔄 ===== INICIANDO MAPEO =====');
+    console.log('📥 Receta recibida:', receta);
+    console.log('🥬 Ingredientes originales:', receta.ingredientes);
+    console.log('🔍 Tipo de ingredientes:', typeof receta.ingredientes);
+    console.log('📋 ¿Es array?', Array.isArray(receta.ingredientes));
+    
+    // Convertir ingredientes JSON a array de IngredienteOut
+    let ingredientes: any[] = [];
+    if (receta.ingredientes && Array.isArray(receta.ingredientes)) {
+      console.log('✅ Ingredientes ES array, mapeando...');
+      
+      ingredientes = receta.ingredientes.map((item: any, index: number) => {
+        // VERIFICAR si item es string o objeto
+        let nombre = '';
+        if (typeof item === 'string') {
+          nombre = item;
+        } else if (typeof item === 'object' && item !== null) {
+          nombre = item.nombre || item.name || 'Sin nombre';
+        } else {
+          nombre = String(item);
+        }
+        
+        const ingredienteMapeado = {
+          id_ingrediente: index + 1,
+          nombre: nombre,
+          unidad: null,
+          cantidad: null,
+          calorias: null,
+          proteinas: null,
+          carbohidratos: null,
+          grasas: null
+        };
+        
+        console.log(`🥬 Ingrediente ${index}:`, ingredienteMapeado);
+        return ingredienteMapeado;
+      });
+    } else {
+      console.log('❌ Ingredientes NO es array o no existe');
+    }
+
+    console.log('📤 Ingredientes mapeados finales:', ingredientes);
+    console.log('======= FIN MAPEO =======');
+
+    // Convertir instrucciones string a array de pasos
+    let pasos: string[] = [];
+    if (receta.instrucciones) {
+      // Dividir por saltos de línea y limpiar
+      pasos = receta.instrucciones
+        .split('\n')
+        .map((paso: string) => paso.trim())
+        .filter((paso: string) => paso.length > 0);
+    }
+
+    // Estructura que espera el frontend (OpcionOut)
+    return {
+      id_receta: receta.id_receta,
+      titulo: receta.nombre || 'Sin título',
+      descripcion: receta.descripcion || null,
+      categoria: receta.categoria || null,
+      tiempo_preparacion: receta.tiempo_preparacion || null,
+      kcal_totales: receta.calorias_totales || null,
+      pasos: pasos,
+      imagen_url: receta.imagen_url || null,
+      ingredientes: ingredientes,
+      motivos: [], // No hay motivos en el historial
+      ia_explicacion: null // No hay explicación IA en el historial
+    };
+  }
+
+  volverAlChat() {
+    this.recetaSeleccionada = null;
+    this.opcionesRecetas = [];
+    this.userMessage = '';
+    this.errorMessage = '';
+  }
 
   sendMessage() {
+    // AÑADIR estas 2 líneas:
+    this.recetaSeleccionada = null;
+
     this.preferencias = {
       alergias: [],
       noMeGusta: [],
@@ -132,6 +296,7 @@ export class ChatIAComponent {
     this.opcionesRecetas = [];
     this.errorMessage = '';
     this.ultimoPayload = null;
+    this.recetaSeleccionada = null; // AÑADIR esta línea
     this.preferencias = {
       alergias: [],
       noMeGusta: [],

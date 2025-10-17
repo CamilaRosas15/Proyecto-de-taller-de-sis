@@ -96,4 +96,14 @@ export class RecipeService {
       new Error(error?.error?.message || 'Error desconocido al obtener la receta.')
     );
   }
+
+  // Añadir en RecipeService
+  saveToHistory(userId: string, idReceta: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/history/${userId}`, 
+      { id_receta: idReceta }
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
 }
