@@ -1,5 +1,6 @@
-import { Controller, Get, Param, Post, Body, NotFoundException, Logger } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, NotFoundException, Logger, UseGuards } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // AÑADIR
 
 class RecommendRequestDto {
   userId?: string;
@@ -46,5 +47,23 @@ export class RecipesController {
   async recomendar(@Body() body: RecommendRequestDto) {
     this.logger.log('🤖 POST /recipes/recomendaciones llamado');
     return this.recipesService.recomendarReceta(body);
+  }
+
+  // AÑADIR ESTOS NUEVOS ENDPOINTS:
+  @Post('history/:userId')
+  @UseGuards(JwtAuthGuard)
+  async saveToHistory(
+    @Param('userId') userId: string,
+    @Body('id_receta') idReceta: number
+  ) {
+    this.logger.log(`💾 Guardando receta ${idReceta} en historial para usuario ${userId}`);
+    return this.recipesService.saveToHistory(userId, idReceta);
+  }
+
+  @Get('history/user/:userId')
+  @UseGuards(JwtAuthGuard)
+  async getUserHistory(@Param('userId') userId: string) {
+    this.logger.log(`📚 Obteniendo historial para usuario ${userId}`);
+    return this.recipesService.getUserHistoryWithDetails(userId);
   }
 }

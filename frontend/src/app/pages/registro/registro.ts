@@ -78,22 +78,48 @@ export class Registro implements OnInit {
   }
 
   async onSaveProfile(form: NgForm): Promise<void> {
+    console.log('📋 Estado del formulario:', form.valid);
+    console.log('📋 Errores del formulario:', form.errors);
+    console.log('📊 Datos del perfil:', this.profileData);
+    
     if (!form.valid) {
-        this.errorMessageProfile = 'Por favor, completa todos los campos requeridos.';
-        return;
+      // Mostrar qué controles tienen errores
+      if (form.controls) {
+        Object.keys(form.controls).forEach(key => {
+          const control = form.controls[key];
+          if (control.errors) {
+            console.log(`❌ Error en ${key}:`, control.errors);
+          }
+        });
+      }
+      
+      this.errorMessageProfile = 'Por favor, completa todos los campos requeridos correctamente.';
+      return;
     }
+    
     if (!this.userId) {
-        this.errorMessageProfile = 'Error: ID de usuario no disponible. Intenta registrarte de nuevo.';
-        return;
+      this.errorMessageProfile = 'Error: ID de usuario no disponible. Intenta registrarte de nuevo.';
+      return;
     }
 
-    
+    // Validaciones adicionales
     if (!this.profileData.sexo) {
       this.errorMessageProfile = 'Por favor, selecciona tu sexo.';
       return;
     }
-    if (this.profileData.altura <= 0) {
+    
+    if (this.profileData.altura <= 0 || !this.profileData.altura) {
       this.errorMessageProfile = 'Por favor, ingresa una altura válida.';
+      return;
+    }
+
+    if (this.profileData.edad <= 0 || !this.profileData.edad) {
+      this.errorMessageProfile = 'Por favor, ingresa una edad válida.';
+      return;
+    }
+
+    if (this.profileData.peso <= 0 || !this.profileData.peso) {
+      this.errorMessageProfile = 'Por favor, ingresa un peso válido.';
       return;
     }
 
@@ -101,21 +127,20 @@ export class Registro implements OnInit {
     this.isLoadingProfile = true;
 
     this.authService.saveUserProfile(this.userId, this.profileData).subscribe({
-    next: (response) => {
-      this.isLoadingProfile = false;
-      console.log('Perfil de usuario guardado exitosamente:', response.profile);
-      
-      // ✅ REDIRECCIÓN CON MENSAJE
-      this.router.navigate(['/principal'], { 
-        queryParams: { message: 'register_success' } 
-      });
-    },
-    error: (err) => {
-      this.isLoadingProfile = false;
-      this.errorMessageProfile = err.message || 'Error al guardar el perfil del usuario.';
-      console.error('Error al guardar el perfil:', err);
-    }
-  });
+      next: (response) => {
+        this.isLoadingProfile = false;
+        console.log('Perfil de usuario guardado exitosamente:', response);
+        
+        this.router.navigate(['/principal'], { 
+          queryParams: { message: 'register_success' } 
+        });
+      },
+      error: (err) => {
+        this.isLoadingProfile = false;
+        this.errorMessageProfile = err.message || 'Error al guardar el perfil del usuario.';
+        console.error('Error al guardar el perfil:', err);
+      }
+    });
   }
 
   // Métodos para añadir/eliminar alergias, gustos, no-gustos

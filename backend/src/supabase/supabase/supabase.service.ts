@@ -42,43 +42,36 @@ export class SupabaseService {
   async getRecetaCompletaById(id: number): Promise<any | null> {
     this.logger.log(`Fetching full recipe with ID: ${id}`);
 
+    // Solo obtener los datos básicos de la receta
     const { data: receta, error: recErr } = await this.supabase
       .from('recetas')
       .select('*')
       .eq('id_receta', id)
       .single();
+    
     if (recErr) {
       this.logger.error(`Error receta ${id}: ${recErr.message}`);
       return null;
     }
 
-    const { data: enlaces, error: linkErr } = await this.supabase
-      .from('receta_ingredientes')
-      .select('id_ingrediente, cantidad')
-      .eq('id_receta', id);
-    if (linkErr) {
-      this.logger.error(`Error enlaces receta ${id}: ${linkErr.message}`);
-      return { ...receta, ingredientes: [] };
-    }
-
-    const ids = (enlaces ?? []).map(e => e.id_ingrediente);
+    // SOLUCIÓN: No intentar acceder a receta_ingredientes, usar directamente el JSON
     let ingredientes: any[] = [];
-    if (ids.length) {
-      const { data: ing, error: ingErr } = await this.supabase
-        .from('ingredientes')
-        .select('*')
-        .in('id_ingrediente', ids);
-      if (ingErr) {
-        this.logger.error(`Error ingredientes receta ${id}: ${ingErr.message}`);
-      } else {
-        const mapCant = new Map(enlaces.map(e => [e.id_ingrediente, e.cantidad]));
-        ingredientes = ing.map(x => ({
-          ...x,
-          cantidad: mapCant.get(x.id_ingrediente) ?? null,
-        }));
-      }
+    
+    // Usar ingredientes del campo JSON directamente
+    if (receta.ingredientes && Array.isArray(receta.ingredientes)) {
+      ingredientes = receta.ingredientes.map((nombre: string, index: number) => ({
+        id_ingrediente: index + 1,
+        nombre: nombre,
+        cantidad: null,
+        unidad: null,
+        calorias: null,
+        proteinas: null,
+        carbohidratos: null,
+        grasas: null
+      }));
     }
 
+    this.logger.log(`✅ Receta ${id} cargada correctamente con ${ingredientes.length} ingredientes`);
     return { ...receta, ingredientes };
   }
 

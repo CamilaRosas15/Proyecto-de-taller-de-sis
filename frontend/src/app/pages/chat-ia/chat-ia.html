@@ -14,9 +14,16 @@
       
       <div class="historial">
         <h4>Historial de Recetas</h4>
-        <button class="historial-btn">Smoothie Energético</button>
-        <button class="historial-btn">Wrap de Pollo</button>
-        <button class="historial-btn">Ensalada César</button>
+        <button 
+          *ngFor="let item of historialRecetas" 
+          class="historial-btn"
+          (click)="onCargarRecetaDelHistorial(item)">
+          {{ item.receta?.nombre || 'Receta ' + item.id_receta }}
+        </button>
+        
+        <div *ngIf="historialRecetas.length === 0" class="no-historial">
+          <p>No hay recetas guardadas</p>
+        </div>
       </div>
     </nav>
 
@@ -33,93 +40,155 @@
   <main class="main-content">
     <!-- Header -->
     <header class="header">
-      <h1>PEDIR UNA RECETA</h1>
+      <h1>{{ recetaSeleccionada ? recetaSeleccionada.titulo : 'PEDIR UNA RECETA' }}</h1>
       <div class="header-actions">
+        <button *ngIf="recetaSeleccionada" (click)="volverAlChat()" class="back-btn">
+          ← Volver al chat
+        </button>
         <button class="progress-btn">⏰</button>
       </div>
     </header>
 
     <!-- Chat Container -->
     <div class="chat-container">
-      <!-- Sección de entrada del usuario -->
-      <div class="input-section">
-        <h2>¿Qué te gustaría cocinar?</h2>
-        <div class="input-container">
-          <input 
-            type="text" 
-            [(ngModel)]="userMessage" 
-            placeholder="Escribe tus preferencias aquí..."
-            class="message-input">
-          <button (click)="sendMessage()" class="send-btn">Generar recomendaciones</button>
-        </div>
-      </div>
-
-      <!-- Loading -->
-      <div *ngIf="cargando" class="loading-section">
-        <div class="spinner"></div>
-        <p>Generando recomendaciones personalizadas...</p>
-      </div>
-
-      <!-- Resultados de recetas -->
-      <div *ngIf="opcionesRecetas.length > 0" class="recipes-section">
-        <h3>Recomendaciones generadas:</h3>
-        
-        <div class="recipes-grid">
-          <div *ngFor="let receta of opcionesRecetas" class="recipe-card">
-            <!-- Header de la receta -->
-            <div class="recipe-header">
-              <h4 class="recipe-title">{{ receta.titulo }}</h4>
-              <div class="recipe-meta">
-                <span class="recipe-category">{{ receta.categoria }}</span>
-                <span class="recipe-time">⏱️ {{ receta.tiempo_preparacion }} min</span>
-                <span class="recipe-calories">🔥 {{ receta.kcal_totales }} kcal</span>
-              </div>
+      <!-- MODO RECETA COMPLETA -->
+      <div *ngIf="recetaSeleccionada" class="recipe-full-view">
+        <div class="recipe-full-card">
+          <!-- Header -->
+          <div class="recipe-full-header">
+            <h2 class="recipe-full-title">{{ recetaSeleccionada.titulo }}</h2>
+            <div class="recipe-full-meta">
+              <span class="meta-badge">{{ recetaSeleccionada.categoria }}</span>
+              <span class="meta-badge">⏱️ {{ recetaSeleccionada.tiempo_preparacion }} min</span>
+              <span class="meta-badge">🔥 {{ recetaSeleccionada.kcal_totales }} kcal</span>
             </div>
+          </div>
 
-            <!-- Descripción -->
-            <p class="recipe-description">{{ receta.descripcion }}</p>
+          <!-- Descripción -->
+          <div class="recipe-full-description">
+            <p>{{ recetaSeleccionada.descripcion }}</p>
+          </div>
 
-            <!-- Ingredientes -->
-            <div class="ingredients-section">
-              <h5>Ingredientes:</h5>
-              <div class="ingredients-list">
-                <span *ngFor="let ing of receta.ingredientes" class="ingredient-item">
-                  • {{ ing.nombre }}
-                  <span *ngIf="ing.cantidad" class="ingredient-quantity">
-                    ({{ ing.cantidad }} {{ ing.unidad || 'un' }})
-                  </span>
+          <!-- Ingredientes -->
+          <div class="recipe-full-section">
+            <h3>🍴 Ingredientes</h3>
+            <div class="ingredients-grid-full">
+              <div *ngFor="let ing of recetaSeleccionada.ingredientes" class="ingredient-full">
+                <span class="ingredient-name">{{ ing.nombre }}</span>
+                <span *ngIf="ing.cantidad" class="ingredient-quantity">
+                  {{ ing.cantidad }} {{ ing.unidad || 'unidades' }}
                 </span>
               </div>
             </div>
+          </div>
 
-            <!-- Pasos de preparación -->
-            <div class="steps-section">
-              <h5>Preparación:</h5>
-              <ol class="steps-list">
-                <li *ngFor="let paso of receta.pasos; let i = index" class="step-item">
-                  {{ paso }}
-                </li>
-              </ol>
-            </div>
+          <!-- Preparación -->
+          <div class="recipe-full-section">
+            <h3>👩‍🍳 Preparación</h3>
+            <ol class="steps-full">
+              <li *ngFor="let paso of recetaSeleccionada.pasos" class="step-full">
+                {{ paso }}
+              </li>
+            </ol>
+          </div>
 
-            <!-- Explicación de la IA -->
-            <div *ngIf="receta.ia_explicacion" class="ia-explanation">
-              <div class="explanation-content">
-                {{ receta.ia_explicacion }}
-              </div>
-            </div>
-
-            <!-- Botón de acción -->
-            <div class="recipe-actions">
-              <button class="select-recipe-btn">Elegir esta receta</button>
+          <!-- Explicación IA -->
+          <div *ngIf="recetaSeleccionada.ia_explicacion" class="ia-full">
+            <h3>🤖 Por qué esta receta es para ti</h3>
+            <div class="ia-full-content">
+              {{ recetaSeleccionada.ia_explicacion }}
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Error -->
-      <div *ngIf="errorMessage" class="error-message">
-        <p>❌ {{ errorMessage }}</p>
+      <!-- MODO CHAT NORMAL (cuando no hay receta seleccionada) -->
+      <div *ngIf="!recetaSeleccionada">
+        <!-- Sección de entrada del usuario -->
+        <div class="input-section">
+          <h2>¿Qué te gustaría cocinar?</h2>
+          <div class="input-container">
+            <input 
+              type="text" 
+              [(ngModel)]="userMessage" 
+              placeholder="Escribe tus preferencias aquí..."
+              class="message-input"
+              (keyup.enter)="sendMessage()">
+            <button (click)="sendMessage()" class="send-btn">Generar recomendaciones</button>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="cargando" class="loading-section">
+          <div class="spinner"></div>
+          <p>Generando recomendaciones personalizadas...</p>
+        </div>
+
+        <!-- Resultados de recetas -->
+        <div *ngIf="opcionesRecetas.length > 0" class="recipes-section">
+          <h3>Recomendaciones generadas:</h3>
+          
+          <div class="recipes-grid">
+            <div *ngFor="let receta of opcionesRecetas" class="recipe-card">
+              <!-- Header de la receta -->
+              <div class="recipe-header">
+                <h4 class="recipe-title">{{ receta.titulo }}</h4>
+                <div class="recipe-meta">
+                  <span class="recipe-category">{{ receta.categoria }}</span>
+                  <span class="recipe-time">⏱️ {{ receta.tiempo_preparacion }} min</span>
+                  <span class="recipe-calories">🔥 {{ receta.kcal_totales }} kcal</span>
+                </div>
+              </div>
+
+              <!-- Descripción -->
+              <p class="recipe-description">{{ receta.descripcion }}</p>
+
+              <!-- Ingredientes -->
+              <div class="ingredients-section">
+                <h5>Ingredientes:</h5>
+                <div class="ingredients-list">
+                  <span *ngFor="let ing of receta.ingredientes" class="ingredient-item">
+                    • {{ ing.nombre }}  <!-- AÑADIR .nombre -->
+                    <span *ngIf="ing.cantidad" class="ingredient-quantity">
+                      ({{ ing.cantidad }} {{ ing.unidad || 'un' }})
+                    </span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Pasos de preparación -->
+              <div class="steps-section">
+                <h5>Preparación:</h5>
+                <ol class="steps-list">
+                  <li *ngFor="let paso of receta.pasos; let i = index" class="step-item">
+                    {{ paso }}
+                  </li>
+                </ol>
+              </div>
+
+              <!-- Explicación de la IA -->
+              <div *ngIf="receta.ia_explicacion" class="ia-explanation">
+                <div class="explanation-content">
+                  {{ receta.ia_explicacion }}
+                </div>
+              </div>
+
+              <!-- Botón de acción ACTUALIZADO -->
+              <div class="recipe-actions">
+                <button 
+                  class="select-recipe-btn"
+                  (click)="onSeleccionarReceta(receta)">
+                  💖 Prefiero esta receta
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="errorMessage" class="error-message">
+          <p>❌ {{ errorMessage }}</p>
+        </div>
       </div>
     </div>
   </main>
