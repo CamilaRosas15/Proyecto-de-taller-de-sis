@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-principal',
@@ -23,11 +24,17 @@ export class Principal implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Mostrar mensaje de bienvenida inmediato si hay información en caché
-    this.setInitialWelcomeMessage();
-    
-    // Cargar información del usuario si está autenticado
-    this.loadCurrentUser();
+    // Inicializar componente
+    this.initializeComponent();
+
+    // Escuchar cambios de navegación para reinicializar si es necesario
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      if (this.router.url === '/principal') {
+        this.initializeComponent();
+      }
+    });
 
     this.route.queryParams.subscribe(params => {
       if (params['message'] === 'register_success') {
@@ -47,19 +54,34 @@ export class Principal implements OnInit {
     });
   }
 
+  /** Inicializa o reinicializa el componente */
+  private initializeComponent(): void {
+    // Mostrar mensaje de bienvenida inmediato si hay información en caché
+    this.setInitialWelcomeMessage();
+    
+    // Cargar información del usuario si está autenticado
+    this.loadCurrentUser();
+  }
+
   /** Muestra mensaje inicial según la información disponible */
   private setInitialWelcomeMessage(): void {
-    const savedUserName = localStorage.getItem('user_name');
-    
-    if (savedUserName) {
-      this.welcomeMessage = `¡Bienvenido, ${savedUserName}!`;
-    } else {
-      const userName = this.authService.currentUserName;
-      if (userName) {
-        this.welcomeMessage = `¡Bienvenido, ${userName}!`;
+    // Primero verificar si el usuario está autenticado
+    if (this.authService.isAuthenticated()) {
+      const savedUserName = localStorage.getItem('user_name');
+      
+      if (savedUserName) {
+        this.welcomeMessage = `¡Bienvenido, ${savedUserName}!`;
       } else {
-        this.welcomeMessage = '¡Bienvenido a NutriChef IA!';
+        const userName = this.authService.currentUserName;
+        if (userName) {
+          this.welcomeMessage = `¡Bienvenido, ${userName}!`;
+        } else {
+          this.welcomeMessage = '¡Bienvenido a NutriChef IA!';
+        }
       }
+    } else {
+      // Si no está autenticado, mensaje genérico
+      this.welcomeMessage = '¡Bienvenido a NutriChef IA!';
     }
   }
 
@@ -77,8 +99,15 @@ export class Principal implements OnInit {
         error: (error) => {
           console.error('Error loading user:', error);
           this.isLoadingUser = false;
+          // Si hay error al cargar usuario, limpiar datos
+          this.currentUser = null;
+          this.welcomeMessage = '¡Bienvenido a NutriChef IA!';
         }
       });
+    } else {
+      // Si no está autenticado, asegurar que los datos estén limpios
+      this.currentUser = null;
+      this.isLoadingUser = false;
     }
   }
 
@@ -115,5 +144,24 @@ export class Principal implements OnInit {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  }
+
+  /** Verifica si el usuario está logueado */
+  isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  /** Cierra la sesión del usuario */
+  onLogout(): void {
+    // Limpiar datos locales antes del logout
+    this.currentUser = null;
+    this.welcomeMessage = '¡Bienvenido a NutriChef IA!';
+    
+    this.authService.logout();
+    // El servicio ya redirige a /login, pero podemos mostrar un mensaje
+    this.successMessage = 'Sesión cerrada exitosamente.';
+    setTimeout(() => {
+      this.successMessage = '';
+    }, 3000);
   }
 }

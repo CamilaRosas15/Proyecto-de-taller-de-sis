@@ -53,9 +53,21 @@
       text-transform: uppercase;
       font-size: 0.95rem;
       letter-spacing: 0.5px;
+      cursor: pointer;
 
       &:hover {
         color: var(--logo-color);
+      }
+    }
+
+    /* Estilos específicos para el botón de logout */
+    .logout-link {
+      color: #e53935 !important;
+      font-weight: 700 !important;
+      
+      &:hover {
+        color: #d32f2f !important;
+        transform: scale(1.05);
       }
     }
   }
