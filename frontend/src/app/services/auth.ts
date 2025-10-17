@@ -134,6 +134,7 @@ export class AuthService {
     localStorage.removeItem('userId');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userName'); // Limpiar también el nombre
+    localStorage.removeItem('user_name'); // Limpiar el nombre de usuario usado en principal
     this.router.navigate(['/login']);
   }
 

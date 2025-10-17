@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 
 import { RecipeService, Receta } from '../../services/recipe';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-recetas',
@@ -18,7 +19,8 @@ export class Recetas implements OnInit {
 
   constructor(
     private recipeService: RecipeService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -40,5 +42,15 @@ export class Recetas implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  /** Verifica si el usuario está logueado */
+  isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  /** Cierra la sesión del usuario */
+  onLogout(): void {
+    this.authService.logout();
   }
 }

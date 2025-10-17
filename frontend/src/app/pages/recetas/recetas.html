@@ -9,7 +9,9 @@
       <li><a routerLink="/principal">INICIO</a></li>
       <li><a routerLink="/analisis-imagen">ANÁLISIS IMAGEN</a></li>
       <li><a routerLink="/chat-ia">CHAT IA</a></li>
-      <li><a routerLink="/login">INICIO DE SESION</a></li>
+      <!-- Mostrar "Cerrar Sesión" si está logueado, sino "Iniciar Sesión" -->
+      <li *ngIf="!isLoggedIn()"><a routerLink="/login">INICIO DE SESIÓN</a></li>
+      <li *ngIf="isLoggedIn()"><a (click)="onLogout()" class="logout-link">CERRAR SESIÓN</a></li>
     </ul>
   </nav>
 
