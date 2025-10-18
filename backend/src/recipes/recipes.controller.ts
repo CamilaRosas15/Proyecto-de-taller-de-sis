@@ -54,10 +54,9 @@ export class RecipesController {
   @UseGuards(JwtAuthGuard)
   async saveToHistory(
     @Param('userId') userId: string,
-    @Body('id_receta') idReceta: number
+    @Body() body: { id_receta: number; contexto_ia?: string }
   ) {
-    this.logger.log(`💾 Guardando receta ${idReceta} en historial para usuario ${userId}`);
-    return this.recipesService.saveToHistory(userId, idReceta);
+    return this.recipesService.saveToHistory(userId, body.id_receta, body.contexto_ia);
   }
 
   @Get('history/user/:userId')
