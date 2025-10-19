@@ -67,7 +67,7 @@ export class Principal implements OnInit {
   private setInitialWelcomeMessage(): void {
     // Primero verificar si el usuario está autenticado
     if (this.authService.isAuthenticated()) {
-      const savedUserName = localStorage.getItem('user_name');
+      const savedUserName = localStorage.getItem('userName');    //user_name
       
       if (savedUserName) {
         this.welcomeMessage = `¡Bienvenido, ${savedUserName}!`;
