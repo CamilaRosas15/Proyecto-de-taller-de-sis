@@ -13,6 +13,7 @@ export interface RecommendRequestDto {
   exclude_ids?: number[];
   random?: boolean;
   seed?: number;
+  user_msg?: string;
 }
 
 export interface IngredienteOut {
@@ -62,6 +63,7 @@ type Prefs = {
   gustos: string[];
   kcal: number;
   tiempoMax: number;
+  msgIngredientes: string[];
 };
 
 type Cand = {
@@ -70,6 +72,11 @@ type Cand = {
   texto: string;
   motivos: string[];
   score: number;
+};
+
+type Intent = {
+  ingredientes: string[];
+  tiempoMax?: number;
 };
 
 @Injectable()
@@ -154,18 +161,67 @@ export class RecipesService {
     return `${encaje}\n${suger}`.trim();
   }
 
+  private parseUserIntent(msg?: string): Intent {
+    if (!msg) return { ingredientes: [] };
+
+    const norm = (s: string) =>
+      (s ?? '').toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9áéíóúñü ,.-]/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const m = norm(msg);
+
+    // Ingredientes: por comas / conectores simples
+    const commaSplit = m.split(/,| y | e | con | tengo | tengo:| ingredientes:| ingredientes | que tengo/i)
+      .map(x => x.trim())
+      .filter(Boolean);
+
+    // Palabras candidatas típicas de ingredientes (filtra palabras largas genéricas)
+    const posiblesIngs = commaSplit
+      .join(' ')
+      .split(/\s+/)
+      .filter(w => w.length >= 3 && !['hola','quiero','para','hoy','ayer','algo','hacer','preparar','desayuno','almuerzo','cena','rapido','ligero','liviano','nutrichef','tengo','que','puedo','min','minutos','solo','con','una','un'].includes(w));
+
+    // Tiempo
+    let tMax: number | undefined = undefined;
+    const tMatch = m.match(/(\d{1,3})\s*(min|minutos|minuto)\b/);
+    if (tMatch) {
+      const t = Number(tMatch[1]);
+      if (!Number.isNaN(t) && t > 0) tMax = t;
+    }
+
+    return {
+      ingredientes: Array.from(new Set(posiblesIngs)).slice(0, 12), // corta ruido
+      tiempoMax: tMax,
+    };
+  }
+
   async recomendarReceta(req: RecommendRequestDto): Promise<{ opciones: OpcionOut[]; mensaje?: string }> {
+    const intent = this.parseUserIntent(req.user_msg);
     const cfg = this.buildConfig(req);
+
+    const tiempoMaxEfectivo = intent.tiempoMax ?? cfg.tiempoMax;
 
     // Perfil FRESCO y fusión con body
     const perfil = await this.loadPerfil(cfg.userId);
-    const prefs  = this.mergePreferencias(req, perfil, cfg);
+    const prefs  = this.mergePreferencias(req, perfil, { ...cfg, tiempoMax: tiempoMaxEfectivo }, intent);
+    //const prefs  = this.mergePreferencias(req, perfil, cfg);
 
     const { recetas, mapIngs } = await this.loadRecetasYIngredientes();
 
     const candidatos = this.buildCandidatos(recetas, mapIngs, prefs);
 
     let aptos = this.filtrarAptos(candidatos);
+    if (intent.ingredientes?.length) {
+      const want = this.uniqNorm(intent.ingredientes);
+      const had = aptos.filter(c => want.some(w => c.texto.includes(w)));
+      if (had.length) {
+        aptos = had; // usamos sólo las que matchéan; si no hay, hacemos fallback automático
+      }
+    }
+
     if (cfg.exclude.size) aptos = aptos.filter(c => !cfg.exclude.has(Number(c.receta.id_receta)));
     aptos = this.ordenar(aptos);
     if (cfg.random) aptos = this.shuffleSiRandom(aptos, cfg.seed);
@@ -177,10 +233,11 @@ export class RecipesService {
    
     const opcionesBase = this.mapOpcionOut(top);
 
-    if (!cfg.useLlm) return { opciones: opcionesBase };
-
+    if (!cfg.useLlm) return { opciones: opcionesBase.slice(0,2) };  //.slice(0,2)
+    const opcionesParaIA = opcionesBase.slice(0, 2); 
     const opcionesConIA: OpcionOut[] = await Promise.all(
-      opcionesBase.map(async (op) => {
+      // opcionesBase.map(async (op) => {
+      opcionesParaIA.map(async (op) => {
         const prompt = this.buildPromptReceta(op, prefs);
         try {
           const raw = await this.askOllama(prompt);
@@ -202,7 +259,7 @@ export class RecipesService {
       kcal: req.kcal_diarias ?? 2000,
       tiempoMax: req.tiempo_max ?? 30,
       useLlm: req.use_llm ?? true,
-      topN: Math.max(1, Math.min(req.top_n ?? 2, 10)),
+      topN: Math.max(1, Math.min(req.top_n ?? 10, 10)), //2,10
       exclude: new Set((req.exclude_ids ?? []).map(Number)),
       random: !!req.random,
       seed: typeof req.seed === 'number' ? req.seed : Date.now(),
@@ -220,7 +277,7 @@ export class RecipesService {
     }
   } 
 
-  private mergePreferencias(req: RecommendRequestDto, perfil: any, cfg: Cfg): Prefs {
+  private mergePreferencias(req: RecommendRequestDto, perfil: any, cfg: Cfg,intent?: Intent,): Prefs {
     const pfAlergias  = this.splitCsv(perfil?.alergias);
     const pfNoMeGusta = this.splitCsv((perfil as any)?.no_me_gusta);
     const pfGustos    = this.splitCsv(perfil?.gustos);
@@ -238,8 +295,10 @@ export class RecipesService {
       ? req.kcal_diarias!
       : (pfKcal ?? cfg.kcal);
 
+    const msgIngredientes = this.uniqNorm(intent?.ingredientes ?? []);
     //this.logger.debug(`Prefs usadas → alergias=[${alergias.join('|')}], noMeGusta=[${noMeGusta.join('|')}], gustos=[${gustos.join('|')}], kcal=${kcal}, tMax=${cfg.tiempoMax}`);
-    return { alergias, noMeGusta, gustos, kcal, tiempoMax: cfg.tiempoMax };
+    //return { alergias, noMeGusta, gustos, kcal, tiempoMax: cfg.tiempoMax };
+    return { alergias, noMeGusta, gustos, kcal, tiempoMax: cfg.tiempoMax, msgIngredientes };
   }
 
   private async loadRecetasYIngredientes() {
@@ -300,6 +359,16 @@ export class RecipesService {
 
     if (aler) motivos.push(`Contiene alérgeno: ${aler}`);
     if (nog)  motivos.push(`Incluye ingrediente no deseado: ${nog}`);
+
+    if (prefs.msgIngredientes?.length) {
+      const matches = prefs.msgIngredientes.filter(i => i && texto.includes(i));
+      if (matches.length) {
+        score += matches.length * 3;             // sube fuerte si usa lo que el usuario tiene
+        motivos.push(`Usa tus ingredientes: ${matches.join(', ')}`);
+      } else {
+        score -= 2;                               // leve penal si no usa ninguno
+      }
+    }
 
     const tiempo = r.tiempo_preparacion ?? null;
     const kcal   = r.calorias_totales ?? null;

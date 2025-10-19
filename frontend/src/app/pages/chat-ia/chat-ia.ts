@@ -285,6 +285,10 @@ export class ChatIAComponent {
       top_n: 2,
       use_llm: true
     };
+    
+    if (this.userMessage && this.userMessage.trim()) {
+    (params as any).user_msg = this.userMessage.trim(); // <--- AÑADIR
+    }
 
     if (this.preferencias.alergias.length)   params.alergias     = this.preferencias.alergias;
     if (this.preferencias.noMeGusta.length)  params.no_me_gusta  = this.preferencias.noMeGusta;

@@ -133,8 +133,8 @@ export class AuthService {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userId');
     localStorage.removeItem('userEmail');
-    localStorage.removeItem('userName'); // Limpiar también el nombre
-    localStorage.removeItem('user_name'); // Limpiar el nombre de usuario usado en principal
+    localStorage.removeItem('userName'); // Limpiar también el nombre (clave normalizada)
+    localStorage.removeItem('user_name'); // Limpiar clave legacy
     this.router.navigate(['/login']);
   }
 
@@ -165,11 +165,17 @@ export class AuthService {
         }
     }).pipe(
         tap((user) => {
+          console.log('[AuthService] /me respondió:', user);
+          console.log('[AuthService] Campos de nombre recibidos -> nombre:', user?.profile?.nombre, ' | nombre_completo:', user?.profile?.nombre_completo);
           // Guardar el nombre del usuario en localStorage si está disponible
           if (user?.profile?.nombre) {
             localStorage.setItem('userName', user.profile.nombre);
+            localStorage.removeItem('user_name');
+            console.log('[AuthService] Persistido userName con profile.nombre:', user.profile.nombre);
           } else if (user?.profile?.nombre_completo) {
             localStorage.setItem('userName', user.profile.nombre_completo);
+            localStorage.removeItem('user_name');
+            console.log('[AuthService] Persistido userName con profile.nombre_completo:', user.profile.nombre_completo);
           }
         }),
         catchError(this.handleError)

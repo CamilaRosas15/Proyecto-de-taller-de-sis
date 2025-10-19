@@ -6,22 +6,35 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 export class SupabaseService {
   private supabase: SupabaseClient;
   private readonly logger = new Logger(SupabaseService.name);
+  private supabaseUrl: string | undefined;
+  private supabaseAnonKey: string | undefined;
 
   constructor(private configService: ConfigService) {
-    const supabaseUrl = this.configService.get<string>('SUPABASE_URL');
-    const supabaseAnonKey = this.configService.get<string>('SUPABASE_ANON_KEY');
+    this.supabaseUrl = this.configService.get<string>('SUPABASE_URL');
+    this.supabaseAnonKey = this.configService.get<string>('SUPABASE_ANON_KEY');
 
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (!this.supabaseUrl || !this.supabaseAnonKey) {
       this.logger.error('Variables de entorno SUPABASE_URL o SUPABASE_ANON_KEY no configuradas.');
       throw new Error(`Supabase credentials are not set. Please check your .env file.`);
     }
 
-    this.supabase = createClient(supabaseUrl, supabaseAnonKey);
+  this.supabase = createClient(this.supabaseUrl!, this.supabaseAnonKey!);
     this.logger.log('Supabase client initialized successfully.');
   }
 
   getClient(): SupabaseClient {
     return this.supabase;
+  }
+
+  // Crea un cliente que ejecuta consultas bajo el contexto del usuario (RLS) usando su token
+  getClientForToken(token: string): SupabaseClient {
+    return createClient(this.supabaseUrl!, this.supabaseAnonKey!, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    });
   }
 
   async getRecetaById(id: number): Promise<any | null> {
@@ -75,9 +88,10 @@ export class SupabaseService {
     return { ...receta, ingredientes };
   }
 
-  async getUserDetailsFresh(userId: string): Promise<any | null> {
+  async getUserDetailsFresh(userId: string, token?: string): Promise<any | null> {
     this.logger.log(`Fetching user details (fresh) for ID: ${userId}`);
-    const { data, error } = await this.supabase
+    const client = token ? this.getClientForToken(token) : this.supabase;
+    const { data, error } = await client
       .from('usuario_detalles')   // <-- tu tabla actual
       .select('*')
       //.or(`id_usuario.eq.${userId},id.eq.${userId}`)
@@ -91,8 +105,8 @@ export class SupabaseService {
     return data;
   }
 
-  async getUserDetails(userId: string): Promise<any | null> {
-    return this.getUserDetailsFresh(userId);
+  async getUserDetails(userId: string, token?: string): Promise<any | null> {
+    return this.getUserDetailsFresh(userId, token);
   }
 
   async listRecetas(limit = 200): Promise<any[]> {
