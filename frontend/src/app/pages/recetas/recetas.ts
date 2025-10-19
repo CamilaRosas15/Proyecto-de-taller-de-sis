@@ -1,7 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, ActivatedRoute } from '@angular/router';
-
+import { RouterModule } from '@angular/router';
 import { RecipeService, Receta } from '../../services/recipe';
 import { AuthService } from '../../services/auth';
 
@@ -13,44 +12,53 @@ import { AuthService } from '../../services/auth';
   styleUrls: ['./recetas.scss']
 })
 export class Recetas implements OnInit {
-  recipes: Receta[] = []; // Cambiar a array de recetas
-  isLoading = false;
-  error: string | null = null;
+  recipes: Receta[] = [];
+  selectedRecipe: Receta | null = null;
+  closing = false;
 
   constructor(
     private recipeService: RecipeService,
-    private route: ActivatedRoute,
     private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    this.loadAllRecipes(); // Cargar todas las recetas
+    this.loadRecipes();
   }
 
-  loadAllRecipes(): void {
-    this.isLoading = true;
-    this.error = null;
-    this.recipes = [];
-
+  loadRecipes(): void {
     this.recipeService.getAllRecipes().subscribe({
-      next: (data) => {
-        this.recipes = data;
-        this.isLoading = false;
-      },
-      error: (err) => {
-        this.error = err.message || 'No se pudieron cargar las recetas desde Supabase.';
-        this.isLoading = false;
-      }
+      next: (data) => (this.recipes = data),
+      error: (err) => console.error('Error cargando recetas', err)
     });
   }
 
-  /** Verifica si el usuario está logueado */
   isLoggedIn(): boolean {
     return this.authService.isLoggedIn();
   }
 
-  /** Cierra la sesión del usuario */
   onLogout(): void {
     this.authService.logout();
+  }
+
+  openModal(recipe: Receta): void {
+    this.selectedRecipe = recipe;
+    document.body.style.overflow = 'hidden'; // Bloquea scroll del fondo
+  }
+
+  closeModal(): void {
+    this.closing = true;
+    setTimeout(() => {
+      this.selectedRecipe = null;
+      this.closing = false;
+      document.body.style.overflow = ''; // Restaura scroll del fondo
+    }, 300); // Duración de la animación
+  }
+
+  @HostListener('document:click', ['$event'])
+  onClickOutside(event: MouseEvent) {
+    const modalContent = document.querySelector('.modal-content');
+    if (this.selectedRecipe && modalContent && !modalContent.contains(event.target as Node)) {
+      this.closeModal();
+    }
   }
 }
