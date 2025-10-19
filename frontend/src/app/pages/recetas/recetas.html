@@ -1,4 +1,3 @@
-<!-- src/app/pages/recetas/recetas.html -->
 <div class="principal-container">
   <nav class="navbar">
     <div class="logo">
@@ -9,7 +8,6 @@
       <li><a routerLink="/principal">INICIO</a></li>
       <li><a routerLink="/analisis-imagen">ANÁLISIS IMAGEN</a></li>
       <li><a routerLink="/chat-ia">CHAT IA</a></li>
-      <!-- Mostrar "Cerrar Sesión" si está logueado, sino "Iniciar Sesión" -->
       <li *ngIf="!isLoggedIn()"><a routerLink="/login">INICIO DE SESIÓN</a></li>
       <li *ngIf="isLoggedIn()"><a (click)="onLogout()" class="logout-link">CERRAR SESIÓN</a></li>
     </ul>
@@ -21,38 +19,41 @@
       <p class="subtitle">Explora nuestra completa colección de recetas inteligentes.</p>
     </header>
 
-    <!-- Loading state -->
-    <div *ngIf="isLoading" style="text-align: center; margin-top: 20px;">
-      Cargando recetas desde Supabase...
-    </div>
-
-    <!-- Error state -->
-    <div *ngIf="error" style="color: red; text-align: center; margin-top: 20px;">
-      Error: {{ error }}
-    </div>
-
-    <!-- Grid de recetas -->
-    <!-- Mantén todo igual pero cambia esta parte: -->
-    <div class="recipes-grid" *ngIf="recipes.length > 0 && !isLoading && !error">
+    <div class="recipes-grid" *ngIf="recipes.length > 0">
       <div class="recipe-card" *ngFor="let recipe of recipes">
-        <img [src]="recipe.imagen_url || 'assets/default-recipe.jpg'" [alt]="recipe.nombre || 'Receta'" class="recipe-image">
+        <img [src]="recipe.imagen_url || 'assets/default-recipe.jpg'" [alt]="recipe.nombre" class="recipe-image">
         <div class="recipe-content">
-          <h2 class="recipe-title">{{ recipe.nombre || 'Sin nombre' }}</h2>
+          <h2 class="recipe-title">{{ recipe.nombre }}</h2>
           <span class="recipe-category">{{ recipe.categoria || 'Sin categoría' }}</span>
           <p class="recipe-description">{{ recipe.descripcion || 'Sin descripción' }}</p>
           <div class="recipe-meta">
-            <span><i class="fas fa-clock"></i> {{ (recipe.tiempo_preparacion || 0) }} min</span>
-            <span><i class="fas fa-fire"></i> {{ (recipe.calorias_totales || 0) }} kcal</span>
+            <span><i class="fas fa-clock"></i> {{ recipe.tiempo_preparacion }} min</span>
+            <span><i class="fas fa-fire"></i> {{ recipe.calorias_totales }} kcal</span>
           </div>
-          <h4>Instrucciones:</h4>
-          <p style="white-space: pre-wrap;">{{ recipe.instrucciones || 'No hay instrucciones disponibles' }}</p>
+          <button class="btn-ver-mas" (click)="openModal(recipe)">Ver más</button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- No recipes state -->
-    <div *ngIf="!isLoading && recipes.length === 0 && !error" style="text-align: center; margin-top: 20px;">
-      No hay recetas disponibles en la base de datos.
+  <!-- Modal -->
+  <div class="modal-overlay" *ngIf="selectedRecipe" [class.fade-out]="closing" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()" [class.slide-out]="closing">
+      <button class="close-btn" (click)="closeModal()">×</button>
+      <div class="modal-scroll">
+        <img [src]="selectedRecipe.imagen_url || 'assets/default-recipe.jpg'" [alt]="selectedRecipe.nombre" class="modal-image">
+        <h2>{{ selectedRecipe.nombre }}</h2>
+        <p><strong>Categoría:</strong> {{ selectedRecipe.categoria }}</p>
+        <p><strong>Descripción:</strong> {{ selectedRecipe.descripcion }}</p>
+        <p><strong>Tiempo de preparación:</strong> {{ selectedRecipe.tiempo_preparacion }} min</p>
+        <p><strong>Calorías totales:</strong> {{ selectedRecipe.calorias_totales }} kcal</p>
+        <h4>Ingredientes:</h4>
+        <ul>
+          <li *ngFor="let ingrediente of selectedRecipe.ingredientes">{{ ingrediente }}</li>
+        </ul>
+        <h4>Instrucciones:</h4>
+        <p style="white-space: pre-wrap;">{{ selectedRecipe.instrucciones }}</p>
+      </div>
     </div>
   </div>
 </div>
