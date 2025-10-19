@@ -188,19 +188,21 @@
     font-size: 1.3em;
     border-left: 4px solid #8ed1c2;
     padding-left: 10px;
+    text-align: left; /* ← CORRECCIÓN: Alinear a la izquierda */
   }
 }
 
+/* CORRECCIÓN: Cambiar grid por flexbox para ingredientes en columna */
 .ingredients-grid-full {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 10px;
+  display: flex;
+  flex-direction: column; /* ← Esto pone un ingrediente debajo del otro */
+  gap: 8px; /* ← Espacio entre ingredientes */
 }
 
 .ingredient-full {
   display: flex;
   justify-content: space-between;
-  padding: 10px 15px;
+  padding: 12px 15px; /* ← Un poco más de padding */
   background: #f8f9fa;
   border-radius: 8px;
   border-left: 3px solid #8ed1c2;
@@ -236,6 +238,7 @@
   h3 {
     color: #0369a1;
     margin-bottom: 15px;
+    text-align: left; /* ← CORRECCIÓN: Alinear a la izquierda */
   }
 }
 
@@ -649,5 +652,51 @@
   
   .recipe-meta {
     justify-content: flex-start;
+  }
+}
+
+/* Grid para recetas recomendadas estilo completo */
+.recipes-full-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+/* Estilos específicos para recetas recomendadas en modo completo */
+.recipe-full-actions {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.select-recipe-btn-full {
+  background: #8ed1c2;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: #6cb5ab;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+}
+
+/* Asegurar que las recetas recomendadas tengan buen espaciado */
+.recipes-section {
+  margin-bottom: 40px;
+  
+  h3 {
+    color: #2c5530;
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    text-align: center;
   }
 }
