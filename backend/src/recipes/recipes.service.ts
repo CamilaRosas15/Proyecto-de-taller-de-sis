@@ -370,6 +370,14 @@ export class RecipesService {
           }));
       }
 
+      let pasos: string[] = [];
+      if (t.receta.instrucciones) {
+        pasos = t.receta.instrucciones
+          .split('\n')
+          .map((paso: string) => paso.trim())
+          .filter((paso: string) => paso.length > 0);
+      }
+
       return {
         id_receta: Number(t.receta.id_receta),
         titulo: String(t.receta.nombre),
@@ -377,7 +385,7 @@ export class RecipesService {
         categoria: t.receta.categoria ?? null,
         tiempo_preparacion: t.receta.tiempo_preparacion ?? null,
         kcal_totales: t.receta.calorias_totales ?? null,
-        pasos: (t.receta.instrucciones || '').split('\n').filter(Boolean),
+        pasos: pasos,
         imagen_url: t.receta.imagen_url ?? null,
         ingredientes,
         motivos: Array.isArray(t.motivos) ? t.motivos : [],

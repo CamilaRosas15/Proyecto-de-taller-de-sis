@@ -128,55 +128,58 @@
         <div *ngIf="opcionesRecetas.length > 0" class="recipes-section">
           <h3>Recomendaciones generadas:</h3>
           
-          <div class="recipes-grid">
-            <div *ngFor="let receta of opcionesRecetas" class="recipe-card">
-              <!-- Header de la receta -->
-              <div class="recipe-header">
-                <h4 class="recipe-title">{{ receta.titulo }}</h4>
-                <div class="recipe-meta">
-                  <span class="recipe-category">{{ receta.categoria }}</span>
-                  <span class="recipe-time">⏱️ {{ receta.tiempo_preparacion }} min</span>
-                  <span class="recipe-calories">🔥 {{ receta.kcal_totales }} kcal</span>
+          <div class="recipes-full-grid">
+            <div *ngFor="let receta of opcionesRecetas" class="recipe-full-card">
+              <!-- Header -->
+              <div class="recipe-full-header">
+                <h2 class="recipe-full-title">{{ receta.titulo }}</h2>
+                <div class="recipe-full-meta">
+                  <span class="meta-badge">{{ receta.categoria }}</span>
+                  <span class="meta-badge">⏱️ {{ receta.tiempo_preparacion }} min</span>
+                  <span class="meta-badge">🔥 {{ receta.kcal_totales }} kcal</span>
                 </div>
               </div>
 
               <!-- Descripción -->
-              <p class="recipe-description">{{ receta.descripcion }}</p>
+              <div class="recipe-full-description">
+                <p>{{ receta.descripcion }}</p>
+              </div>
 
               <!-- Ingredientes -->
-              <div class="ingredients-section">
-                <h5>Ingredientes:</h5>
-                <div class="ingredients-list">
-                  <span *ngFor="let ing of receta.ingredientes" class="ingredient-item">
-                    • {{ ing.nombre }}  <!-- AÑADIR .nombre -->
+              <div class="recipe-full-section">
+                <h3>🍴 Ingredientes</h3>
+                <div class="ingredients-grid-full">
+                  <div *ngFor="let ing of receta.ingredientes" class="ingredient-full">
+                    <span class="ingredient-name">{{ ing.nombre }}</span>
                     <span *ngIf="ing.cantidad" class="ingredient-quantity">
-                      ({{ ing.cantidad }} {{ ing.unidad || 'un' }})
+                      {{ ing.cantidad }} {{ ing.unidad || 'unidades' }}
                     </span>
-                  </span>
+                  </div>
                 </div>
               </div>
 
-              <!-- Pasos de preparación -->
-              <div class="steps-section">
-                <h5>Preparación:</h5>
-                <ol class="steps-list">
-                  <li *ngFor="let paso of receta.pasos; let i = index" class="step-item">
+              <!-- Preparación -->
+              <div class="recipe-full-section">
+                <h3>👩‍🍳 Preparación</h3>
+                <ol class="steps-full">
+                  <li *ngFor="let paso of receta.pasos" class="step-full">
                     {{ paso }}
                   </li>
                 </ol>
               </div>
 
-              <!-- Explicación de la IA -->
-              <div *ngIf="receta.ia_explicacion" class="ia-explanation">
-                <div class="explanation-content">
+              <!-- Explicación IA -->
+              <div *ngIf="receta.ia_explicacion" class="ia-full">
+                <h3>🤖 Por qué esta receta es para ti</h3>
+                <div class="ia-full-content">
                   {{ receta.ia_explicacion }}
                 </div>
               </div>
 
-              <!-- Botón de acción ACTUALIZADO -->
-              <div class="recipe-actions">
+              <!-- Botón de acción -->
+              <div class="recipe-full-actions">
                 <button 
-                  class="select-recipe-btn"
+                  class="select-recipe-btn-full"
                   (click)="onSeleccionarReceta(receta)">
                   💖 Prefiero esta receta
                 </button>

@@ -298,6 +298,13 @@ export class ChatIAComponent {
       next: (response: RecommendResponse) => {
         this.cargando = false;
         this.opcionesRecetas = response.opciones || [];
+        
+        // DEBUG: Verificar cómo vienen los pasos
+        console.log('🔍 DEBUG - Pasos de las recetas recomendadas:');
+        this.opcionesRecetas.forEach((receta, index) => {
+          console.log(`Receta ${index} - "${receta.titulo}":`, receta.pasos);
+        });
+        
         console.log('Recomendaciones:', this.opcionesRecetas);
       },
       error: (error: any) => {
