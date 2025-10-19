@@ -233,9 +233,11 @@ export class AuthService {
   }
 }
 
-async getUserProfile(userId: string): Promise<any | null> {
+async getUserProfile(userId: string, token?: string): Promise<any | null> {
   try {
-    const { data, error } = await this.supabaseService.getClient()
+    // Usar el token del usuario para respetar las políticas RLS y acceder a su propia fila
+    const client = token ? this.supabaseService.getClientForToken(token) : this.supabaseService.getClient();
+    const { data, error } = await client
       .from('usuario_detalles')
       .select('*')
       .eq('id', userId)
@@ -285,7 +287,7 @@ async getUserProfile(userId: string): Promise<any | null> {
       // Obtener el perfil del usuario si existe
       let userProfile = null;
       try {
-        userProfile = await this.getUserProfile(user.id);
+        userProfile = await this.getUserProfile(user.id, token);
       } catch (error) {
         this.logger.warn(`No profile found for user ${user.id}`);
       }
