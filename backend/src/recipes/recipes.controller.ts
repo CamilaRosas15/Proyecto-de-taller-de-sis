@@ -9,6 +9,7 @@ class RecommendRequestDto {
   gustos?: string[] = [];
   kcal_diarias?: number;
   tiempo_max?: number;
+  user_msg?: string;
 }
 
 @Controller('recipes') 
@@ -19,7 +20,6 @@ export class RecipesController {
     this.logger.log('✅ RecipesController inicializado');
   }
 
-  // NUEVO ENDPOINT: Obtener todas las recetas
   @Get()
   async getAll() {
     this.logger.log('📋 GET /recipes llamado');
@@ -49,7 +49,6 @@ export class RecipesController {
     return this.recipesService.recomendarReceta(body);
   }
 
-  // AÑADIR ESTOS NUEVOS ENDPOINTS:
   @Post('history/:userId')
   @UseGuards(JwtAuthGuard)
   async saveToHistory(
