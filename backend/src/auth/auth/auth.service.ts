@@ -302,4 +302,23 @@ async getUserProfile(userId: string, token?: string): Promise<any | null> {
       throw new UnauthorizedException('Failed to get current user');
     }
   }
+
+  async refreshSession(refreshToken: string): Promise<{ accessToken: string | null; refreshToken: string | null; user: any | null; }> {
+    try {
+      this.logger.log('Refreshing session with Supabase');
+      const { data, error } = await this.supabaseService.getClient().auth.refreshSession({ refresh_token: refreshToken });
+      if (error) {
+        this.logger.error(`Refresh session error: ${error.message}`);
+        throw new UnauthorizedException('Failed to refresh session');
+      }
+      return {
+        accessToken: data.session?.access_token ?? null,
+        refreshToken: data.session?.refresh_token ?? null,
+        user: data.user ?? null,
+      };
+    } catch (err) {
+      this.logger.error(`Unexpected refresh error: ${err.message}`);
+      throw new UnauthorizedException('Unable to refresh session');
+    }
+  }
 }
