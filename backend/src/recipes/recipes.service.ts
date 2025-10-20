@@ -439,14 +439,6 @@ export class RecipesService {
           }));
       }
 
-      let pasos: string[] = [];
-      if (t.receta.instrucciones) {
-        pasos = t.receta.instrucciones
-          .split('\n')
-          .map((paso: string) => paso.trim())
-          .filter((paso: string) => paso.length > 0);
-      }
-
       return {
         id_receta: Number(t.receta.id_receta),
         titulo: String(t.receta.nombre),
@@ -454,7 +446,7 @@ export class RecipesService {
         categoria: t.receta.categoria ?? null,
         tiempo_preparacion: t.receta.tiempo_preparacion ?? null,
         kcal_totales: t.receta.calorias_totales ?? null,
-        pasos: pasos,
+        pasos: (t.receta.instrucciones || '').split('\n').filter(Boolean),
         imagen_url: t.receta.imagen_url ?? null,
         ingredientes,
         motivos: Array.isArray(t.motivos) ? t.motivos : [],
@@ -511,21 +503,14 @@ Comienza DIRECTAMENTE con "- Encaje:" y luego "- Sugerencia:".
   }
 
   // Añadir en RecipesService
-  // REEMPLAZAR el método saveToHistory actual por este:
-  async saveToHistory(userId: string, idReceta: number, contextoIa?: string): Promise<any> {
+  async saveToHistory(userId: string, idReceta: number): Promise<any> {
     this.logger.log(`Guardando receta ${idReceta} en historial para usuario ${userId}`);
     
-    // Obtener el título de la receta para el historial
-    const receta = await this.getById(idReceta);
-    const tituloConversacion = receta?.nombre || `Receta ${idReceta}`;
-
     const { data, error } = await this.supabase.getClient()
       .from('historial_recetas')
       .insert({
         id_usuario: userId,
         id_receta: idReceta,
-        contexto_ia: contextoIa || null,
-        titulo_conversacion: tituloConversacion,
         fecha: new Date().toISOString()
       })
       .select()
@@ -536,18 +521,18 @@ Comienza DIRECTAMENTE con "- Encaje:" y luego "- Sugerencia:".
       throw new Error(`Error al guardar en historial: ${error.message}`);
     }
 
-    this.logger.log(`Receta ${idReceta} guardada en historial correctamente con contexto IA`);
+    this.logger.log(`Receta ${idReceta} guardada en historial correctamente`);
     return data;
   }
 
-  // En RecipesService - método getUserHistoryWithDetails
+  // Añadir en RecipesService - DESPUÉS del método saveToHistory
   async getUserHistoryWithDetails(userId: string): Promise<any[]> {
     this.logger.log(`Obteniendo historial con detalles para usuario ${userId}`);
     
-    // Obtener el historial - INCLUIR las nuevas columnas
+    // Obtener el historial
     const { data: historial, error } = await this.supabase.getClient()
       .from('historial_recetas')
-      .select('*') // ← Esto debería incluir contexto_ia y titulo_conversacion
+      .select('*')
       .eq('id_usuario', userId)
       .order('fecha', { ascending: false });
 
@@ -562,13 +547,13 @@ Comienza DIRECTAMENTE con "- Encaje:" y luego "- Sugerencia:".
         try {
           const receta = await this.supabase.getRecetaCompletaById(item.id_receta);
           return {
-            ...item, // ← Esto incluye contexto_ia y titulo_conversacion
+            ...item,
             receta: receta
           };
         } catch (error) {
           this.logger.error(`Error obteniendo receta ${item.id_receta}: ${error.message}`);
           return {
-            ...item, // ← Esto incluye contexto_ia y titulo_conversacion
+            ...item,
             receta: null
           };
         }

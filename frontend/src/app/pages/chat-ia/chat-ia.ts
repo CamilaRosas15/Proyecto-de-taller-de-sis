@@ -40,6 +40,7 @@ export class ChatIAComponent {
     this.cargarHistorial(); // AÑADIR
   }
 
+  // AÑADIR ESTOS 4 MÉTODOS NUEVOS:
   cargarHistorial() {
     if (!this.authService.isLoggedIn()) {
       console.log('Usuario no autenticado, no se puede cargar historial');
@@ -51,17 +52,18 @@ export class ChatIAComponent {
         this.historialRecetas = historial || [];
         console.log('📚 Historial cargado:', this.historialRecetas);
         
-        // Debug MEJORADO - VERIFICAR contexto_ia
+        // Debug MEJORADO
         this.historialRecetas.forEach((item: any, index: number) => {
           console.log(`--- Item ${index} del historial ---`);
           console.log('ID Receta:', item.id_receta);
           console.log('Fecha:', item.fecha);
-          console.log('Contexto IA:', item.contexto_ia); // ← VERIFICAR ESTO
-          console.log('Título Conversación:', item.titulo_conversacion); // ← Y ESTO
           
           if (item.receta) {
             console.log('📖 Receta completa:', item.receta);
             console.log('🥬 Ingredientes:', item.receta.ingredientes);
+            console.log('📝 Instrucciones:', item.receta.instrucciones);
+            console.log('🔍 Tiene ingredientes array?', Array.isArray(item.receta.ingredientes));
+            console.log('🔍 Tiene instrucciones?', !!item.receta.instrucciones);
           } else {
             console.log('❌ NO HAY RECETA en este item');
           }
@@ -83,18 +85,13 @@ export class ChatIAComponent {
 
       console.log('💾 Guardando receta en historial:', receta);
       
-      // AÑADIR el contexto de la IA al guardar
-      await this.historyService.savePreferredRecipe(
-        receta.id_receta, 
-        receta.ia_explicacion || undefined // ← ¡ESTO ES LO NUEVO!
-      );
-      
+      await this.historyService.savePreferredRecipe(receta.id_receta);
       this.errorMessage = '';
       this.recetaSeleccionada = receta;
       this.opcionesRecetas = [];
       this.cargarHistorial();
       
-      console.log('✅ Receta guardada en historial con explicación IA:', receta.titulo);
+      console.log('✅ Receta guardada en historial:', receta.titulo);
       
     } catch (error: any) {
       console.error('❌ Error guardando receta:', error);
@@ -103,41 +100,28 @@ export class ChatIAComponent {
   }
 
   onCargarRecetaDelHistorial(itemHistorial: any) {
-    console.log('🔄 Cargando receta del historial:', itemHistorial);
-    
-    // VERIFICAR que exista la receta antes de mapear
-    if (itemHistorial && itemHistorial.receta) {
+    if (itemHistorial.receta) {
       // CONVERTIR la estructura de la receta del historial a OpcionOut
-      const recetaMapeada = this.mapearRecetaAOpcionOut(itemHistorial); // ← Pasar el ITEM completo, no solo la receta
+      const recetaMapeada = this.mapearRecetaAOpcionOut(itemHistorial.receta);
       this.recetaSeleccionada = recetaMapeada;
       this.opcionesRecetas = [];
       this.userMessage = '';
       this.errorMessage = '';
       console.log('📋 Receta cargada del historial:', recetaMapeada);
     } else {
-      console.error('❌ No se pudo cargar la receta del historial - estructura inválida:', itemHistorial);
       this.errorMessage = 'No se pudo cargar la receta del historial';
     }
   }
 
-  // AÑADIR este método para mapear la estructura - CORREGIDO
-  private mapearRecetaAOpcionOut(itemHistorial: any): any {
-    console.log('🔄 ===== INICIANDO MAPEO DESDE HISTORIAL =====');
-    console.log('📥 Item historial completo:', itemHistorial);
-    
-    // VERIFICACIÓN DE SEGURIDAD - si no hay receta, retornar null
-    if (!itemHistorial || !itemHistorial.receta) {
-      console.error('❌ Item del historial no tiene receta:', itemHistorial);
-      return null;
-    }
-    
-    const receta = itemHistorial.receta;
-    console.log('🔍 Contexto IA del historial:', itemHistorial.contexto_ia);
+  // AÑADIR este método para mapear la estructura
+  private mapearRecetaAOpcionOut(receta: any): any {
+    console.log('🔄 ===== INICIANDO MAPEO =====');
+    console.log('📥 Receta recibida:', receta);
     console.log('🥬 Ingredientes originales:', receta.ingredientes);
     console.log('🔍 Tipo de ingredientes:', typeof receta.ingredientes);
     console.log('📋 ¿Es array?', Array.isArray(receta.ingredientes));
     
-    // Convertir ingredientes JSON a array de IngredienteOut - CON VERIFICACIÓN
+    // Convertir ingredientes JSON a array de IngredienteOut
     let ingredientes: any[] = [];
     if (receta.ingredientes && Array.isArray(receta.ingredientes)) {
       console.log('✅ Ingredientes ES array, mapeando...');
@@ -172,6 +156,7 @@ export class ChatIAComponent {
     }
 
     console.log('📤 Ingredientes mapeados finales:', ingredientes);
+    console.log('======= FIN MAPEO =======');
 
     // Convertir instrucciones string a array de pasos
     let pasos: string[] = [];
@@ -182,8 +167,6 @@ export class ChatIAComponent {
         .map((paso: string) => paso.trim())
         .filter((paso: string) => paso.length > 0);
     }
-
-    console.log('======= FIN MAPEO =======');
 
     // Estructura que espera el frontend (OpcionOut)
     return {
@@ -197,7 +180,7 @@ export class ChatIAComponent {
       imagen_url: receta.imagen_url || null,
       ingredientes: ingredientes,
       motivos: [], // No hay motivos en el historial
-      ia_explicacion: itemHistorial.contexto_ia || null  // ← ¡ESTO ES CLAVE!
+      ia_explicacion: null // No hay explicación IA en el historial
     };
   }
 
@@ -302,13 +285,6 @@ export class ChatIAComponent {
       next: (response: RecommendResponse) => {
         this.cargando = false;
         this.opcionesRecetas = response.opciones || [];
-        
-        // DEBUG: Verificar cómo vienen los pasos
-        console.log('🔍 DEBUG - Pasos de las recetas recomendadas:');
-        this.opcionesRecetas.forEach((receta, index) => {
-          console.log(`Receta ${index} - "${receta.titulo}":`, receta.pasos);
-        });
-        
         console.log('Recomendaciones:', this.opcionesRecetas);
       },
       error: (error: any) => {

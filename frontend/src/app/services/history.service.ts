@@ -14,31 +14,28 @@ export class HistoryService {
     private authService: AuthService
   ) {}
 
-  async savePreferredRecipe(idReceta: number, contextoIa?: string): Promise<any> {
+  async savePreferredRecipe(idReceta: number): Promise<any> {
     try {
-      const userId = this.authService.currentUserId;
-      if (!userId) {
+        const userId = this.authService.currentUserId;
+        if (!userId) {
         throw new Error('Usuario no autenticado');
-      }
-
-      return await this.http.post(
-        `${this.baseUrl}/history/${userId}`,
-        { 
-          id_receta: idReceta,
-          contexto_ia: contextoIa  // ← AÑADIR esto
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${this.authService.accessToken}`
-          }
         }
-      ).toPromise();
+
+        return await this.http.post(
+        `${this.baseUrl}/history/${userId}`,
+        { id_receta: idReceta },
+        {
+            headers: {
+            'Authorization': `Bearer ${this.authService.accessToken}` // AÑADIR esto
+            }
+        }
+        ).toPromise();
 
     } catch (error) {
-      console.error('Error guardando receta preferida:', error);
-      throw error;
+        console.error('Error guardando receta preferida:', error);
+        throw error;
     }
-  }
+    }
 
     // Y también añadir headers en getUserHistory:
     getUserHistory(): Observable<any> {
