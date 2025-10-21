@@ -6,7 +6,7 @@ $text-color: #333333;
 $error-color: #e53935;
 $input-border-color: #ddd;
 $input-focus-color: #26a69a; 
-$card-background: rgba(224, 247, 250, 0.88); /* 🔹 Fondo más suave */
+$card-background: rgba(224, 247, 250, 0.88);
 
 .login-container {
   display: flex;
@@ -19,6 +19,15 @@ $card-background: rgba(224, 247, 250, 0.88); /* 🔹 Fondo más suave */
   padding: 20px;
   box-sizing: border-box;
   animation: moveBackground 30s linear infinite;
+  
+  // 🔥 NUEVO: Reducir padding en móvil para que quepa mejor
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 10px;
+  }
 }
 
 @keyframes moveBackground {
@@ -29,21 +38,68 @@ $card-background: rgba(224, 247, 250, 0.88); /* 🔹 Fondo más suave */
 
 .login-card {
   background-color: $card-background;
-  padding: 60px 60px; /* 🔹 Más espacio interno */
+  padding: 60px 60px;
   border-radius: 18px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
   width: 100%;
-  max-width: 450px; /* 🔹 Un poco más ancho */
+  max-width: 450px;
   text-align: center;
-  backdrop-filter: blur(12px); /* 🔹 Efecto difuminado suave */
+  backdrop-filter: blur(12px);
   animation: fadeInUp 0.8s ease both;
+
+  // 🔥 REDUCCIÓN PROGRESIVA PARA TABLET
+  @media (max-width: 1024px) {
+    padding: 50px 45px;
+    max-width: 420px;
+  }
+
+  // 🔥 REDUCCIÓN PARA MÓVIL - MÁS AGRESIVA
+  @media (max-width: 768px) {
+    padding: 35px 30px;
+    max-width: 350px; // 🔥 REDUCIDO DE 380px A 350px
+  }
+
+  // 🔥 REDUCCIÓN PARA MÓVIL PEQUEÑO - MÁS AGRESIVA
+  @media (max-width: 480px) {
+    padding: 25px 20px;
+    max-width: 300px; // 🔥 REDUCIDO DE 340px A 300px
+    border-radius: 15px;
+  }
+  
+  // 🔥 EXTRA PARA PANTALLAS MUY PEQUEÑAS
+  @media (max-width: 360px) {
+    padding: 20px 15px;
+    max-width: 280px;
+    border-radius: 12px;
+  }
 
   h2 {
     color: $primary-color;
     font-size: 2.4em;
-    margin-bottom: 30px; /* 🔹 Más separación del título */
+    margin-bottom: 30px;
     font-weight: 800;
     letter-spacing: -0.5px;
+
+    // 🔥 REDUCCIÓN TÍTULO
+    @media (max-width: 1024px) {
+      font-size: 2.2em;
+      margin-bottom: 25px;
+    }
+
+    @media (max-width: 768px) {
+      font-size: 2em;
+      margin-bottom: 22px;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 1.8em;
+      margin-bottom: 20px;
+    }
+    
+    @media (max-width: 360px) {
+      font-size: 1.6em;
+      margin-bottom: 18px;
+    }
   }
 }
 
@@ -56,12 +112,32 @@ $card-background: rgba(224, 247, 250, 0.88); /* 🔹 Fondo más suave */
   margin-bottom: 25px;
   text-align: left;
 
+  // 🔥 REDUCCIÓN MARGEN
+  @media (max-width: 768px) {
+    margin-bottom: 20px;
+  }
+  
+  @media (max-width: 480px) {
+    margin-bottom: 18px;
+  }
+
   label {
     display: block;
     margin-bottom: 8px;
     color: $text-color;
     font-weight: 600;
     font-size: 0.95em;
+
+    // 🔥 REDUCCIÓN LABEL
+    @media (max-width: 768px) {
+      font-size: 0.9em;
+      margin-bottom: 6px;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 0.85em;
+      margin-bottom: 5px;
+    }
   }
 }
 
@@ -75,12 +151,37 @@ input[type="password"] {
   color: $text-color;
   background: #fafafa;
   transition: all 0.3s ease;
+  box-sizing: border-box; // 🔥 IMPORTANTE: Incluir padding en el width
+
+  // 🔥 REDUCCIÓN INPUTS
+  @media (max-width: 768px) {
+    padding: 12px 15px;
+    font-size: 0.95em;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 12px;
+    font-size: 0.9em;
+    border-radius: 7px;
+  }
+  
+  @media (max-width: 360px) {
+    padding: 9px 10px;
+    font-size: 0.85em;
+    border-radius: 6px;
+  }
 
   &:focus {
     border-color: $input-focus-color;
     box-shadow: 0 0 10px rgba(38, 166, 154, 0.4);
     outline: none;
     background: #fff;
+    
+    // 🔥 EFECTO MÁS SUAVE EN MÓVIL
+    @media (max-width: 768px) {
+      box-shadow: 0 0 8px rgba(38, 166, 154, 0.3);
+    }
   }
 }
 
@@ -96,6 +197,29 @@ button[type="submit"] {
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 20px;
+  box-sizing: border-box; // 🔥 IMPORTANTE: Incluir padding en el width
+
+  // 🔥 REDUCCIÓN BOTÓN
+  @media (max-width: 768px) {
+    padding: 13px 16px;
+    font-size: 1.05em;
+    border-radius: 8px;
+    margin-top: 18px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 11px 14px;
+    font-size: 1em;
+    border-radius: 7px;
+    margin-top: 16px;
+  }
+  
+  @media (max-width: 360px) {
+    padding: 10px 12px;
+    font-size: 0.95em;
+    border-radius: 6px;
+    margin-top: 14px;
+  }
 
   &:hover {
     transform: translateY(-2px) scale(1.02);
@@ -123,6 +247,20 @@ button[type="submit"] {
   border-radius: 8px;
   padding: 12px;
   animation: shake 0.3s ease;
+  box-sizing: border-box; // 🔥 IMPORTANTE: Incluir padding en el width
+
+  // 🔥 REDUCCIÓN MENSAJE ERROR
+  @media (max-width: 768px) {
+    font-size: 0.85em;
+    padding: 10px;
+    margin-top: 12px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.8em;
+    padding: 8px;
+    margin-top: 10px;
+  }
 }
 
 @keyframes shake {
@@ -137,6 +275,22 @@ p {
   margin-top: 25px;
   color: $text-color;
   font-size: 0.95em;
+
+  // 🔥 REDUCCIÓN TEXTO
+  @media (max-width: 768px) {
+    font-size: 0.9em;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.85em;
+    margin-top: 18px;
+  }
+  
+  @media (max-width: 360px) {
+    font-size: 0.8em;
+    margin-top: 16px;
+  }
 
   a {
     color: $primary-color;
@@ -161,6 +315,13 @@ p {
   animation: spin 1s linear infinite;
   margin-right: 8px;
   vertical-align: middle;
+
+  // 🔥 REDUCCIÓN SPINNER
+  @media (max-width: 480px) {
+    width: 18px;
+    height: 18px;
+    margin-right: 6px;
+  }
 }
 
 @keyframes spin {
