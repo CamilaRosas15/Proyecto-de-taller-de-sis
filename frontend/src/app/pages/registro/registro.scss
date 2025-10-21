@@ -7,6 +7,18 @@
   justify-content: center;
   overflow: hidden;
   padding: 20px;
+  box-sizing: border-box;
+
+  // 🔥 RESPONSIVE: Reducir padding en móvil
+  @media (max-width: 768px) {
+    padding: 15px;
+    align-items: flex-start;
+    min-height: 100dvh;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px;
+  }
 }
 
 /* Fondo animado con imágenes de recetas */
@@ -22,6 +34,11 @@
   animation: moveRecipes 60s linear infinite;
   opacity: 0.25;
   z-index: -1;
+
+  // 🔥 RESPONSIVE: Mejor rendimiento en móvil
+  @media (max-width: 768px) {
+    animation: moveRecipesMobile 80s linear infinite;
+  }
 }
 
 /* Animación lenta del fondo */
@@ -37,9 +54,22 @@
   }
 }
 
+// 🔥 RESPONSIVE: Animación más suave para móvil
+@keyframes moveRecipesMobile {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-15%, -15%);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
 /* Tarjeta principal */
 .registro-card {
-  background: rgba(64, 224, 208, 0.9); /* Verde turquesa suave */
+  background: rgba(64, 224, 208, 0.9);
   padding: 30px 40px;
   border-radius: 16px;
   box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.25);
@@ -47,6 +77,32 @@
   width: 100%;
   text-align: center;
   animation: fadeIn 1.2s ease-in-out;
+  box-sizing: border-box;
+
+  // 🔥 RESPONSIVE: Reducir tamaño progresivamente
+  @media (max-width: 1024px) {
+    padding: 25px 35px;
+    max-width: 480px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 20px 25px;
+    max-width: 420px;
+    border-radius: 14px;
+    margin: 20px 0;
+  }
+
+  @media (max-width: 480px) {
+    padding: 15px 20px;
+    max-width: 100%;
+    border-radius: 12px;
+    margin: 10px 0;
+  }
+
+  @media (max-width: 360px) {
+    padding: 12px 15px;
+    border-radius: 10px;
+  }
 }
 
 /* Animación de aparición */
@@ -67,18 +123,59 @@
   font-size: 2rem;
   color: #ffffff;
   font-weight: bold;
+
+  // 🔥 RESPONSIVE: Reducir tamaño de título
+  @media (max-width: 768px) {
+    font-size: 1.8rem;
+    margin-bottom: 18px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.6rem;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 360px) {
+    font-size: 1.4rem;
+    margin-bottom: 14px;
+  }
 }
 
 .registro-card h3 {
   margin-bottom: 15px;
   font-size: 1.3rem;
   color: #004d4d;
+
+  // 🔥 RESPONSIVE: Reducir subtítulo
+  @media (max-width: 768px) {
+    font-size: 1.2rem;
+    margin-bottom: 13px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 360px) {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
 }
 
 /* Inputs y selects */
 .form-group {
   margin-bottom: 15px;
   text-align: left;
+
+  // 🔥 RESPONSIVE: Reducir margen
+  @media (max-width: 768px) {
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 10px;
+  }
 }
 
 .form-group label {
@@ -86,6 +183,17 @@
   font-weight: bold;
   margin-bottom: 6px;
   color: #003333;
+
+  // 🔥 RESPONSIVE: Reducir tamaño de label
+  @media (max-width: 768px) {
+    font-size: 0.95em;
+    margin-bottom: 5px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.9em;
+    margin-bottom: 4px;
+  }
 }
 
 .form-group input,
@@ -96,6 +204,25 @@
   border: 1px solid #ccc;
   font-size: 1rem;
   transition: border 0.3s, box-shadow 0.3s;
+  box-sizing: border-box;
+
+  // 🔥 RESPONSIVE: Reducir inputs
+  @media (max-width: 768px) {
+    padding: 9px 12px;
+    font-size: 0.95rem;
+    border-radius: 7px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    border-radius: 6px;
+  }
+
+  @media (max-width: 360px) {
+    padding: 7px 9px;
+    font-size: 0.85rem;
+  }
 }
 
 .form-group input:focus,
@@ -105,8 +232,8 @@
   outline: none;
 }
 
-/* Botones */
-button {
+/* Botones principales */
+button[type="submit"] {
   background: #008080;
   color: #fff;
   border: none;
@@ -116,9 +243,29 @@ button {
   font-size: 1rem;
   font-weight: bold;
   transition: background 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+
+  // 🔥 RESPONSIVE: Reducir botón principal
+  @media (max-width: 768px) {
+    padding: 11px 18px;
+    font-size: 0.95rem;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    border-radius: 7px;
+  }
+
+  @media (max-width: 360px) {
+    padding: 9px 14px;
+    font-size: 0.85rem;
+  }
 }
 
-button:hover {
+button[type="submit"]:hover {
   background: #00b3b3;
 }
 
@@ -126,12 +273,34 @@ button:hover {
 .input-with-button {
   display: flex;
   gap: 8px;
+
+  // 🔥 RESPONSIVE: Ajustar gap en móvil
+  @media (max-width: 480px) {
+    gap: 6px;
+  }
+}
+
+.input-with-button input {
+  flex: 1;
 }
 
 .input-with-button button {
   background: #006666;
   padding: 10px 15px;
   font-size: 0.9rem;
+  white-space: nowrap;
+  border-radius: 6px;
+
+  // 🔥 RESPONSIVE: Reducir botones pequeños
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 7px 10px;
+    font-size: 0.8rem;
+  }
 }
 
 .input-with-button button:hover {
@@ -144,6 +313,12 @@ button:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+
+  // 🔥 RESPONSIVE: Ajustar tags
+  @media (max-width: 480px) {
+    gap: 6px;
+    margin-top: 8px;
+  }
 }
 
 .tag {
@@ -157,12 +332,30 @@ button:hover {
   align-items: center;
   gap: 6px;
   cursor: default;
+
+  // 🔥 RESPONSIVE: Reducir tags
+  @media (max-width: 768px) {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    gap: 5px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    gap: 4px;
+  }
 }
 
 .tag span {
   cursor: pointer;
   color: red;
   font-weight: bold;
+  font-size: 0.9em;
+
+  @media (max-width: 480px) {
+    font-size: 0.8em;
+  }
 }
 
 /* Errores */
@@ -170,41 +363,45 @@ button:hover {
   margin-top: 10px;
   color: #ff3333;
   font-weight: bold;
+  font-size: 0.9rem;
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(255, 51, 51, 0.1);
+
+  // 🔥 RESPONSIVE: Reducir mensajes de error
+  @media (max-width: 768px) {
+    font-size: 0.85rem;
+    padding: 7px;
+    margin-top: 8px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+    padding: 6px;
+    margin-top: 6px;
+  }
 }
 
 /* Campos adicionales: Sexo y Altura */
-
-/* Campo Sexo */
-.form-group.sexo label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 6px;
-  color: #003333;
-}
-
-.form-group.sexo select {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  transition: border 0.3s, box-shadow 0.3s;
-}
-
-.form-group.sexo select:focus {
-  border-color: #40e0d0;
-  box-shadow: 0 0 8px rgba(64, 224, 208, 0.6);
-  outline: none;
-}
-
-/* Campo Altura */
+.form-group.sexo label,
 .form-group.altura label {
   display: block;
   font-weight: bold;
   margin-bottom: 6px;
   color: #003333;
+
+  @media (max-width: 768px) {
+    font-size: 0.95em;
+    margin-bottom: 5px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.9em;
+    margin-bottom: 4px;
+  }
 }
 
+.form-group.sexo select,
 .form-group.altura input {
   width: 100%;
   padding: 10px;
@@ -212,10 +409,61 @@ button:hover {
   border: 1px solid #ccc;
   font-size: 1rem;
   transition: border 0.3s, box-shadow 0.3s;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    padding: 9px 12px;
+    font-size: 0.95rem;
+    border-radius: 7px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    border-radius: 6px;
+  }
 }
 
+.form-group.sexo select:focus,
 .form-group.altura input:focus {
   border-color: #40e0d0;
   box-shadow: 0 0 8px rgba(64, 224, 208, 0.6);
   outline: none;
+}
+
+/* 🔥 MEJORAS ESPECÍFICAS PARA FORMULARIOS LARGOS EN MÓVIL */
+@media (max-width: 768px) {
+  .registro-card {
+    max-height: 90vh;
+    overflow-y: auto;
+    
+    /* Ocultar scrollbar pero mantener funcionalidad */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  
+  .registro-card::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+}
+
+/* 🔥 MEJORA PARA TECLADO EN MÓVIL */
+@media (max-width: 768px) {
+  .registro-container {
+    align-items: flex-start;
+    padding-top: 30px;
+    padding-bottom: 30px;
+  }
+}
+
+/* 🔥 OPTIMIZACIÓN PARA PANTALLAS MUY PEQUEÑAS */
+@media (max-width: 360px) and (max-height: 640px) {
+  .registro-container {
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
+  
+  .registro-card {
+    max-height: 95vh;
+  }
 }
