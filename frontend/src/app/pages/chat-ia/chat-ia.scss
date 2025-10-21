@@ -43,6 +43,8 @@
     justify-content: space-between;
     position: relative;
     z-index: 100;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   @media (max-width: 480px) {
@@ -67,6 +69,8 @@
     border-bottom: none;
     flex: 1;
     cursor: pointer;
+    min-width: 0;
+    overflow: hidden;
   }
 
   @media (max-width: 480px) {
@@ -100,14 +104,19 @@
   @media (max-width: 768px) {
     margin-top: 0;
     font-size: 16px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 150px;
   }
 
   @media (max-width: 480px) {
     font-size: 14px;
+    max-width: 120px;
   }
 }
 
-/* 🔥🔥🔥 NUEVO: Menú hamburguesa para móvil */
+/* 🔥🔥🔥 MEJORAS PARA EL BOTÓN HAMBURGUESA */
 .menu-mobile-toggle {
   display: none;
   
@@ -123,28 +132,47 @@
     gap: 4px;
     width: 40px;
     height: 40px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    z-index: 101;
+    
+    &:hover {
+      background: #f0f0f0;
+    }
     
     .hamburger-line {
       width: 20px;
       height: 2px;
       background: #2c5530;
       transition: all 0.3s ease;
+      border-radius: 2px;
     }
     
     &.active {
-      .hamburger-line:nth-child(1) {
-        transform: rotate(45deg) translate(6px, 6px);
-      }
-      .hamburger-line:nth-child(2) {
-        opacity: 0;
-      }
-      .hamburger-line:nth-child(3) {
-        transform: rotate(-45deg) translate(6px, -6px);
+      background: #8ed1c2;
+      
+      .hamburger-line {
+        background: white;
+        
+        &:nth-child(1) {
+          transform: rotate(45deg) translate(5px, 5px);
+        }
+        &:nth-child(2) {
+          opacity: 0;
+        }
+        &:nth-child(3) {
+          transform: rotate(-45deg) translate(7px, -6px);
+        }
       }
     }
+  }
+
+  @media (max-width: 480px) {
+    width: 36px;
+    height: 36px;
     
-    &:hover .hamburger-line {
-      background: #8ed1c2;
+    .hamburger-line {
+      width: 18px;
     }
   }
 }
@@ -167,6 +195,7 @@
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    animation: slideInLeft 0.3s ease;
     
     &.active {
       transform: translateX(0);
@@ -179,85 +208,160 @@
   }
 }
 
+/* Logo en el menú expandido móvil */
+.mobile-logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px 0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 20px;
+
+  h3 {
+    margin: 0;
+    color: #2c5530;
+    font-size: 1.3em;
+    font-weight: 600;
+  }
+
+  @media (max-width: 480px) {
+    gap: 12px;
+    padding: 15px 0;
+    
+    h3 {
+      font-size: 1.1em;
+    }
+  }
+}
+
+/* Navegación móvil */
+.mobile-nav {
+  margin-bottom: 30px;
+
+  .menu-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 15px 20px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    color: #666;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    text-align: left;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background: #f8f9fa;
+      color: #2c5530;
+      transform: translateX(5px);
+    }
+    
+    &.active {
+      background: #8ed1c2;
+      color: white;
+      font-weight: 600;
+    }
+
+    @media (max-width: 480px) {
+      padding: 12px 15px;
+      font-size: 15px;
+    }
+  }
+}
+
+/* Historial móvil */
+.mobile-historial {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 20px;
+  margin-bottom: 30px;
+
+  h4 {
+    margin-bottom: 15px;
+    font-size: 16px;
+    color: #666;
+    font-weight: 600;
+    padding: 0 5px;
+  }
+
+  .historial-list {
+    max-height: 300px;
+    overflow-y: auto;
+    
+    /* Scrollbar personalizado */
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #8ed1c2;
+      border-radius: 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding-top: 15px;
+    
+    h4 {
+      font-size: 15px;
+    }
+  }
+}
+
+/* User info en móvil */
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px 0;
+  border-top: 1px solid #e0e0e0;
+  margin-top: auto;
+
+  .user-details {
+    .username {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+      color: #333;
+    }
+    
+    .user-handle {
+      font-size: 14px;
+      color: #888;
+      margin: 0;
+    }
+  }
+
+  @media (max-width: 480px) {
+    gap: 12px;
+    padding: 15px 0;
+    
+    .user-details {
+      .username {
+        font-size: 15px;
+      }
+      
+      .user-handle {
+        font-size: 13px;
+      }
+    }
+  }
+}
+
 /* Menú normal (desktop) */
 .menu {
   flex-grow: 1;
 
   @media (max-width: 768px) {
     display: none; /* Ocultar menú completo en móvil */
-  }
-}
-
-/* Menú dentro del overlay móvil */
-.menu-mobile-content {
-  @media (max-width: 768px) {
-    .menu-btn {
-      display: block;
-      width: 100%;
-      padding: 15px 20px;
-      background: transparent;
-      border: none;
-      border-radius: 8px;
-      color: #666;
-      margin-bottom: 10px;
-      cursor: pointer;
-      font-weight: 500;
-      text-align: left;
-      font-size: 16px;
-      transition: all 0.3s ease;
-      
-      &:hover {
-        background: #f0f0f0;
-        color: #2c5530;
-      }
-      
-      &.active {
-        background: #8ed1c2;
-        color: white;
-        font-weight: 600;
-      }
-    }
-    
-    .historial {
-      margin-top: 30px;
-      border-top: 1px solid #e0e0e0;
-      padding-top: 20px;
-      
-      h4 {
-        margin-bottom: 15px;
-        font-size: 16px;
-        color: #666;
-        font-weight: 600;
-      }
-    }
-    
-    .historial-btn {
-      display: block;
-      width: 100%;
-      margin: 8px 0;
-      padding: 12px 15px;
-      border-radius: 6px;
-      border: 1px solid #e0e0e0;
-      cursor: pointer;
-      background: white;
-      color: #666;
-      font-size: 14px;
-      text-align: left;
-      transition: all 0.2s ease;
-      
-      &:hover {
-        background: #f8f9fa;
-        border-color: #8ed1c2;
-      }
-    }
-    
-    .no-historial {
-      text-align: center;
-      color: #888;
-      font-size: 14px;
-      padding: 15px;
-      font-style: italic;
-    }
   }
 }
 
@@ -331,11 +435,13 @@
     border-top: none;
     padding: 0;
     margin-left: 15px;
+    display: none !important;
   }
 
   @media (max-width: 480px) {
     gap: 8px;
     margin-left: 10px;
+    display: none !important;
   }
 }
 
@@ -372,6 +478,50 @@
   }
 }
 
+/* 🔥 MEJORAS PARA EL OVERLAY */
+.menu-overlay {
+  display: none;
+  
+  @media (max-width: 768px) {
+    &.active {
+      display: block;
+      position: fixed;
+      top: 70px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 98;
+      animation: fadeIn 0.3s ease;
+    }
+  }
+
+  @media (max-width: 480px) {
+    &.active {
+      top: 60px;
+    }
+  }
+}
+
+/* Animaciones */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Main content - CORREGIDO */
 .main-content {
   flex-grow: 1;
@@ -383,6 +533,13 @@
 
   @media (max-width: 768px) {
     min-height: calc(100vh - 70px);
+    margin-top: 0;
+    
+    /* Efecto de desplazamiento cuando el menú está abierto */
+    .menu-mobile-expanded.active ~ & {
+      transform: translateX(100px);
+      pointer-events: none;
+    }
   }
 
   @media (max-width: 480px) {
@@ -894,30 +1051,6 @@ img {
   
   .recipe-full-section h3 {
     font-size: 1.1em;
-  }
-}
-
-/* 🔥🔥🔥 NUEVO: Overlay para cerrar menú al hacer click fuera */
-.menu-overlay {
-  display: none;
-  
-  @media (max-width: 768px) {
-    &.active {
-      display: block;
-      position: fixed;
-      top: 70px;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 98;
-    }
-  }
-
-  @media (max-width: 480px) {
-    &.active {
-      top: 60px;
-    }
   }
 }
 
