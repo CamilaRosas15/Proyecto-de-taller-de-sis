@@ -17,6 +17,9 @@ export class Principal implements OnInit {
   public currentUser: any = null;
   public isLoadingUser: boolean = false;
   public isUserLoggedIn: boolean = false;
+  
+  // 🔥 NUEVA VARIABLE PARA CONTROLAR EL MENÚ MÓVIL
+  public isMobileMenuOpen = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -62,6 +65,23 @@ export class Principal implements OnInit {
         this.loadCurrentUser();
       }
     });
+  }
+
+  // 🔥 NUEVOS MÉTODOS PARA EL MENÚ MÓVIL
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    
+    // Prevenir scroll del body cuando el menú está abierto
+    if (this.isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen = false;
+    document.body.style.overflow = ''; // Restaurar scroll
   }
 
   /** Muestra mensaje inicial según la información disponible */
