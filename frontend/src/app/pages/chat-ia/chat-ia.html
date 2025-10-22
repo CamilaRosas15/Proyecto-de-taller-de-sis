@@ -1,16 +1,25 @@
 <div class="app-container">
-  <!-- Sidebar -->
+  <!-- Sidebar para Desktop -->
   <aside class="sidebar">
     <div class="logo">
       <img src="assets/logo.png" alt="Logo" class="logo-img">
       <h2>Nutrichef IA</h2>
     </div>
 
+    <!-- Botón Hamburguesa para Mobile -->
+    <button class="menu-mobile-toggle" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+
     <nav class="menu">
       <button class="menu-btn" routerLink="/principal">🏠 Inicio</button>
       <button class="menu-btn" routerLink="/recetas">📖 Recetas</button>
       <button class="menu-btn active">💬 Chat IA</button>
       <button class="menu-btn" routerLink="/analisis-imagen">📸 Analizar Imagen</button>
+      <!-- 🔥 NUEVO: Botón Mi Progreso agregado al menú -->
+      <button class="menu-btn" routerLink="/progreso">📊 Mi Progreso</button>
       
       <div class="historial">
         <h4>Historial de Recetas</h4>
@@ -27,6 +36,7 @@
       </div>
     </nav>
 
+    <!-- 🔥 ELIMINADO: user-info del sidebar móvil -->
     <div class="user-info">
       <img src="assets/user.png" alt="Usuario" class="avatar">
       <div>
@@ -36,16 +46,83 @@
     </div>
   </aside>
 
+  <!-- Overlay para cerrar menú móvil -->
+  <div class="menu-overlay" 
+       [class.active]="isMobileMenuOpen" 
+       (click)="closeMobileMenu()">
+  </div>
+
+  <!-- Menú Móvil Expandido -->
+  <div class="menu-mobile-expanded" [class.active]="isMobileMenuOpen">
+    <div class="menu-mobile-content">
+
+      <!-- Navegación móvil -->
+      <nav class="mobile-nav">
+        <button class="menu-btn" 
+                routerLink="/principal" 
+                (click)="closeMobileMenu()">
+          🏠 Inicio
+        </button>
+        <button class="menu-btn" 
+                routerLink="/recetas" 
+                (click)="closeMobileMenu()">
+          📖 Recetas
+        </button>
+        <button class="menu-btn active" 
+                (click)="closeMobileMenu()">
+          💬 Chat IA
+        </button>
+        <button class="menu-btn" 
+                routerLink="/analisis-imagen" 
+                (click)="closeMobileMenu()">
+          📸 Analizar Imagen
+        </button>
+        <!-- 🔥 NUEVO: Botón Mi Progreso agregado al menú móvil -->
+        <button class="menu-btn" 
+                routerLink="/progreso" 
+                (click)="closeMobileMenu()">
+          📊 Mi Progreso
+        </button>
+      </nav>
+
+      <!-- Historial en versión móvil -->
+      <div class="mobile-historial">
+        <h4>Historial de Recetas</h4>
+        <div class="historial-list">
+          <button 
+            *ngFor="let item of historialRecetas" 
+            class="historial-btn"
+            (click)="onCargarRecetaDelHistorial(item); closeMobileMenu()">
+            {{ item.receta?.nombre || 'Receta ' + item.id_receta }}
+          </button>
+          
+          <div *ngIf="historialRecetas.length === 0" class="no-historial">
+            <p>No hay recetas guardadas</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- User info en móvil -->
+      <div class="mobile-user-info">
+        <img src="assets/user.png" alt="Usuario" class="avatar">
+        <div class="user-details">
+          <p class="username">Usuario</p>
+          <p class="user-handle">@nutrichef</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Main content -->
   <main class="main-content">
-    <!-- Header -->
+    <!-- Header - 🔥 ELIMINADO el h1 y botón de progreso -->
     <header class="header">
-      <h1>{{ recetaSeleccionada ? recetaSeleccionada.titulo : 'PEDIR UNA RECETA' }}</h1>
+      <!-- 🔥 ELIMINADO: <h1>{{ recetaSeleccionada ? recetaSeleccionada.titulo : 'PEDIR UNA RECETA' }}</h1> -->
       <div class="header-actions">
         <button *ngIf="recetaSeleccionada" (click)="volverAlChat()" class="back-btn">
           ← Volver al chat
         </button>
-        <button class="progress-btn">⏰</button>
+        <!-- 🔥 ELIMINADO: <button class="progress-btn">⏰</button> -->
       </div>
     </header>
 

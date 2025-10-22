@@ -15,6 +15,9 @@ export class Recetas implements OnInit {
   recipes: Receta[] = [];
   selectedRecipe: Receta | null = null;
   closing = false;
+  
+  // 🔥 NUEVA VARIABLE PARA CONTROLAR EL MENÚ MÓVIL
+  isMobileMenuOpen = false;
 
   constructor(
     private recipeService: RecipeService,
@@ -38,6 +41,23 @@ export class Recetas implements OnInit {
 
   onLogout(): void {
     this.authService.logout();
+  }
+
+  // 🔥 NUEVOS MÉTODOS PARA EL MENÚ MÓVIL
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    
+    // Prevenir scroll del body cuando el menú está abierto
+    if (this.isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen = false;
+    document.body.style.overflow = ''; // Restaurar scroll
   }
 
   openModal(recipe: Receta): void {
