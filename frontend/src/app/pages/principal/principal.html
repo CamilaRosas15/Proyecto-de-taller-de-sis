@@ -1,23 +1,28 @@
 <div class="principal-container">
-  <!-- NAVBAR -->
+  <!-- NAVBAR (contenido varía según estado de sesión) -->
   <nav class="navbar">
     <div class="logo">
       <img src="assets/logo.png" alt="Nutrichef IA">
       <span>Nutrichef IA</span>
     </div>
     <ul class="nav-links">
-      <li><a routerLink="/recetas">RECETAS</a></li>
-      <li><a routerLink="/analisis-imagen">ANÁLISIS IMAGEN</a></li>
-      <li><a routerLink="/chat-ia">CHAT IA</a></li>
-      <li><a (click)="scrollToSection('sobre-nosotros')">SOBRE NOSOTROS</a></li>
-      <!-- Mostrar "Cerrar Sesión" si está logueado, sino "Iniciar Sesión" -->
-      <li *ngIf="!isLoggedIn()"><a routerLink="/login">INICIO DE SESIÓN</a></li>
-      <li *ngIf="isLoggedIn()"><a (click)="onLogout()" class="logout-link">CERRAR SESIÓN</a></li>
+      <!-- Menú para NO logueados -->
+      <ng-container *ngIf="!isLoggedIn(); else loggedMenu">
+        <li><a routerLink="/recetas">RECETAS</a></li>
+        <li><a (click)="scrollToSection('sobre-nosotros')">SOBRE NOSOTROS</a></li>
+        <li><a routerLink="/login">INICIO DE SESIÓN</a></li>
+      </ng-container>
+      <!-- Menú para LOGUEADOS: solo Recetas, Sobre nosotros y Cerrar sesión -->
+      <ng-template #loggedMenu>
+        <li><a routerLink="/recetas">RECETAS</a></li>
+        <li><a (click)="scrollToSection('sobre-nosotros')">SOBRE NOSOTROS</a></li>
+        <li><button class="btn-logout" (click)="onLogout()">CERRAR SESIÓN</button></li>
+      </ng-template>
     </ul>
   </nav>
 
-  <!-- Mensaje de Bienvenida Personalizado -->
-  <div *ngIf="welcomeMessage && !isLoadingUser" class="welcome-banner">
+  <!-- Mensaje de Bienvenida Personalizado (solo si NO está logueado) -->
+  <div *ngIf="!isLoggedIn() && welcomeMessage && !isLoadingUser" class="welcome-banner">
     <div class="welcome-content">
       <h2>{{ welcomeMessage }}</h2>
       <p *ngIf="currentUser?.profile?.nombre || currentUser?.profile?.nombre_completo">
@@ -35,8 +40,8 @@
     <p>Cargando información del usuario...</p>
   </div>
 
-  <!-- CONTENIDO PRINCIPAL -->
-  <main class="main-content">
+  <!-- CONTENIDO PRINCIPAL (solo si NO está logueado) -->
+  <main class="main-content" *ngIf="!isLoggedIn()">
     <h1>Descubre recetas deliciosas y saludables 🍽️</h1>
     <p>
       Deja que <strong>Nutrichef IA</strong> te inspire con ideas únicas para cuidar tu cuerpo y disfrutar cada bocado.
@@ -74,7 +79,37 @@
     <button class="discover-btn" routerLink="/recetas">Descubrir más recetas</button>
   </main>
 
-  <!-- SOBRE NOSOTROS -->
+  <!-- VISTA PARA USUARIOS LOGUEADOS: solo Chat IA y Análisis de Imágenes -->
+  <section *ngIf="isLoggedIn()" class="logged-in-actions">
+    <div class="actions-container">
+      <!-- Banner de bienvenida con el mismo estilo que el anterior -->
+      <div *ngIf="welcomeMessage && !isLoadingUser" class="welcome-banner">
+        <div class="welcome-content">
+          <h2>{{ welcomeMessage }}</h2>
+        </div>
+      </div>
+      <!-- Hero con logo y título "Nutrichef IA" -->
+      <div class="hero">
+        <img src="assets/logo.png" alt="Nutrichef IA" class="hero-logo" />
+        <h1 class="hero-title">Nutrichef IA</h1>
+      </div>
+      <h2 class="tools-title">Accede a tus herramientas IA</h2>
+      <div class="actions-grid">
+        <a class="action-card" routerLink="/chat-ia">
+          
+          <h3>Chat IA</h3>
+          <p>Consulta a tu asistente nutricional en tiempo real.</p>
+        </a>
+        <a class="action-card" routerLink="/analisis-imagen">
+          
+          <h3>Análisis de Imágenes</h3>
+          <p>Detecta alimentos y obtén información nutricional.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOBRE NOSOTROS (visible para todos; navegable desde el menú) -->
   <section id="sobre-nosotros" class="sobre-nosotros-container">
     <div class="contenido">
       <h1>Sobre Nosotros 🍲</h1>
