@@ -1,221 +1,122 @@
-/* src/app/pages/registro/registro.css */
+/* Fondo general */
 .registro-container {
   position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  font-family: 'Poppins', sans-serif;
+  background: url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80")
+    no-repeat center center fixed;
+  background-size: cover;
   padding: 20px;
 }
 
-/* Fondo animado con imágenes de recetas */
-.registro-container::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 200%;
-  height: 200%;
-  background: url("https://images.unsplash.com/photo-1504674900247-0877df9cc836") repeat;
-  background-size: cover;
-  animation: moveRecipes 60s linear infinite;
-  opacity: 0.25;
-  z-index: -1;
-}
-
-/* Animación lenta del fondo */
-@keyframes moveRecipes {
-  0% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(-20%, -20%);
-  }
-  100% {
-    transform: translate(0, 0);
-  }
-}
-
-/* Tarjeta principal */
+/* Tarjeta del registro */
 .registro-card {
-  background: rgba(64, 224, 208, 0.9); /* Verde turquesa suave */
-  padding: 30px 40px;
-  border-radius: 16px;
-  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.25);
-  max-width: 500px;
+  background-color: rgba(240, 255, 250, 0.88);
+  padding: 50px 45px;
+  border-radius: 15px;
+  border: 2.5px solid #4db6ac;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
   width: 100%;
+  max-width: 420px;
   text-align: center;
-  animation: fadeIn 1.2s ease-in-out;
-}
+  backdrop-filter: blur(10px);
+  animation: fadeInUp 0.8s ease both;
 
-/* Animación de aparición */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
+  h2 {
+    color: #00796b;
+    font-size: 1.8em;
+    font-weight: 700;
+    margin-bottom: 25px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  h3 {
+    color: #004d4d;
+    font-size: 1.1em;
+    margin-bottom: 10px;
   }
 }
 
-/* Encabezados */
-.registro-card h2 {
-  margin-bottom: 20px;
-  font-size: 2rem;
-  color: #ffffff;
-  font-weight: bold;
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(25px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.registro-card h3 {
-  margin-bottom: 15px;
-  font-size: 1.3rem;
-  color: #004d4d;
-}
-
-/* Inputs y selects */
+/* Inputs */
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   text-align: left;
 }
 
 .form-group label {
+  color: #2e2e2e;
+  font-weight: 600;
+  margin-bottom: 8px;
   display: block;
-  font-weight: bold;
-  margin-bottom: 6px;
-  color: #003333;
 }
 
-.form-group input,
-.form-group select {
+.form-group input {
   width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  transition: border 0.3s, box-shadow 0.3s;
+  padding: 12px 15px;
+  border: 1.5px solid #4db6ac;
+  border-radius: 10px;
+  font-size: 1em;
+  color: #333;
+  background: #fff;
+  transition: all 0.3s ease;
 }
 
-.form-group input:focus,
-.form-group select:focus {
-  border-color: #40e0d0;
-  box-shadow: 0 0 8px rgba(64, 224, 208, 0.6);
+.form-group input:focus {
+  border-color: #009688;
+  box-shadow: 0 0 8px rgba(0, 150, 136, 0.4);
   outline: none;
 }
 
-/* Botones */
+/* Botón principal */
 button {
-  background: #008080;
-  color: #fff;
+  width: 100%;
+  padding: 14px;
+  background-color: #00796b;
+  color: white;
   border: none;
-  padding: 12px 20px;
   border-radius: 10px;
+  font-size: 1.05em;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-  transition: background 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 button:hover {
-  background: #00b3b3;
+  background-color: #00695c;
+  transform: translateY(-2px);
 }
 
-/* Botones pequeños */
-.input-with-button {
-  display: flex;
-  gap: 8px;
+button:active {
+  transform: scale(0.98);
 }
 
-.input-with-button button {
-  background: #006666;
-  padding: 10px 15px;
-  font-size: 0.9rem;
+/* Texto inferior */
+p {
+  margin-top: 20px;
+  font-size: 0.95em;
+  color: #2e2e2e;
 }
 
-.input-with-button button:hover {
-  background: #00a3a3;
+p a {
+  color: #00796b;
+  text-decoration: none;
+  font-weight: 600;
 }
 
-/* Tags (alergias, gustos, no me gusta) */
-.tags-container {
-  margin-top: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+p a:hover {
+  text-decoration: underline;
 }
 
-.tag {
-  background: #ffffff;
-  border: 1px solid #00cccc;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  color: #004d4d;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: default;
-}
-
-.tag span {
-  cursor: pointer;
-  color: red;
-  font-weight: bold;
-}
-
-/* Errores */
+/* Error */
 .error-message {
   margin-top: 10px;
-  color: #ff3333;
-  font-weight: bold;
-}
-
-/* Campos adicionales: Sexo y Altura */
-
-/* Campo Sexo */
-.form-group.sexo label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 6px;
-  color: #003333;
-}
-
-.form-group.sexo select {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  transition: border 0.3s, box-shadow 0.3s;
-}
-
-.form-group.sexo select:focus {
-  border-color: #40e0d0;
-  box-shadow: 0 0 8px rgba(64, 224, 208, 0.6);
-  outline: none;
-}
-
-/* Campo Altura */
-.form-group.altura label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 6px;
-  color: #003333;
-}
-
-.form-group.altura input {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  transition: border 0.3s, box-shadow 0.3s;
-}
-
-.form-group.altura input:focus {
-  border-color: #40e0d0;
-  box-shadow: 0 0 8px rgba(64, 224, 208, 0.6);
-  outline: none;
+  color: #e53935;
+  font-weight: 500;
 }
