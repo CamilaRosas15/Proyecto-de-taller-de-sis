@@ -30,8 +30,7 @@
         <button class="menu-btn" routerLink="/recetas">📖 Recetas</button>
         <button class="menu-btn active">💬 Chat IA</button>
         <button class="menu-btn" routerLink="/analisis-imagen">📸 Analizar Imagen</button>
-        <!-- 🔥 NUEVO: Botón Mi Progreso agregado al menú -->
-        <button class="menu-btn" routerLink="/progreso">📊 Mi Progreso</button>
+  
         
         <div class="historial">
           <h4>Historial de Recetas</h4>
@@ -88,12 +87,6 @@
                   routerLink="/analisis-imagen" 
                   (click)="closeMobileMenu()">
             📸 Analizar Imagen
-          </button>
-          <!-- 🔥 NUEVO: Botón Mi Progreso agregado al menú móvil -->
-          <button class="menu-btn" 
-                  routerLink="/progreso" 
-                  (click)="closeMobileMenu()">
-            📊 Mi Progreso
           </button>
         </nav>
 
@@ -256,7 +249,7 @@
                   <button 
                     class="select-recipe-btn"
                     (click)="onSeleccionarReceta(receta)">
-                    💖 Prefiero esta receta
+                    Prefiero esta receta
                   </button>
                 </div>
               </div>
