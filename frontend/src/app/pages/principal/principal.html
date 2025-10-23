@@ -21,8 +21,10 @@
         <li><a (click)="scrollToSection('sobre-nosotros')">SOBRE NOSOTROS</a></li>
         <li><a routerLink="/login">INICIO DE SESIÓN</a></li>
       </ng-container>
-      <!-- Menú para LOGUEADOS: solo Recetas, Sobre nosotros y Cerrar sesión -->
+      <!-- Menú para LOGUEADOS: Chat IA, Análisis Imagen, Recetas, Sobre nosotros y Cerrar sesión -->
       <ng-template #loggedMenu>
+        <li><a routerLink="/chat-ia">CHAT IA</a></li>
+        <li><a routerLink="/analisis-imagen">ANÁLISIS IMAGEN</a></li>
         <li><a routerLink="/recetas">RECETAS</a></li>
         <li><a (click)="scrollToSection('sobre-nosotros')">SOBRE NOSOTROS</a></li>
         <li><button class="btn-logout" (click)="onLogout()">CERRAR SESIÓN</button></li>
@@ -38,24 +40,37 @@
     <!-- Menú Móvil Compacto -->
     <div class="menu-mobile-compact" [class.active]="isMobileMenuOpen">
       <div class="mobile-menu-content">
-        <a class="mobile-menu-item" routerLink="/recetas" (click)="closeMobileMenu()">
-          📖 RECETAS
-        </a>
-        <a class="mobile-menu-item" routerLink="/analisis-imagen" (click)="closeMobileMenu()">
-          📸 ANÁLISIS IMAGEN
-        </a>
-        <a class="mobile-menu-item" routerLink="/chat-ia" (click)="closeMobileMenu()">
-          💬 CHAT IA
-        </a>
-        <a class="mobile-menu-item" (click)="scrollToSection('sobre-nosotros'); closeMobileMenu()">
-          👥 SOBRE NOSOTROS
-        </a>
-        <a *ngIf="!isLoggedIn()" class="mobile-menu-item" routerLink="/login" (click)="closeMobileMenu()">
-          🔐 INICIO DE SESIÓN
-        </a>
-        <a *ngIf="isLoggedIn()" class="mobile-menu-item logout-link" (click)="onLogout(); closeMobileMenu()">
-          🚪 CERRAR SESIÓN
-        </a>
+        <!-- Menú móvil para NO logueados -->
+        <ng-container *ngIf="!isLoggedIn(); else loggedMobileMenu">
+          <a class="mobile-menu-item" routerLink="/recetas" (click)="closeMobileMenu()">
+            📖 RECETAS
+          </a>
+          <a class="mobile-menu-item" (click)="scrollToSection('sobre-nosotros'); closeMobileMenu()">
+            👥 SOBRE NOSOTROS
+          </a>
+          <a class="mobile-menu-item" routerLink="/login" (click)="closeMobileMenu()">
+            🔐 INICIO DE SESIÓN
+          </a>
+        </ng-container>
+        
+        <!-- Menú móvil para LOGUEADOS -->
+        <ng-template #loggedMobileMenu>
+          <a class="mobile-menu-item" routerLink="/chat-ia" (click)="closeMobileMenu()">
+            💬 CHAT IA
+          </a>
+          <a class="mobile-menu-item" routerLink="/analisis-imagen" (click)="closeMobileMenu()">
+            📸 ANÁLISIS IMAGEN
+          </a>
+          <a class="mobile-menu-item" routerLink="/recetas" (click)="closeMobileMenu()">
+            📖 RECETAS
+          </a>
+          <a class="mobile-menu-item" (click)="scrollToSection('sobre-nosotros'); closeMobileMenu()">
+            👥 SOBRE NOSOTROS
+          </a>
+          <a class="mobile-menu-item logout-link" (click)="onLogout(); closeMobileMenu()">
+            🚪 CERRAR SESIÓN
+          </a>
+        </ng-template>
       </div>
     </div>
   </nav>
@@ -135,12 +150,10 @@
       <h2 class="tools-title">Accede a tus herramientas IA</h2>
       <div class="actions-grid">
         <a class="action-card" routerLink="/chat-ia">
-          
           <h3>Chat IA</h3>
           <p>Consulta a tu asistente nutricional en tiempo real.</p>
         </a>
         <a class="action-card" routerLink="/analisis-imagen">
-          
           <h3>Análisis de Imágenes</h3>
           <p>Detecta alimentos y obtén información nutricional.</p>
         </a>
