@@ -70,7 +70,7 @@ body {
 
 /* === NAVBAR - IDÉNTICO A PRINCIPAL === */
 .navbar {
-  background: linear-gradient(90deg, #26b0a5, #1f8f84);
+  background: #FEFEFE;
   padding: 1rem 3rem;
   display: flex;
   justify-content: space-between;
@@ -88,25 +88,31 @@ body {
   }
 
   .logo {
-    color: #fff;
-    font-size: 1.6rem;
-    font-weight: 800;
     display: flex;
     align-items: center;
     gap: 0.6rem;
     flex-shrink: 0;
 
-    i {
-      font-size: 1.7rem;
+    img {
+      height: 45px;
+      width: auto;
+
+      @media (max-width: 480px) {
+        height: 35px;
+      }
     }
 
     span {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #0c2d48;
       white-space: nowrap;
 
       @media (max-width: 480px) {
-        font-size: 1.3rem;
+        font-size: 1rem;
       }
     }
+
   }
 
   .nav-links {
@@ -120,7 +126,7 @@ body {
 
     a {
       text-decoration: none;
-      color: #f0f8f8;
+      color: #000000;
       font-weight: 600;
       text-transform: uppercase;
       transition: color 0.3s, transform 0.3s;
@@ -170,7 +176,7 @@ body {
     .hamburger-line {
       width: 20px;
       height: 2px;
-      background: #fff;
+      background: #000000;
       transition: all 0.3s ease;
       border-radius: 2px;
     }
@@ -179,7 +185,7 @@ body {
       background: rgba(255, 255, 255, 0.2);
       
       .hamburger-line {
-        background: white;
+        background: rgb(223, 223, 223);
         
         &:nth-child(1) {
           transform: rotate(45deg) translate(5px, 5px);
@@ -213,7 +219,7 @@ body {
     position: absolute;
     top: 100%;
     right: 1rem;
-    background: white;
+    background: rgb(223, 223, 223);
     border-radius: 12px;
     box-shadow: 0 8px 25px rgba(0,0,0,0.15);
     padding: 0.5rem;
@@ -465,8 +471,9 @@ body {
     }
 
     .recipe-category {
-      background: linear-gradient(90deg, #2a9d8f, #27c4b2);
-      color: white;
+      background: white;
+      color: black;
+      border: 2px solid #068C7F;
       padding: 6px 16px;
       border-radius: 20px;
       font-weight: 600;
