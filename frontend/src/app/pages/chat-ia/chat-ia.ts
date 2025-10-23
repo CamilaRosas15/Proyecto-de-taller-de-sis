@@ -23,6 +23,9 @@ export class ChatIAComponent {
   recetaSeleccionada: any = null; 
   isMobileMenuOpen = false;
 
+  userName: string | null = null;
+  userEmail: string | null = null;
+
   preferencias = {
     alergias: [] as string[],
     noMeGusta: [] as string[],
@@ -36,9 +39,11 @@ export class ChatIAComponent {
   constructor(
     private recipeService: RecipeService,
     private historyService: HistoryService, 
-    private authService: AuthService 
+    public authService: AuthService 
   ) {
     this.cargarHistorial(); 
+    this.userName = this.authService.currentUserName;
+    this.userEmail = this.authService.currentUserEmail;
   }
 
   toggleMobileMenu() {

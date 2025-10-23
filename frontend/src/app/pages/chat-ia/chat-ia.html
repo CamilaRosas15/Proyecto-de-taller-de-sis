@@ -51,8 +51,8 @@
       <div class="user-info">
         <img src="assets/user.png" alt="Usuario" class="avatar">
         <div>
-          <p class="username">Usuario</p>
-          <p class="user-handle">@nutrichef</p>
+          <p class="username">{{ userName || 'Usuario' }}</p>
+          <p class="user-handle">{{ userEmail || '@usuario' }}</p>
         </div>
       </div>
     </aside>
@@ -111,8 +111,8 @@
         <div class="mobile-user-info">
           <img src="assets/user.png" alt="Usuario" class="avatar">
           <div class="user-details">
-            <p class="username">Usuario</p>
-            <p class="user-handle">@nutrichef</p>
+            <p class="username">{{ userName || 'Usuario' }}</p>
+            <p class="user-handle">{{ userEmail || '@usuario' }}</p>
           </div>
         </div>
       </div>
