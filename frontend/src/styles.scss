@@ -1,1 +1,37 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global theme variables and base styles */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+:root {
+	/* Palette provided */
+	--color-dark: #0F314E;        /* secundary-color/dark-64 */
+	--color-bg-soft: #F4FAF8;     /* soft white */
+	--color-accent: #FFF9CC;      /* pale yellow */
+	--color-white: #FFFFFF;       /* white */
+	--color-primary: #068C7F;     /* teal */
+	--color-panel: #D4EAE6;       /* mint */
+}
+
+html, body {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+	color: var(--color-dark);
+	background-color: var(--color-bg-soft);
+}
+
+/* Utility classes used across pages */
+.btn-primary {
+	background: var(--color-primary);
+	color: var(--color-white);
+}
+
+.text-dark {
+	color: var(--color-dark);
+}
+
+.text-muted {
+	color: color-mix(in srgb, var(--color-dark) 60%, #ffffff 40%);
+}

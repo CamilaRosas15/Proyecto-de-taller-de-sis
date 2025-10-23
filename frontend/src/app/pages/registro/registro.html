@@ -1,11 +1,12 @@
 <!-- src/app/pages/registro/registro.html -->
 <div class="registro-container">
-  <div class="registro-card">
-    <h2>Registro en Nutri-IA</h2>
+  <div class="registro-card" [ngClass]="{ 'auth-mode': registrationStep === 1 }">
+    <h2 class="title">Registro en Nutri-IA</h2>
+    <p class="subtitle">Pasos: crea tu cuenta y completa tu perfil para obtener planes y recetas personalizadas.</p>
 
     <!-- Paso 1: Registro de Autenticación -->
-    <div *ngIf="registrationStep === 1">
-      <h3>Paso 1: Crea tu Cuenta</h3>
+    <div *ngIf="registrationStep === 1" class="step-auth">
+  <h3 class="step-title">Paso 1: Crea tu Cuenta</h3>
       <form (ngSubmit)="onRegisterAuth()">
         <div class="form-group">
           <label for="regEmail">Email:</label>
@@ -15,7 +16,7 @@
           <label for="regPassword">Contraseña:</label>
           <input type="password" id="regPassword" [(ngModel)]="password" name="regPassword" required minlength="6">
         </div>
-        <button type="submit" [disabled]="isLoadingAuth">
+        <button class="btn-primary" type="submit" [disabled]="isLoadingAuth">
           {{ isLoadingAuth ? 'Registrando...' : 'Registrar Cuenta' }}
         </button>
         <div *ngIf="errorMessageAuth" class="error-message">
@@ -27,7 +28,7 @@
 
     <!-- Paso 2: Datos del Perfil (después del registro exitoso) -->
     <div *ngIf="registrationStep === 2">
-      <h3>Paso 2: Completa tu Perfil (Usuario: {{ userEmail }})</h3>
+  <h3 class="step-title">Paso 2: Completa tu Perfil <span class="user-mail" *ngIf="userEmail">({{ userEmail }})</span></h3>
       <form (ngSubmit)="onSaveProfile(profileForm)" #profileForm="ngForm">
 
         <div class="form-group">
@@ -88,7 +89,7 @@
           <label for="nuevaAlergia">Alergias (una por una):</label>
           <div class="input-with-button">
             <input type="text" id="nuevaAlergia" [(ngModel)]="nuevaAlergia" name="nuevaAlergia" placeholder="Ej: Maní, Gluten">
-            <button type="button" (click)="addAlergia()">Añadir</button>
+            <button class="chip-add" type="button" (click)="addAlergia()">Añadir</button>
           </div>
           <div class="tags-container">
             <span *ngFor="let alergia of profileData.alergias; let i = index" class="tag">
@@ -102,7 +103,7 @@
           <label for="nuevoGusto">Me gusta (alimentos):</label>
           <div class="input-with-button">
             <input type="text" id="nuevoGusto" [(ngModel)]="nuevoGusto" name="nuevoGusto" placeholder="Ej: Pollo, Chocolate">
-            <button type="button" (click)="addGusto()">Añadir</button>
+            <button class="chip-add" type="button" (click)="addGusto()">Añadir</button>
           </div>
           <div class="tags-container">
             <span *ngFor="let gusto of profileData.gustos; let i = index" class="tag">
@@ -116,7 +117,7 @@
           <label for="nuevoNoMeGusta">No me gusta (alimentos):</label>
           <div class="input-with-button">
             <input type="text" id="nuevoNoMeGusta" [(ngModel)]="nuevoNoMeGusta" name="nuevoNoMeGusta" placeholder="Ej: Brócoli, Setas">
-            <button type="button" (click)="addNoMeGusta()">Añadir</button>
+            <button class="chip-add" type="button" (click)="addNoMeGusta()">Añadir</button>
           </div>
           <div class="tags-container">
             <span *ngFor="let noMeGusta of profileData.no_me_gusta; let i = index" class="tag">
@@ -125,7 +126,7 @@
           </div>
         </div>
 
-        <button type="submit" [disabled]="isLoadingProfile">
+        <button class="btn-primary" type="submit" [disabled]="isLoadingProfile">
           {{ isLoadingProfile ? 'Guardando...' : 'Guardar Perfil' }}
         </button>
         <div *ngIf="errorMessageProfile" class="error-message">
