@@ -1,329 +1,139 @@
 @use 'sass:color';
 
-$primary-color: #00897b; 
-$secondary-color: #4db6ac; 
-$text-color: #333333;
+$primary-color: #00796b; // verde oscuro del botón
+$secondary-color: #009688; 
+$text-color: #2e2e2e;
+$background-overlay: rgba(240, 255, 250, 0.88); // fondo translúcido de la tarjeta
+$border-color: #4db6ac;
 $error-color: #e53935;
-$input-border-color: #ddd;
-$input-focus-color: #26a69a; 
-$card-background: rgba(224, 247, 250, 0.88);
 
-.login-container {
+/* Fondo general */
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80")
+    no-repeat center center fixed;
+  background-size: cover;
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 100vh;
+}
+
+/* Fondo general */
+.login-container {
+  position: relative;
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Poppins', sans-serif;
   background: url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80")
-    no-repeat center center fixed; 
+    no-repeat center center fixed;
   background-size: cover;
   padding: 20px;
-  box-sizing: border-box;
-  animation: moveBackground 30s linear infinite;
-  
-  // 🔥 NUEVO: Reducir padding en móvil para que quepa mejor
-  @media (max-width: 768px) {
-    padding: 15px;
-  }
-  
-  @media (max-width: 480px) {
-    padding: 10px;
-  }
 }
 
-@keyframes moveBackground {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
+/* Tarjeta de inicio de sesión */
 .login-card {
-  background-color: $card-background;
-  padding: 60px 60px;
-  border-radius: 18px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  background-color: rgba(240, 255, 250, 0.88);
+  padding: 50px 45px;
+  border-radius: 15px;
+  border: 2.5px solid #4db6ac;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
   width: 100%;
-  max-width: 450px;
+  max-width: 420px;
   text-align: center;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(10px);
   animation: fadeInUp 0.8s ease both;
+}
 
-  // 🔥 REDUCCIÓN PROGRESIVA PARA TABLET
-  @media (max-width: 1024px) {
-    padding: 50px 45px;
-    max-width: 420px;
-  }
-
-  // 🔥 REDUCCIÓN PARA MÓVIL - MÁS AGRESIVA
-  @media (max-width: 768px) {
-    padding: 35px 30px;
-    max-width: 350px; // 🔥 REDUCIDO DE 380px A 350px
-  }
-
-  // 🔥 REDUCCIÓN PARA MÓVIL PEQUEÑO - MÁS AGRESIVA
-  @media (max-width: 480px) {
-    padding: 25px 20px;
-    max-width: 300px; // 🔥 REDUCIDO DE 340px A 300px
-    border-radius: 15px;
-  }
-  
-  // 🔥 EXTRA PARA PANTALLAS MUY PEQUEÑAS
-  @media (max-width: 360px) {
-    padding: 20px 15px;
-    max-width: 280px;
-    border-radius: 12px;
-  }
-
-  h2 {
-    color: $primary-color;
-    font-size: 2.4em;
-    margin-bottom: 30px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-
-    // 🔥 REDUCCIÓN TÍTULO
-    @media (max-width: 1024px) {
-      font-size: 2.2em;
-      margin-bottom: 25px;
-    }
-
-    @media (max-width: 768px) {
-      font-size: 2em;
-      margin-bottom: 22px;
-    }
-
-    @media (max-width: 480px) {
-      font-size: 1.8em;
-      margin-bottom: 20px;
-    }
-    
-    @media (max-width: 360px) {
-      font-size: 1.6em;
-      margin-bottom: 18px;
-    }
-  }
+.login-card h2 {
+  color: #00796b;
+  font-size: 1.8em;
+  font-weight: 700;
+  margin-bottom: 25px;
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(25px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
+/* Inputs */
 .form-group {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   text-align: left;
-
-  // 🔥 REDUCCIÓN MARGEN
-  @media (max-width: 768px) {
-    margin-bottom: 20px;
-  }
-  
-  @media (max-width: 480px) {
-    margin-bottom: 18px;
-  }
-
-  label {
-    display: block;
-    margin-bottom: 8px;
-    color: $text-color;
-    font-weight: 600;
-    font-size: 0.95em;
-
-    // 🔥 REDUCCIÓN LABEL
-    @media (max-width: 768px) {
-      font-size: 0.9em;
-      margin-bottom: 6px;
-    }
-
-    @media (max-width: 480px) {
-      font-size: 0.85em;
-      margin-bottom: 5px;
-    }
-  }
 }
 
-input[type="email"],
-input[type="password"] {
+.form-group label {
+  color: #2e2e2e;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.form-group input {
   width: 100%;
-  padding: 14px 18px;
-  border: 1px solid $input-border-color;
+  padding: 12px 15px;
+  border: 1.5px solid #4db6ac;
   border-radius: 10px;
   font-size: 1em;
-  color: $text-color;
-  background: #fafafa;
+  color: #333;
+  background: #fff;
   transition: all 0.3s ease;
-  box-sizing: border-box; // 🔥 IMPORTANTE: Incluir padding en el width
-
-  // 🔥 REDUCCIÓN INPUTS
-  @media (max-width: 768px) {
-    padding: 12px 15px;
-    font-size: 0.95em;
-    border-radius: 8px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 10px 12px;
-    font-size: 0.9em;
-    border-radius: 7px;
-  }
-  
-  @media (max-width: 360px) {
-    padding: 9px 10px;
-    font-size: 0.85em;
-    border-radius: 6px;
-  }
-
-  &:focus {
-    border-color: $input-focus-color;
-    box-shadow: 0 0 10px rgba(38, 166, 154, 0.4);
-    outline: none;
-    background: #fff;
-    
-    // 🔥 EFECTO MÁS SUAVE EN MÓVIL
-    @media (max-width: 768px) {
-      box-shadow: 0 0 8px rgba(38, 166, 154, 0.3);
-    }
-  }
 }
 
+.form-group input:focus {
+  border-color: #009688;
+  box-shadow: 0 0 8px rgba(0, 150, 136, 0.4);
+  outline: none;
+}
+
+/* Botón principal */
 button[type="submit"] {
   width: 100%;
-  padding: 15px 20px;
-  background: linear-gradient(135deg, $primary-color, $secondary-color);
+  padding: 14px;
+  background-color: #00796b;
   color: white;
   border: none;
   border-radius: 10px;
-  font-size: 1.15em;
-  font-weight: 700;
+  font-size: 1.05em;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 20px;
-  box-sizing: border-box; // 🔥 IMPORTANTE: Incluir padding en el width
-
-  // 🔥 REDUCCIÓN BOTÓN
-  @media (max-width: 768px) {
-    padding: 13px 16px;
-    font-size: 1.05em;
-    border-radius: 8px;
-    margin-top: 18px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 11px 14px;
-    font-size: 1em;
-    border-radius: 7px;
-    margin-top: 16px;
-  }
-  
-  @media (max-width: 360px) {
-    padding: 10px 12px;
-    font-size: 0.95em;
-    border-radius: 6px;
-    margin-top: 14px;
-  }
-
-  &:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 20px rgba(0, 137, 123, 0.3);
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  &:disabled {
-    background: color.adjust($primary-color, $lightness: 20%);
-    cursor: not-allowed;
-    opacity: 0.7;
-  }
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.error-message {
-  color: $error-color;
-  margin-top: 15px;
-  font-size: 0.9em;
-  font-weight: 500;
-  background-color: color.adjust($error-color, $lightness: 45%);
-  border: 1px solid color.adjust($error-color, $lightness: 20%);
-  border-radius: 8px;
-  padding: 12px;
-  animation: shake 0.3s ease;
-  box-sizing: border-box; // 🔥 IMPORTANTE: Incluir padding en el width
-
-  // 🔥 REDUCCIÓN MENSAJE ERROR
-  @media (max-width: 768px) {
-    font-size: 0.85em;
-    padding: 10px;
-    margin-top: 12px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 0.8em;
-    padding: 8px;
-    margin-top: 10px;
-  }
+button[type="submit"]:hover {
+  background-color: #00695c;
+  transform: translateY(-2px);
 }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-5px); }
-  40% { transform: translateX(5px); }
-  60% { transform: translateX(-5px); }
-  80% { transform: translateX(5px); }
+button[type="submit"]:active {
+  transform: scale(0.98);
 }
 
+/* Texto inferior */
 p {
-  margin-top: 25px;
-  color: $text-color;
+  margin-top: 20px;
   font-size: 0.95em;
-
-  // 🔥 REDUCCIÓN TEXTO
-  @media (max-width: 768px) {
-    font-size: 0.9em;
-    margin-top: 20px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 0.85em;
-    margin-top: 18px;
-  }
-  
-  @media (max-width: 360px) {
-    font-size: 0.8em;
-    margin-top: 16px;
-  }
-
-  a {
-    color: $primary-color;
-    text-decoration: none;
-    font-weight: 600;
-    transition: color 0.3s ease;
-
-    &:hover {
-      text-decoration: underline;
-      color: color.adjust($primary-color, $lightness: -10%);
-    }
-  }
+  color: #2e2e2e;
 }
 
-.spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: #fff;
-  animation: spin 1s linear infinite;
-  margin-right: 8px;
-  vertical-align: middle;
-
-  // 🔥 REDUCCIÓN SPINNER
-  @media (max-width: 480px) {
-    width: 18px;
-    height: 18px;
-    margin-right: 6px;
-  }
+p a {
+  color: #00796b;
+  text-decoration: none;
+  font-weight: 600;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+p a:hover {
+  text-decoration: underline;
 }
+
+/* Error message */
+.error-message {
+  margin-top: 10px;
+  color: #e53935;
+  font-weight: 500;
+}
+
