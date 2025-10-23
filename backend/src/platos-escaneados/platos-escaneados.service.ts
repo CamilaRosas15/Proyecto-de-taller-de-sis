@@ -231,7 +231,7 @@ export class PlatosEscaneadosService {
           )
         `)
         .eq('id_usuario', idUsuario)
-        .order('fecha', { ascending: false })
+        .order('fecha', { ascending: false }) // Más reciente primero
         .limit(10);
 
       if (error) {
@@ -239,12 +239,26 @@ export class PlatosEscaneadosService {
         throw new Error('Error al obtener el historial');
       }
 
-      // Generar nombres automáticos "Historial 1", "Historial 2", etc.
+      // Contar total de historiales para numeración correcta
+      const { count: totalCount, error: countError } = await this.supabaseService
+        .getClient()
+        .from('historial_escaneo')
+        .select('*', { count: 'exact', head: true })
+        .eq('id_usuario', idUsuario);
+
+      if (countError) {
+        this.logger.error('Error al contar historiales:', countError.message);
+        throw new Error('Error al contar historiales');
+      }
+
+      const totalHistoriales = totalCount || 0;
+
+      // Generar nombres en orden descendente (más reciente = número más alto)
       const historialConNombres = (data ?? []).map((row: any, index: number) => ({
         id_escaneo: row.id_escaneo,
         id_plato: row.platos_escaneados.id_plato,
         fecha: row.fecha,
-        nombre: `Historial ${index + 1}`,
+        nombre: `Análisis ${totalHistoriales - index}`, // El más reciente tendrá el número más alto
         imagen_url: row.platos_escaneados.imagen_url
       }));
 

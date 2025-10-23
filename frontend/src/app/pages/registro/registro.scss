@@ -1,469 +1,229 @@
-/* src/app/pages/registro/registro.css */
+/* Fondo general */
 .registro-container {
   position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  padding: 20px;
-  box-sizing: border-box;
-
-  // 🔥 RESPONSIVE: Reducir padding en móvil
-  @media (max-width: 768px) {
-    padding: 15px;
-    align-items: flex-start;
-    min-height: 100dvh;
-  }
-
-  @media (max-width: 480px) {
-    padding: 10px;
-  }
-}
-
-/* Fondo animado con imágenes de recetas */
-.registro-container::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 200%;
-  height: 200%;
-  background: url("https://images.unsplash.com/photo-1504674900247-0877df9cc836") repeat;
+  font-family: 'Poppins', sans-serif;
+  background: url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80")
+    no-repeat center center fixed;
   background-size: cover;
-  animation: moveRecipes 60s linear infinite;
-  opacity: 0.25;
-  z-index: -1;
-
-  // 🔥 RESPONSIVE: Mejor rendimiento en móvil
-  @media (max-width: 768px) {
-    animation: moveRecipesMobile 80s linear infinite;
-  }
-}
-
-/* Animación lenta del fondo */
-@keyframes moveRecipes {
-  0% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(-20%, -20%);
-  }
-  100% {
-    transform: translate(0, 0);
-  }
-}
-
-// 🔥 RESPONSIVE: Animación más suave para móvil
-@keyframes moveRecipesMobile {
-  0% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(-15%, -15%);
-  }
-  100% {
-    transform: translate(0, 0);
-  }
-}
-
-/* Tarjeta principal */
-.registro-card {
-  background: rgba(64, 224, 208, 0.9);
-  padding: 30px 40px;
-  border-radius: 16px;
-  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.25);
-  max-width: 500px;
-  width: 100%;
-  text-align: center;
-  animation: fadeIn 1.2s ease-in-out;
+  padding: 24px;
   box-sizing: border-box;
+}
 
-  // 🔥 RESPONSIVE: Reducir tamaño progresivamente
-  @media (max-width: 1024px) {
-    padding: 25px 35px;
-    max-width: 480px;
+.registro-card {
+  width: 100%;
+  max-width: 420px; /* más angosto para que el contenido se vea proporcional como en la imagen 2 */
+  text-align: center;
+  border-radius: 16px;
+  padding: 26px 22px; /* padding interno parejo a ambos lados */
+  backdrop-filter: blur(10px);
+  /* Soft panel with subtle gradient */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-panel) 85%, transparent) 0%, var(--color-bg-soft) 100%);
+  border: 1.5px solid color-mix(in srgb, var(--color-primary) 35%, #ffffff 65%);
+  box-shadow: 0 14px 32px rgba(15, 49, 78, 0.25);
+  animation: fadeInUp 0.8s ease both;
+   
+
+  .title {
+    color: var(--color-primary);
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0 0 4px 0;
   }
 
-  @media (max-width: 768px) {
-    padding: 20px 25px;
-    max-width: 420px;
-    border-radius: 14px;
-    margin: 20px 0;
+  .subtitle {
+    margin: 0 0 14px 0;
+    font-size: 0.82rem;
+    color: color-mix(in srgb, var(--color-dark) 70%, #ffffff 30%);
   }
 
-  @media (max-width: 480px) {
-    padding: 15px 20px;
-    max-width: 100%;
-    border-radius: 12px;
-    margin: 10px 0;
+  .step-title {
+    color: color-mix(in srgb, var(--color-dark) 90%, #ffffff 10%);
+    font-size: 0.96rem;
+    margin: 8px 0 10px 0;
+    font-weight: 600;
   }
 
-  @media (max-width: 360px) {
-    padding: 12px 15px;
-    border-radius: 10px;
+  .user-mail {
+    font-weight: 500;
+    color: var(--color-primary);
   }
 }
 
-/* Animación de aparición */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* Cuando está en el Paso 1 (creación de cuenta) igualamos el look del login */
+.registro-card.auth-mode {
+  max-width: 460px;
+  padding: 32px 28px;
 
-/* Encabezados */
-.registro-card h2 {
-  margin-bottom: 20px;
-  font-size: 2rem;
-  color: #ffffff;
-  font-weight: bold;
-
-  // 🔥 RESPONSIVE: Reducir tamaño de título
-  @media (max-width: 768px) {
-    font-size: 1.8rem;
-    margin-bottom: 18px;
+  .title {
+    font-size: 1.5rem;
   }
 
-  @media (max-width: 480px) {
-    font-size: 1.6rem;
-    margin-bottom: 16px;
+  .step-title {
+    font-size: 1rem;
+    margin: 10px 0 14px 0;
   }
 
-  @media (max-width: 360px) {
-    font-size: 1.4rem;
+  .step-auth .form-group {
     margin-bottom: 14px;
   }
-}
 
-.registro-card h3 {
-  margin-bottom: 15px;
-  font-size: 1.3rem;
-  color: #004d4d;
-
-  // 🔥 RESPONSIVE: Reducir subtítulo
-  @media (max-width: 768px) {
-    font-size: 1.2rem;
-    margin-bottom: 13px;
+  .step-auth .form-group input {
+    background: var(--color-white);
+    border: 1px solid color-mix(in srgb, var(--color-dark) 10%, #ffffff 90%);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.02), 0 2px 8px rgba(15,49,78,0.08);
   }
 
-  @media (max-width: 480px) {
-    font-size: 1.1rem;
-    margin-bottom: 12px;
-  }
-
-  @media (max-width: 360px) {
+  .step-auth .btn-primary {
+    height: 44px;
     font-size: 1rem;
-    margin-bottom: 10px;
   }
 }
 
-/* Inputs y selects */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(25px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Inputs */
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   text-align: left;
 
   // 🔥 RESPONSIVE: Reducir margen
-  @media (max-width: 768px) {
-    margin-bottom: 12px;
-  }
-
-  @media (max-width: 480px) {
-    margin-bottom: 10px;
-  }
+  @media (max-width: 768px) { margin-bottom: 10px; }
+  @media (max-width: 480px) { margin-bottom: 8px; }
 }
 
 .form-group label {
-  display: block;
-  font-weight: bold;
+  color: var(--color-dark);
+  font-weight: 600;
+  font-size: 0.88rem;
   margin-bottom: 6px;
-  color: #003333;
-
-  // 🔥 RESPONSIVE: Reducir tamaño de label
-  @media (max-width: 768px) {
-    font-size: 0.95em;
-    margin-bottom: 5px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 0.9em;
-    margin-bottom: 4px;
-  }
+  display: block;
 }
 
 .form-group input,
 .form-group select {
   width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  transition: border 0.3s, box-shadow 0.3s;
-  box-sizing: border-box;
-
-  // 🔥 RESPONSIVE: Reducir inputs
-  @media (max-width: 768px) {
-    padding: 9px 12px;
-    font-size: 0.95rem;
-    border-radius: 7px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 8px 10px;
-    font-size: 0.9rem;
-    border-radius: 6px;
-  }
-
-  @media (max-width: 360px) {
-    padding: 7px 9px;
-    font-size: 0.85rem;
-  }
+  padding: 10px 12px;
+  border: 1.5px solid color-mix(in srgb, var(--color-primary) 45%, #ffffff 55%);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: var(--color-dark);
+  background: var(--color-white);
+  transition: all 0.3s ease;
+  box-sizing: border-box; /* asegura proporciones iguales */
 }
 
 .form-group input:focus,
 .form-group select:focus {
-  border-color: #40e0d0;
-  box-shadow: 0 0 8px rgba(64, 224, 208, 0.6);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent);
   outline: none;
 }
 
-/* Botones principales */
-button[type="submit"] {
-  background: #008080;
-  color: #fff;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-  transition: background 0.3s ease;
+/* Placeholder color */
+.form-group input::placeholder,
+.form-group select::placeholder {
+  color: color-mix(in srgb, var(--color-dark) 45%, #ffffff 55%);
+}
+
+/* Botón principal */
+button {
   width: 100%;
-  box-sizing: border-box;
-
-  // 🔥 RESPONSIVE: Reducir botón principal
-  @media (max-width: 768px) {
-    padding: 11px 18px;
-    font-size: 0.95rem;
-    border-radius: 8px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 10px 16px;
-    font-size: 0.9rem;
-    border-radius: 7px;
-  }
-
-  @media (max-width: 360px) {
-    padding: 9px 14px;
-    font-size: 0.85rem;
-  }
+  padding: 12px;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-button[type="submit"]:hover {
-  background: #00b3b3;
+button:hover {
+  background-color: color-mix(in srgb, var(--color-primary) 85%, #000 15%);
+  transform: translateY(-2px);
 }
 
-/* Botones pequeños */
+button:active {
+  transform: scale(0.98);
+}
+
+/* Input with inline add button */
 .input-with-button {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 72px; /* ancho fijo para que no empuje el formulario */
   gap: 8px;
-
-  // 🔥 RESPONSIVE: Ajustar gap en móvil
-  @media (max-width: 480px) {
-    gap: 6px;
-  }
 }
 
 .input-with-button input {
-  flex: 1;
+  flex: 1 1 auto;
 }
 
-.input-with-button button {
-  background: #006666;
-  padding: 10px 15px;
-  font-size: 0.9rem;
-  white-space: nowrap;
-  border-radius: 6px;
-
-  // 🔥 RESPONSIVE: Reducir botones pequeños
-  @media (max-width: 768px) {
-    padding: 8px 12px;
-    font-size: 0.85rem;
-  }
-
-  @media (max-width: 480px) {
-    padding: 7px 10px;
-    font-size: 0.8rem;
-  }
+.input-with-button .chip-add {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--color-dark);
+  font-size: 0.85rem;
 }
 
-.input-with-button button:hover {
-  background: #00a3a3;
+.input-with-button .chip-add:hover {
+  background: color-mix(in srgb, var(--color-dark) 90%, #000 10%);
 }
 
-/* Tags (alergias, gustos, no me gusta) */
-.tags-container {
+/* Texto inferior */
+p {
+  margin-top: 20px;
+  font-size: 0.95em;
+  color: #2e2e2e;
+}
+
+p a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+p a:hover {
+  text-decoration: underline;
+}
+
+/* Error */
+.error-message {
   margin-top: 10px;
+  color: #e53935;
+  font-weight: 500;
+}
+
+/* Chips */
+.tags-container {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-
-  // 🔥 RESPONSIVE: Ajustar tags
-  @media (max-width: 480px) {
-    gap: 6px;
-    margin-top: 8px;
-  }
+  margin-top: 10px;
 }
 
 .tag {
-  background: #ffffff;
-  border: 1px solid #00cccc;
-  padding: 6px 12px;
-  border-radius: 20px;
+  background: var(--color-white);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, #ffffff 70%);
+  color: var(--color-dark);
+  padding: 6px 10px;
+  border-radius: 999px;
   font-size: 0.85rem;
-  color: #004d4d;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  cursor: default;
-
-  // 🔥 RESPONSIVE: Reducir tags
-  @media (max-width: 768px) {
-    padding: 5px 10px;
-    font-size: 0.8rem;
-    gap: 5px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 4px 8px;
-    font-size: 0.75rem;
-    gap: 4px;
-  }
 }
 
 .tag span {
   cursor: pointer;
-  color: red;
-  font-weight: bold;
-  font-size: 0.9em;
-
-  @media (max-width: 480px) {
-    font-size: 0.8em;
-  }
-}
-
-/* Errores */
-.error-message {
-  margin-top: 10px;
-  color: #ff3333;
-  font-weight: bold;
-  font-size: 0.9rem;
-  padding: 8px;
-  border-radius: 6px;
-  background: rgba(255, 51, 51, 0.1);
-
-  // 🔥 RESPONSIVE: Reducir mensajes de error
-  @media (max-width: 768px) {
-    font-size: 0.85rem;
-    padding: 7px;
-    margin-top: 8px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 0.8rem;
-    padding: 6px;
-    margin-top: 6px;
-  }
-}
-
-/* Campos adicionales: Sexo y Altura */
-.form-group.sexo label,
-.form-group.altura label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 6px;
-  color: #003333;
-
-  @media (max-width: 768px) {
-    font-size: 0.95em;
-    margin-bottom: 5px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 0.9em;
-    margin-bottom: 4px;
-  }
-}
-
-.form-group.sexo select,
-.form-group.altura input {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  transition: border 0.3s, box-shadow 0.3s;
-  box-sizing: border-box;
-
-  @media (max-width: 768px) {
-    padding: 9px 12px;
-    font-size: 0.95rem;
-    border-radius: 7px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 8px 10px;
-    font-size: 0.9rem;
-    border-radius: 6px;
-  }
-}
-
-.form-group.sexo select:focus,
-.form-group.altura input:focus {
-  border-color: #40e0d0;
-  box-shadow: 0 0 8px rgba(64, 224, 208, 0.6);
-  outline: none;
-}
-
-/* 🔥 MEJORAS ESPECÍFICAS PARA FORMULARIOS LARGOS EN MÓVIL */
-@media (max-width: 768px) {
-  .registro-card {
-    max-height: 90vh;
-    overflow-y: auto;
-    
-    /* Ocultar scrollbar pero mantener funcionalidad */
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-  }
-  
-  .registro-card::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
-  }
-}
-
-/* 🔥 MEJORA PARA TECLADO EN MÓVIL */
-@media (max-width: 768px) {
-  .registro-container {
-    align-items: flex-start;
-    padding-top: 30px;
-    padding-bottom: 30px;
-  }
-}
-
-/* 🔥 OPTIMIZACIÓN PARA PANTALLAS MUY PEQUEÑAS */
-@media (max-width: 360px) and (max-height: 640px) {
-  .registro-container {
-    padding-top: 15px;
-    padding-bottom: 15px;
-  }
-  
-  .registro-card {
-    max-height: 95vh;
-  }
+  font-weight: 700;
+  color: #e53935; /* red close like mockup */
 }
