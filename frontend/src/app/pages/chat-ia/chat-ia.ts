@@ -19,8 +19,9 @@ export class ChatIAComponent {
   opcionesRecetas: any[] = [];
   cargando: boolean = false;
   errorMessage: string = '';
-  historialRecetas: any[] = []; // AÑADIR
-  recetaSeleccionada: any = null; // AÑADIR
+  historialRecetas: any[] = []; 
+  recetaSeleccionada: any = null; 
+  isMobileMenuOpen = false;
 
   preferencias = {
     alergias: [] as string[],
@@ -34,13 +35,28 @@ export class ChatIAComponent {
 
   constructor(
     private recipeService: RecipeService,
-    private historyService: HistoryService, // AÑADIR
-    private authService: AuthService // AÑADIR
+    private historyService: HistoryService, 
+    private authService: AuthService 
   ) {
-    this.cargarHistorial(); // AÑADIR
+    this.cargarHistorial(); 
   }
 
-  // AÑADIR ESTOS 4 MÉTODOS NUEVOS:
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    
+    // Prevenir scroll del body cuando el menú está abierto
+    if (this.isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen = false;
+    document.body.style.overflow = ''; // Restaurar scroll
+  }
+
   cargarHistorial() {
     if (!this.authService.isLoggedIn()) {
       console.log('Usuario no autenticado, no se puede cargar historial');
@@ -268,6 +284,10 @@ export class ChatIAComponent {
       top_n: 2,
       use_llm: true
     };
+    
+    if (this.userMessage && this.userMessage.trim()) {
+    (params as any).user_msg = this.userMessage.trim(); // <--- AÑADIR
+    }
 
     if (this.preferencias.alergias.length)   params.alergias     = this.preferencias.alergias;
     if (this.preferencias.noMeGusta.length)  params.no_me_gusta  = this.preferencias.noMeGusta;

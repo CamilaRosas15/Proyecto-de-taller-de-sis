@@ -233,9 +233,11 @@ export class AuthService {
   }
 }
 
-async getUserProfile(userId: string): Promise<any | null> {
+async getUserProfile(userId: string, token?: string): Promise<any | null> {
   try {
-    const { data, error } = await this.supabaseService.getClient()
+    // Usar el token del usuario para respetar las políticas RLS y acceder a su propia fila
+    const client = token ? this.supabaseService.getClientForToken(token) : this.supabaseService.getClient();
+    const { data, error } = await client
       .from('usuario_detalles')
       .select('*')
       .eq('id', userId)
@@ -285,7 +287,7 @@ async getUserProfile(userId: string): Promise<any | null> {
       // Obtener el perfil del usuario si existe
       let userProfile = null;
       try {
-        userProfile = await this.getUserProfile(user.id);
+        userProfile = await this.getUserProfile(user.id, token);
       } catch (error) {
         this.logger.warn(`No profile found for user ${user.id}`);
       }
@@ -298,6 +300,25 @@ async getUserProfile(userId: string): Promise<any | null> {
     } catch (error) {
       this.logger.error(`Error getting current user: ${error.message}`);
       throw new UnauthorizedException('Failed to get current user');
+    }
+  }
+
+  async refreshSession(refreshToken: string): Promise<{ accessToken: string | null; refreshToken: string | null; user: any | null; }> {
+    try {
+      this.logger.log('Refreshing session with Supabase');
+      const { data, error } = await this.supabaseService.getClient().auth.refreshSession({ refresh_token: refreshToken });
+      if (error) {
+        this.logger.error(`Refresh session error: ${error.message}`);
+        throw new UnauthorizedException('Failed to refresh session');
+      }
+      return {
+        accessToken: data.session?.access_token ?? null,
+        refreshToken: data.session?.refresh_token ?? null,
+        user: data.user ?? null,
+      };
+    } catch (err) {
+      this.logger.error(`Unexpected refresh error: ${err.message}`);
+      throw new UnauthorizedException('Unable to refresh session');
     }
   }
 }

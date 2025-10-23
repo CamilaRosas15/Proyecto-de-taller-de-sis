@@ -10,19 +10,47 @@
       <button class="menu-btn" type="button" routerLink="/principal" routerLinkActive="active"> 🏠 HOME</button>
       <button class="menu-btn" type="button" routerLink="/recetas" routerLinkActive="active"> 📖 Recetas</button>
       <button class="menu-btn" type="button" routerLink="/chat-ia" routerLinkActive="active">💬 Chat IA</button>
+      
+      <!-- Historial dinámico -->
       <div class="historial">
-        <button class="historial-btn">Historial 1</button>
-        <button class="historial-btn">Historial 2</button>
-        <button class="historial-btn">Historial 3</button>
+        <h3 class="historial-title">📷 Análisis Recientes</h3>
+        
+        <div *ngIf="historialSidebar.length === 0" class="historial-vacio">
+          <p>No hay análisis aún</p>
+        </div>
+        
+        <button 
+          *ngFor="let item of historialSidebar" 
+          class="historial-btn"
+          (click)="cargarAnalisisDesdeHistorial(item.id_plato)"
+          [title]="item.nombre">
+          <div class="historial-item-content">
+            <img [src]="item.imagen_url" alt="Vista previa" class="historial-thumbnail"
+                 onerror="this.src='assets/default-food.jpg'">
+            <div class="historial-info">
+              <span class="historial-nombre">{{ item.nombre }}</span>
+              <span class="historial-fecha">{{ formatearFecha(item.fecha) }}</span>
+            </div>
+            <button 
+              class="historial-delete" 
+              (click)="eliminarDelHistorial(item.id_plato, $event)"
+              title="Eliminar">
+              ×
+            </button>
+          </div>
+        </button>
       </div>
     </nav>
 
     <div class="user-info">
       <img src="assets/user.png" alt="Usuario" class="avatar">
-      <div>
-        <p class="username">Username</p>
-        <p class="user-handle">@username</p>
+      <div class="user-details">
+        <p class="username">{{ userName || 'Usuario' }}</p>
+        <p class="user-handle">{{ authService.currentUserEmail || '@usuario' }}</p>
       </div>
+      <button class="logout-btn" (click)="logout()" title="Cerrar sesión">
+        🚪
+      </button>
     </div>
   </aside>
 
@@ -34,7 +62,11 @@
     </header>
 
     <!-- Análisis de imagen -->
-    <div class="analisis-imagen-container">
+    <div class="analisis-imagen-container"
+         (dragover)="onDragOver($event)"
+         (dragleave)="onDragLeave($event)"
+         (drop)="onDrop($event)">
+      
       <!-- Subir imagen -->
       <div class="upload-section" *ngIf="!imageUrl && !analysisResult">
         <h2>Sube una imagen de tu comida</h2>
@@ -42,17 +74,26 @@
           Cargar imagen
           <input type="file" (change)="onFileSelected($event)" accept="image/*">
         </label>
-        <p class="hint">o Arrastra tu imagen</p>
+        <p class="hint">o Arrastra tu imagen aquí</p>
       </div>
 
       <!-- Vista previa -->
       <div *ngIf="imageUrl && !analysisResult" class="image-preview">
         <img [src]="imageUrl" alt="Imagen de comida">
         <button class="analyze-btn" (click)="uploadImage()">Analizar Imagen</button>
+        <button class="new-analysis-btn" (click)="resetAnalysis()" style="margin-top: 10px;">
+          🔄 Elegir otra imagen
+        </button>
+      </div>
+
+      <!-- Loading state -->
+      <div *ngIf="analysisResult === 'Analizando imagen...'" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Analizando tu imagen...</p>
       </div>
 
       <!-- Resultados en lenguaje natural -->
-      <div *ngIf="analysisResult" class="analysis-results">
+      <div *ngIf="analysisResult && analysisResult !== 'Analizando imagen...'" class="analysis-results">
         <div class="results-header">
           <img [src]="imageUrl" alt="Imagen de comida" class="result-img">
         </div>
@@ -70,6 +111,9 @@
       <!-- Error -->
       <div *ngIf="errorMessage" class="error-message">
         <p>Error: {{ errorMessage }}</p>
+        <button class="new-analysis-btn" (click)="resetAnalysis()" style="margin-top: 10px;">
+          🔄 Intentar de nuevo
+        </button>
       </div>
     </div>
   </main>

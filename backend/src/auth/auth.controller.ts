@@ -34,7 +34,13 @@ export class AuthController {
   async register(@Body() dto: RegisterDto) {
     this.logger.log(`Attempting to register user: ${dto.email}`);
     const result = await this.authService.register(dto);
-    return { message: 'User registered successfully. Please complete your profile.', userId: result.data.user?.id, email: dto.email, accessToken: result.data.session?.access_token ?? null,};
+    return {
+      message: 'User registered successfully. Please complete your profile.',
+      userId: result.data.user?.id,
+      email: dto.email,
+      accessToken: result.data.session?.access_token ?? null,
+      refreshToken: result.data.session?.refresh_token ?? null,
+    };
   }
 
   @Post('login')
@@ -42,7 +48,12 @@ export class AuthController {
   async login(@Body() dto: LoginDto) {
     this.logger.log(`Attempting to log in user: ${dto.email}`);
     const result = await this.authService.login(dto);
-    return { message: 'Logged in successfully', accessToken: result.data.session?.access_token, user: result.data.user };
+    return {
+      message: 'Logged in successfully',
+      accessToken: result.data.session?.access_token,
+      refreshToken: result.data.session?.refresh_token,
+      user: result.data.user,
+    };
   }
 
   @Post('profile/:userId') 
@@ -88,5 +99,20 @@ export class AuthController {
     this.logger.log(`Getting current user with token`);
     const currentUser = await this.authService.getCurrentUser(token);
     return currentUser;
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  async refresh(@Body('refreshToken') refreshToken: string) {
+    if (!refreshToken) {
+      throw new BadRequestException('refreshToken is required');
+    }
+    this.logger.log('Refreshing session using refreshToken');
+    const result = await this.authService.refreshSession(refreshToken);
+    return {
+      accessToken: result.accessToken ?? null,
+      refreshToken: result.refreshToken ?? null,
+      user: result.user ?? null,
+    };
   }
 }

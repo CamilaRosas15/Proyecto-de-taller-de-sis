@@ -1,16 +1,51 @@
 <div class="principal-container">
+  <!-- NAVBAR -->
   <nav class="navbar">
     <div class="logo">
       <i class="fas fa-utensils"></i>
       <span>NUTRICHEF IA</span>
     </div>
+
+    <!-- Botón Hamburguesa para Mobile -->
+    <button class="menu-mobile-toggle" (click)="toggleMobileMenu()" [class.active]="isMobileMenuOpen">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+
+    <!-- Menú Desktop -->
     <ul class="nav-links">
       <li><a routerLink="/principal">INICIO</a></li>
-      <li><a routerLink="/analisis-imagen">ANÁLISIS IMAGEN</a></li>
-      <li><a routerLink="/chat-ia">CHAT IA</a></li>
       <li *ngIf="!isLoggedIn()"><a routerLink="/login">INICIO DE SESIÓN</a></li>
       <li *ngIf="isLoggedIn()"><a (click)="onLogout()" class="logout-link">CERRAR SESIÓN</a></li>
     </ul>
+
+    <!-- Overlay para cerrar menú móvil -->
+    <div class="menu-overlay" 
+         [class.active]="isMobileMenuOpen" 
+         (click)="closeMobileMenu()">
+    </div>
+
+    <!-- Menú Móvil Compacto -->
+    <div class="menu-mobile-compact" [class.active]="isMobileMenuOpen">
+      <div class="mobile-menu-content">
+        <a class="mobile-menu-item" routerLink="/principal" (click)="closeMobileMenu()">
+          🏠 INICIO
+        </a>
+        <a class="mobile-menu-item" routerLink="/analisis-imagen" (click)="closeMobileMenu()">
+          📸 ANÁLISIS IMAGEN
+        </a>
+        <a class="mobile-menu-item" routerLink="/chat-ia" (click)="closeMobileMenu()">
+          💬 CHAT IA
+        </a>
+        <a *ngIf="!isLoggedIn()" class="mobile-menu-item" routerLink="/login" (click)="closeMobileMenu()">
+          🔐 INICIO DE SESIÓN
+        </a>
+        <a *ngIf="isLoggedIn()" class="mobile-menu-item logout-link" (click)="onLogout(); closeMobileMenu()">
+          🚪 CERRAR SESIÓN
+        </a>
+      </div>
+    </div>
   </nav>
 
   <div class="recetas-container">

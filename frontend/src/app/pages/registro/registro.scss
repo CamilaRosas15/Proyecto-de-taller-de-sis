@@ -48,6 +48,15 @@
 .form-group {
   margin-bottom: 20px;
   text-align: left;
+
+  // 🔥 RESPONSIVE: Reducir margen
+  @media (max-width: 768px) {
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 10px;
+  }
 }
 
 .form-group label {
