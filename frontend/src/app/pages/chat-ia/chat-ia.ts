@@ -23,6 +23,9 @@ export class ChatIAComponent {
   recetaSeleccionada: any = null; 
   isMobileMenuOpen = false;
 
+  userName: string | null = null;
+  userEmail: string | null = null;
+
   preferencias = {
     alergias: [] as string[],
     noMeGusta: [] as string[],
@@ -36,9 +39,11 @@ export class ChatIAComponent {
   constructor(
     private recipeService: RecipeService,
     private historyService: HistoryService, 
-    private authService: AuthService 
+    public authService: AuthService 
   ) {
     this.cargarHistorial(); 
+    this.userName = this.authService.currentUserName;
+    this.userEmail = this.authService.currentUserEmail;
   }
 
   toggleMobileMenu() {
@@ -177,7 +182,6 @@ export class ChatIAComponent {
     // Convertir instrucciones string a array de pasos
     let pasos: string[] = [];
     if (receta.instrucciones) {
-      // Dividir por saltos de línea y limpiar
       pasos = receta.instrucciones
         .split('\n')
         .map((paso: string) => paso.trim())
@@ -300,8 +304,18 @@ export class ChatIAComponent {
     this.recipeService.recomendarRecetas(params).subscribe({
       next: (response: RecommendResponse) => {
         this.cargando = false;
-        this.opcionesRecetas = response.opciones || [];
-        console.log('Recomendaciones:', this.opcionesRecetas);
+        
+        this.opcionesRecetas = (response.opciones || []).map(receta => {
+          if (receta.pasos && Array.isArray(receta.pasos)) {
+            receta.pasos = receta.pasos.filter(paso => {
+              const pasoLimpio = typeof paso === 'string' ? paso.trim() : String(paso).trim();
+              return pasoLimpio.length > 0;
+            });
+          }
+          return receta;
+        });
+        
+        console.log('Recomendaciones procesadas:', this.opcionesRecetas);
       },
       error: (error: any) => {
         this.cargando = false;
