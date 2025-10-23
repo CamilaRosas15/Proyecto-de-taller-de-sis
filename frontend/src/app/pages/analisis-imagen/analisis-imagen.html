@@ -1,26 +1,30 @@
 <div class="app-container">
+  <!-- Header principal -->
+  <header class="main-header">
+    <div class="header-left">
+      <img src="assets/logo.png" alt="Logo" class="header-logo">
+      <h1 class="header-title">Nutrichef IA</h1>
+    </div>
+  </header>
+
   <!-- Sidebar -->
   <aside class="sidebar">
-    <div class="logo">
-      <img src="assets/logo.png" alt="Logo">
-      <h2>Nutrichef IA</h2>
-    </div>
-
     <nav class="menu">
-      <button class="menu-btn" type="button" routerLink="/principal" routerLinkActive="active"> 🏠 HOME</button>
-      <button class="menu-btn" type="button" routerLink="/recetas" routerLinkActive="active"> 📖 Recetas</button>
+      <button class="menu-btn" type="button" routerLink="/principal" routerLinkActive="active">🏠 Inicio</button>
+      <button class="menu-btn" type="button" routerLink="/recetas" routerLinkActive="active">📖 Recetas</button>
       <button class="menu-btn" type="button" routerLink="/chat-ia" routerLinkActive="active">💬 Chat IA</button>
-      
+      <button class="menu-btn" type="button" routerLink="/analizar" routerLinkActive="active">🖼️ Analizar imagen</button>
+
       <!-- Historial dinámico -->
       <div class="historial">
-        <h3 class="historial-title">📷 Análisis Recientes</h3>
-        
+        <h3 class="historial-title">Historial de recetas</h3>
+
         <div *ngIf="historialSidebar.length === 0" class="historial-vacio">
           <p>No hay análisis aún</p>
         </div>
-        
-        <button 
-          *ngFor="let item of historialSidebar" 
+
+        <button
+          *ngFor="let item of historialSidebar"
           class="historial-btn"
           (click)="cargarAnalisisDesdeHistorial(item.id_plato)"
           [title]="item.nombre">
@@ -31,12 +35,10 @@
               <span class="historial-nombre">{{ item.nombre }}</span>
               <span class="historial-fecha">{{ formatearFecha(item.fecha) }}</span>
             </div>
-            <button 
-              class="historial-delete" 
+            <button
+              class="historial-delete"
               (click)="eliminarDelHistorial(item.id_plato, $event)"
-              title="Eliminar">
-              ×
-            </button>
+              title="Eliminar">×</button>
           </div>
         </button>
       </div>
@@ -48,25 +50,16 @@
         <p class="username">{{ userName || 'Usuario' }}</p>
         <p class="user-handle">{{ authService.currentUserEmail || '@usuario' }}</p>
       </div>
-      <button class="logout-btn" (click)="logout()" title="Cerrar sesión">
-        🚪
-      </button>
     </div>
   </aside>
 
-  <!-- Main content -->
+  <!-- Contenido principal -->
   <main class="main-content">
-    <!-- Header -->
-    <header class="header">
-      <button class="progress-btn">♡ Mi Progreso</button>
-    </header>
-
-    <!-- Análisis de imagen -->
     <div class="analisis-imagen-container"
          (dragover)="onDragOver($event)"
          (dragleave)="onDragLeave($event)"
          (drop)="onDrop($event)">
-      
+
       <!-- Subir imagen -->
       <div class="upload-section" *ngIf="!imageUrl && !analysisResult">
         <h2>Sube una imagen de tu comida</h2>
@@ -74,35 +67,32 @@
           Cargar imagen
           <input type="file" (change)="onFileSelected($event)" accept="image/*">
         </label>
-        <p class="hint">o Arrastra tu imagen aquí</p>
+        <p class="hint">O arrastra tu imagen</p>
       </div>
 
       <!-- Vista previa -->
       <div *ngIf="imageUrl && !analysisResult" class="image-preview">
         <img [src]="imageUrl" alt="Imagen de comida">
-        <button class="analyze-btn" (click)="uploadImage()">Analizar Imagen</button>
-        <button class="new-analysis-btn" (click)="resetAnalysis()" style="margin-top: 10px;">
-          🔄 Elegir otra imagen
-        </button>
+        <button class="analyze-btn" (click)="uploadImage()">Analizar imagen</button>
+        <button class="new-analysis-btn" (click)="resetAnalysis()">🔄 Elegir otra imagen</button>
       </div>
 
-      <!-- Loading state -->
+      <!-- Loading -->
       <div *ngIf="analysisResult === 'Analizando imagen...'" class="loading-state">
         <div class="loading-spinner"></div>
         <p>Analizando tu imagen...</p>
       </div>
 
-      <!-- Resultados en lenguaje natural -->
+      <!-- Resultados -->
       <div *ngIf="analysisResult && analysisResult !== 'Analizando imagen...'" class="analysis-results">
         <div class="results-header">
           <img [src]="imageUrl" alt="Imagen de comida" class="result-img">
         </div>
-        
-        <!-- Mostrar análisis en lenguaje natural -->
+
         <div class="natural-analysis" [class.non-food-warning]="isNonFoodMessage">
           <pre class="natural-text" [class.non-food-text]="isNonFoodMessage">{{ analysisResult }}</pre>
         </div>
-        
+
         <button class="new-analysis-btn" (click)="resetAnalysis()">
           {{ isNonFoodMessage ? '📷 Subir imagen de comida' : '🔄 Analizar nueva imagen' }}
         </button>
@@ -111,9 +101,7 @@
       <!-- Error -->
       <div *ngIf="errorMessage" class="error-message">
         <p>Error: {{ errorMessage }}</p>
-        <button class="new-analysis-btn" (click)="resetAnalysis()" style="margin-top: 10px;">
-          🔄 Intentar de nuevo
-        </button>
+        <button class="new-analysis-btn" (click)="resetAnalysis()">🔄 Intentar de nuevo</button>
       </div>
     </div>
   </main>
