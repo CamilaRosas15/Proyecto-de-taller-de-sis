@@ -1,24 +1,11 @@
 @use 'sass:color';
 
-$primary-color: #00796b; // verde oscuro del botón
-$secondary-color: #009688; 
-$text-color: #2e2e2e;
-$background-overlay: rgba(240, 255, 250, 0.88); // fondo translúcido de la tarjeta
-$border-color: #4db6ac;
+/* Usa la paleta global definida en styles.scss */
+/* Colores de referencia locales por si faltan variables */
 $error-color: #e53935;
 
 /* Fondo general */
-body {
-  margin: 0;
-  font-family: 'Poppins', sans-serif;
-  background: url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80")
-    no-repeat center center fixed;
-  background-size: cover;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
+/* NOTA: evitamos sobre-escribir body global; ya hay estilos globales */
 
 /* Fondo general */
 .login-container {
@@ -36,23 +23,24 @@ body {
 
 /* Tarjeta de inicio de sesión */
 .login-card {
-  background-color: rgba(240, 255, 250, 0.88);
-  padding: 50px 45px;
-  border-radius: 15px;
-  border: 2.5px solid #4db6ac;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  /* Igual que registro (paso 1) */
   width: 100%;
-  max-width: 420px;
+  max-width: 460px;
   text-align: center;
+  border-radius: 16px;
+  padding: 32px 28px;
   backdrop-filter: blur(10px);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-panel) 85%, transparent) 0%, var(--color-bg-soft) 100%);
+  border: 1.5px solid color-mix(in srgb, var(--color-primary) 35%, #ffffff 65%);
+  box-shadow: 0 14px 32px rgba(15, 49, 78, 0.25);
   animation: fadeInUp 0.8s ease both;
-}
 
-.login-card h2 {
-  color: #00796b;
-  font-size: 1.8em;
-  font-weight: 700;
-  margin-bottom: 25px;
+  h2 {
+    color: var(--color-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+  }
 }
 
 @keyframes fadeInUp {
@@ -62,50 +50,53 @@ body {
 
 /* Inputs */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 14px;
   text-align: left;
 }
 
 .form-group label {
-  color: #2e2e2e;
+  color: var(--color-dark);
   font-weight: 600;
-  margin-bottom: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
   display: block;
 }
 
 .form-group input {
   width: 100%;
-  padding: 12px 15px;
-  border: 1.5px solid #4db6ac;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--color-dark) 10%, #ffffff 90%);
   border-radius: 10px;
-  font-size: 1em;
-  color: #333;
-  background: #fff;
+  font-size: 0.95rem;
+  color: var(--color-dark);
+  background: var(--color-white);
   transition: all 0.3s ease;
+  box-sizing: border-box;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.02), 0 2px 8px rgba(15,49,78,0.08);
 }
 
 .form-group input:focus {
-  border-color: #009688;
-  box-shadow: 0 0 8px rgba(0, 150, 136, 0.4);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent);
   outline: none;
 }
 
 /* Botón principal */
 button[type="submit"] {
   width: 100%;
-  padding: 14px;
-  background-color: #00796b;
-  color: white;
+  padding: 12px;
+  background-color: var(--color-primary);
+  color: var(--color-white);
   border: none;
   border-radius: 10px;
-  font-size: 1.05em;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 button[type="submit"]:hover {
-  background-color: #00695c;
+  background-color: color-mix(in srgb, var(--color-primary) 85%, #000 15%);
   transform: translateY(-2px);
 }
 
@@ -117,11 +108,11 @@ button[type="submit"]:active {
 p {
   margin-top: 20px;
   font-size: 0.95em;
-  color: #2e2e2e;
+  color: var(--color-dark);
 }
 
 p a {
-  color: #00796b;
+  color: var(--color-primary);
   text-decoration: none;
   font-weight: 600;
 }
