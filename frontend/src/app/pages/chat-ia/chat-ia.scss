@@ -317,7 +317,7 @@
   align-items: center;
   gap: 15px;
   padding: 15px;
-  background: white; /* Fondo blanco */
+  background: #0F314E; /* Fondo blanco */
   border-radius: 12px; /* Esquinas redondeadas */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
   border: none; /* Eliminar borde superior */
@@ -370,7 +370,7 @@
   background: transparent;
   border: none;
   border-radius: 8px;
-  color: #ffffff;
+  color: #0F314E;
   margin-bottom: 8px;
   cursor: pointer;
   font-weight: 500;
@@ -384,7 +384,7 @@
   
   &.active {
     background: #8ed1c2;
-    color: white;
+    color: #0F314E;
     font-weight: 600;
   }
 }
