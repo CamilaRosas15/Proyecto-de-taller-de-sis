@@ -56,6 +56,30 @@ body {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
 }
 
+/* Banner full-bleed tanto logueado como no logueado */
+.navbar + .welcome-banner,
+.logged-in-actions .welcome-banner {
+  width: 100vw;                         /* ocupa todo el ancho de la ventana */
+  margin-left: calc(50% - 50vw);        /* truco full-bleed */
+  margin-right: calc(50% - 50vw);
+  border-radius: 0;                     /* por si algún contenedor aplica radios */
+  padding: 1.5rem 3rem;                 /* mismo padding que ya usas */
+}
+
+/* Evitar que el contenedor lo limite cuando está logueado */
+.actions-container > .welcome-banner {
+  max-width: none;
+}
+
+/* Responsive coherente */
+@media (max-width: 768px) {
+  .navbar + .welcome-banner,
+  .logged-in-actions .welcome-banner {
+    padding: 1rem;
+  }
+}
+
+
 /* --- NAVBAR --- */
 .navbar {
   display: flex;
