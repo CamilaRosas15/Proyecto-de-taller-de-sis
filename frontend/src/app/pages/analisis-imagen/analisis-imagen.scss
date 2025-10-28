@@ -34,7 +34,7 @@ body {
 /* ----- LAYOUT GENERAL ----- */
 .app-container {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 320px 1fr; // 👈 ancho sidebar (antes 260px)
   grid-template-rows: 70px 1fr;
   height: 100vh;
   overflow: hidden;
@@ -84,6 +84,7 @@ body {
   border-right: 1px solid $color-border;
   overflow-y: auto;
   position: relative;
+  width: 312px; // 👈 mantener consistente con grid-template-columns
 }
 
 .menu {
@@ -205,6 +206,10 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  border-radius: 10px;           /* esquinas redondeadas */
+  border: 1px solid #dfe7e9;     /* borde suave */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  overflow: hidden;    
 
   .avatar {
     width: 44px;
@@ -381,7 +386,7 @@ body {
 
   .result-img {
     position: absolute;
-    top: 20px; /* Bajamos la imagen 15px desde el borde superior */
+    top: 20px;
     right: 0;
     width: 120px;
     height: auto;
@@ -404,9 +409,8 @@ body {
     overflow: auto;
     margin-top: 0;
 
-    /* Espacio para la imagen en esquina */
     padding-right: 140px;
-    padding-top: 20px; /* Aseguramos espacio superior para que la imagen quede bien alineada */
+    padding-top: 20px;
 
     &.non-food-warning {
       background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
@@ -472,7 +476,11 @@ body {
 /* Responsivo */
 @media (max-width: 1024px) {
   .app-container {
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: 280px 1fr; // sidebar un poco menos ancha en pantallas medianas
+  }
+
+  .sidebar {
+    width: 280px;
   }
 
   .main-content {
@@ -498,6 +506,7 @@ body {
     background: $color-white;
     border-bottom: 1px solid $color-border;
     padding: 10px 15px;
+    width: 100%;
   }
 
   .menu {
