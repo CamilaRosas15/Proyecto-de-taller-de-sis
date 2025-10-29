@@ -1143,3 +1143,123 @@ img {
     padding: 15px;
   }
 }
+
+.legacy-recipe-card {
+  background: #F7F8F7;
+  border: 1px solid #d8dee2;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  margin-bottom: 24px;
+  color: #0F314E;
+  max-width: 900px;
+}
+
+.legacy-title {
+  font-size: 1.4rem;      /* más grande */
+  font-weight: 700;       /* más grueso */
+  color: #0F314E;
+  margin: 0 0 10px 0;
+}
+
+/* Descripción debajo del título */
+.legacy-desc {
+  margin: 0 0 16px 0;
+  color: #0F314E;
+  line-height: 1.4;
+  font-size: 0.95rem;
+}
+
+.legacy-section {
+  margin-bottom: 16px;
+}
+
+.legacy-section-label {
+  font-weight: 600;
+  color: #0F314E;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+/* Ingredientes en línea con bullets */
+.legacy-ingredients-line {
+  font-size: 0.95rem;
+  color: #0F314E;
+  line-height: 1.5;
+}
+
+.legacy-ingredient {
+  margin-right: 6px;
+  white-space: pre-line;
+  word-break: break-word;
+}
+
+/* Lista numerada de pasos */
+.legacy-steps {
+  font-size: 0.95rem;
+  color: #0F314E;
+  line-height: 1.6;
+  margin: 0;
+  padding-left: 20px; /* espacio para números */
+  word-break: break-word;
+}
+
+.legacy-ia-box {
+  background: #eaf4f1;       /* fondo suave */
+  border: 1px solid #99bdb5;  /* borde verdito/gris como tu captura */
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #0F314E;
+  margin-bottom: 16px;
+  white-space: pre-line;      /* respeta los saltos de línea del texto IA */
+  word-break: break-word;
+}
+
+.legacy-choose-btn {
+  width: 100%;
+  background: #0F314E;    /* azul oscuro base */
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 12px 16px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.legacy-choose-btn:hover {
+  background: #2B4F6D;    /* 👈 tu color pedido */
+  transform: translateY(-1px);
+}
+
+.recipes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.recipes-section > h3 {
+  color: #0F314E;
+  margin-bottom: 20px;
+  font-size: 1.3em;
+  font-weight: 600;
+}
+
+.legacy-recipe-card,
+.recipe-card {
+  background-color: #DCDCDC !important;
+}
+
+.input-section {
+  background-color: #DCDCDC !important;
+}
+
+.recipe-full-card {
+  background-color: #DCDCDC !important;
+}
