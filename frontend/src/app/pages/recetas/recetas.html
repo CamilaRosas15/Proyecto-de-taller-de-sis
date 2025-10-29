@@ -14,11 +14,27 @@
     </button>
 
     <!-- Menú Desktop -->
-    <ul class="nav-links">
-      <li><a routerLink="/principal">INICIO</a></li>
-      <li *ngIf="!isLoggedIn()"><a routerLink="/login">INICIO DE SESIÓN</a></li>
-      <li *ngIf="isLoggedIn()"><a (click)="onLogout()" class="logout-link">CERRAR SESIÓN</a></li>
-    </ul>
+<ul class="nav-links">
+  <!-- Conservamos INICIO -->
+  <li><a routerLink="/principal">INICIO</a></li>
+
+  <!-- Menú para NO logueados -->
+  <ng-container *ngIf="!isLoggedIn(); else loggedMenu">
+    <li><a routerLink="/recetas">RECETAS</a></li>
+    <li><a routerLink="/login">INICIO DE SESIÓN</a></li>
+  </ng-container>
+
+  <!-- Menú para LOGUEADOS -->
+  <ng-template #loggedMenu>
+    <li><a routerLink="/chat-ia">CHAT IA</a></li>
+    <li><a routerLink="/analisis-imagen">ANÁLISIS IMAGEN</a></li>
+    <li><a routerLink="/recetas">RECETAS</a></li>
+    <li>
+      <button class="btn-logout" (click)="onLogout()">CERRAR SESIÓN</button>
+    </li>
+  </ng-template>
+</ul>
+
 
     <!-- Overlay para cerrar menú móvil -->
     <div class="menu-overlay" 

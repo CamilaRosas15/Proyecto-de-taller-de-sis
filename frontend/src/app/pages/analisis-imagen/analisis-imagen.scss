@@ -1,8 +1,3 @@
-/* ===========================
-   ANALISIS-IMAGEN.SCSS
-   Versión final idéntica al mockup de Figma
-   =========================== */
-
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
 /* ----- VARIABLES ----- */
@@ -11,7 +6,7 @@ $color-bg: #f4f7f9;
 $color-sidebar: #70B8AD;
 $color-primary: #007b83;
 $color-primary-dark: #005f63;
-$color-text: #2a2a2a;
+$color-text: #0F314E;
 $color-muted: #6b6b6b;
 $color-border: #e0e0e0;
 $color-white: #ffffff;
@@ -39,7 +34,7 @@ body {
 /* ----- LAYOUT GENERAL ----- */
 .app-container {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 320px 1fr; // 👈 ancho sidebar (antes 260px)
   grid-template-rows: 70px 1fr;
   height: 100vh;
   overflow: hidden;
@@ -71,8 +66,8 @@ body {
   .header-title {
     font-weight: 700;
     font-size: 20px;
-    color: #1b1b1b;
-    text-transform: uppercase;
+    color: #0F314E;
+    //text-transform: uppercase;
     letter-spacing: 0.5px;
   }
 }
@@ -89,6 +84,7 @@ body {
   border-right: 1px solid $color-border;
   overflow-y: auto;
   position: relative;
+  width: 312px; // 👈 mantener consistente con grid-template-columns
 }
 
 .menu {
@@ -210,6 +206,10 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  border-radius: 10px;           /* esquinas redondeadas */
+  border: 1px solid #dfe7e9;     /* borde suave */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  overflow: hidden;    
 
   .avatar {
     width: 44px;
@@ -281,7 +281,7 @@ body {
     transition: background 0.2s ease, transform 0.1s ease;
 
     &:hover {
-      background: $color-primary-dark;
+      background: #2B4F6D;
       transform: translateY(-1px);
     }
 
@@ -386,7 +386,7 @@ body {
 
   .result-img {
     position: absolute;
-    top: 20px; /* Bajamos la imagen 15px desde el borde superior */
+    top: 20px;
     right: 0;
     width: 120px;
     height: auto;
@@ -409,9 +409,8 @@ body {
     overflow: auto;
     margin-top: 0;
 
-    /* Espacio para la imagen en esquina */
     padding-right: 140px;
-    padding-top: 20px; /* Aseguramos espacio superior para que la imagen quede bien alineada */
+    padding-top: 20px;
 
     &.non-food-warning {
       background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
@@ -477,7 +476,11 @@ body {
 /* Responsivo */
 @media (max-width: 1024px) {
   .app-container {
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: 280px 1fr; // sidebar un poco menos ancha en pantallas medianas
+  }
+
+  .sidebar {
+    width: 280px;
   }
 
   .main-content {
@@ -503,6 +506,7 @@ body {
     background: $color-white;
     border-bottom: 1px solid $color-border;
     padding: 10px 15px;
+    width: 100%;
   }
 
   .menu {

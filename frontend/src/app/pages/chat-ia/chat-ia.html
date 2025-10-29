@@ -196,65 +196,78 @@
           </div>
 
           <!-- Resultados de recetas -->
-          <div *ngIf="opcionesRecetas.length > 0" class="recipes-section">
-            <h3>Recomendaciones generadas:</h3>
-            
-            <div class="recipes-grid">
-              <div *ngFor="let receta of opcionesRecetas" class="recipe-card">
-                <!-- Header de la receta -->
-                <div class="recipe-header">
-                  <h4 class="recipe-title">{{ receta.titulo }}</h4>
-                  <div class="recipe-meta">
-                    <span class="recipe-category">{{ receta.categoria }}</span>
-                    <span class="recipe-time">⏱️ {{ receta.tiempo_preparacion }} min</span>
-                    <span class="recipe-calories">🔥 {{ receta.kcal_totales }} kcal</span>
-                  </div>
-                </div>
+<div *ngIf="opcionesRecetas.length > 0" class="recipes-section">
+  <h3>Recomendaciones generadas:</h3>
 
-                <!-- Descripción -->
-                <p class="recipe-description">{{ receta.descripcion }}</p>
+  <div class="recipes-grid">
 
-                <!-- Ingredientes -->
-                <div class="ingredients-section">
-                  <h5>Ingredientes:</h5>
-                  <div class="ingredients-list">
-                    <span *ngFor="let ing of receta.ingredientes" class="ingredient-item">
-                      • {{ ing.nombre }}  <!-- AÑADIR .nombre -->
-                      <span *ngIf="ing.cantidad" class="ingredient-quantity">
-                        ({{ ing.cantidad }} {{ ing.unidad || 'un' }})
-                      </span>
-                    </span>
-                  </div>
-                </div>
+    <!-- 🔁 UNA TARJETA POR RECETA (estilo clásico) -->
+    <div *ngFor="let receta of opcionesRecetas" class="legacy-recipe-card">
+      
+      <!-- TÍTULO GRANDE -->
+      <h3 class="legacy-title">{{ receta.titulo }}</h3>
 
-                <!-- Pasos de preparación -->
-                <div class="steps-section">
-                  <h5>Preparación:</h5>
-                  <ol class="steps-list">
-                    <li *ngFor="let paso of receta.pasos; let i = index" class="step-item">
-                      {{ paso }}
-                    </li>
-                  </ol>
-                </div>
+      <!-- DESCRIPCIÓN CORTA -->
+      <p class="legacy-desc">{{ receta.descripcion }}</p>
 
-                <!-- Explicación de la IA -->
-                <div *ngIf="receta.ia_explicacion" class="ia-explanation">
-                  <div class="explanation-content">
-                    {{ receta.ia_explicacion }}
-                  </div>
-                </div>
+      <!-- INGREDIENTES -->
+      <div class="legacy-section">
+        <div class="legacy-section-label">Ingredientes:</div>
 
-                <!-- Botón de acción ACTUALIZADO -->
-                <div class="recipe-actions">
-                  <button 
-                    class="select-recipe-btn"
-                    (click)="onSeleccionarReceta(receta)">
-                    Prefiero esta receta
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="legacy-ingredients-line">
+          <span
+            class="legacy-ingredient"
+            *ngFor="let ing of receta.ingredientes; let i = index">
+
+            <!-- separador tipo "•" entre ingredientes -->
+            <span *ngIf="i > 0">• </span>
+
+            <!-- soporta dos formatos:
+                 1) { nombre, cantidad, unidad }
+                 2) "Maní tostado"
+            -->
+            <ng-container *ngIf="ing?.nombre; else plainIng">
+              {{ ing.nombre }}
+              <span *ngIf="ing.cantidad">
+                ({{ ing.cantidad }} {{ ing.unidad || 'un' }})
+              </span>
+            </ng-container>
+
+            <ng-template #plainIng>
+              {{ ing }}
+            </ng-template>
+          </span>
+        </div>
+      </div>
+
+      <!-- PREPARACIÓN -->
+      <div class="legacy-section">
+        <div class="legacy-section-label">Preparación:</div>
+
+        <ol class="legacy-steps">
+          <li *ngFor="let paso of receta.pasos">
+            {{ paso }}
+          </li>
+        </ol>
+      </div>
+
+      <!-- BLOQUE IA / ENCAJE -->
+      <div *ngIf="receta.ia_explicacion" class="legacy-ia-box">
+        {{ receta.ia_explicacion }}
+      </div>
+
+      <!-- BOTÓN -->
+      <button class="legacy-choose-btn"
+              (click)="onSeleccionarReceta(receta)">
+        Prefiero esta respuesta
+      </button>
+
+    </div>
+    <!-- /fin receta -->
+
+  </div>
+</div>
+
 
           <!-- Error -->
           <div *ngIf="errorMessage" class="error-message">
