@@ -98,22 +98,50 @@ export class ChatIAComponent {
   }
 
   async onSeleccionarReceta(receta: OpcionOut) {
-    try {
-      if (!this.authService.isLoggedIn()) {
-        this.errorMessage = 'Debes iniciar sesión para guardar recetas en tu historial';
-        return;
-      }
+  try {
+    if (!this.authService.isLoggedIn()) {
+      this.errorMessage = 'Debes iniciar sesión para guardar recetas en tu historial';
+      return;
+    }
 
-      console.log('💾 Guardando receta en historial:', receta);
-      
-      await this.historyService.savePreferredRecipe(receta.id_receta);
-      this.errorMessage = '';
-      this.recetaSeleccionada = receta;
-      this.opcionesRecetas = [];
-      this.cargarHistorial();
-      
-      console.log('✅ Receta guardada en historial:', receta.titulo);
-      
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      this.errorMessage = 'No se encontró el usuario en la sesión';
+      return;
+    }
+
+    const contexto = [
+      this.userMessage ? `Usuario: ${this.userMessage}` : '',
+      receta.ia_explicacion ? `IA: ${receta.ia_explicacion}` : ''
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    const titulo =
+      this.userMessage && this.userMessage.trim().length > 0
+        ? this.userMessage.trim().slice(0, 60)
+        : `Recomendación: ${receta.titulo}`;
+
+    console.log('💾 Guardando receta en historial con contexto...');
+    console.log('id_receta:', receta.id_receta);
+    console.log('contexto_ia:', contexto);
+    console.log('titulo_conversacion:', titulo);
+
+    this.recipeService
+      .saveToHistory(userId, receta.id_receta, contexto, titulo)
+      .subscribe({
+        next: () => {
+          this.errorMessage = '';
+          this.recetaSeleccionada = receta;
+          this.opcionesRecetas = [];
+          this.cargarHistorial(); // recarga panel izquierdo
+          console.log('✅ Receta guardada en historial:', receta.titulo);
+        },
+        error: (err) => {
+          console.error('❌ Error guardando receta:', err);
+          this.errorMessage = 'Error al guardar la receta en el historial';
+        },
+      });
     } catch (error: any) {
       console.error('❌ Error guardando receta:', error);
       this.errorMessage = error.message || 'Error al guardar la receta en el historial';
@@ -122,8 +150,11 @@ export class ChatIAComponent {
 
   onCargarRecetaDelHistorial(itemHistorial: any) {
     if (itemHistorial.receta) {
-      // CONVERTIR la estructura de la receta del historial a OpcionOut
       const recetaMapeada = this.mapearRecetaAOpcionOut(itemHistorial.receta);
+
+      if (itemHistorial.contexto_ia) {
+        recetaMapeada.ia_explicacion = itemHistorial.contexto_ia;
+      }
       this.recetaSeleccionada = recetaMapeada;
       this.opcionesRecetas = [];
       this.userMessage = '';
@@ -133,8 +164,7 @@ export class ChatIAComponent {
       this.errorMessage = 'No se pudo cargar la receta del historial';
     }
   }
-
-  // AÑADIR este método para mapear la estructura
+  
   private mapearRecetaAOpcionOut(receta: any): any {
     console.log('🔄 ===== INICIANDO MAPEO =====');
     console.log('📥 Receta recibida:', receta);
@@ -142,13 +172,11 @@ export class ChatIAComponent {
     console.log('🔍 Tipo de ingredientes:', typeof receta.ingredientes);
     console.log('📋 ¿Es array?', Array.isArray(receta.ingredientes));
     
-    // Convertir ingredientes JSON a array de IngredienteOut
     let ingredientes: any[] = [];
     if (receta.ingredientes && Array.isArray(receta.ingredientes)) {
       console.log('✅ Ingredientes ES array, mapeando...');
       
       ingredientes = receta.ingredientes.map((item: any, index: number) => {
-        // VERIFICAR si item es string o objeto
         let nombre = '';
         if (typeof item === 'string') {
           nombre = item;
