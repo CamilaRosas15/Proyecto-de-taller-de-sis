@@ -98,12 +98,38 @@ export class RecipeService {
   }
 
   // Añadir en RecipeService
-  saveToHistory(userId: string, idReceta: number): Observable<any> {
-    return this.http.post<any>(
-      `${this.baseUrl}/history/${userId}`, 
-      { id_receta: idReceta }
-    ).pipe(
-      catchError(this.handleError)
-    );
+  saveToHistory(
+    userId: string,
+    idReceta: number,
+    contextoIa?: string,
+    tituloConversacion?: string
+  ): Observable<any> {
+    const tokenFromAuth = localStorage.getItem('accessToken'); 
+
+    const token =
+      tokenFromAuth ||
+      localStorage.getItem('accesstoken') ||      
+      localStorage.getItem('token') ||
+      localStorage.getItem('authToken');
+
+    const headers: any = {
+      'Content-Type': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    return this.http
+      .post<any>(
+        `${this.baseUrl}/history/${userId}`,
+        {
+          id_receta: idReceta,
+          contexto_ia: contextoIa,
+          titulo_conversacion: tituloConversacion,
+        },
+        { headers }
+      )
+      .pipe(catchError(this.handleError));
   }
 }

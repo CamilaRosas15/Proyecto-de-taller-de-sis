@@ -503,7 +503,7 @@ Comienza DIRECTAMENTE con "- Encaje:" y luego "- Sugerencia:".
   }
 
   // Añadir en RecipesService
-  async saveToHistory(userId: string, idReceta: number): Promise<any> {
+  async saveToHistory(userId: string, idReceta: number,contextoIa?: string,tituloConversacion?: string): Promise<any> {
     this.logger.log(`Guardando receta ${idReceta} en historial para usuario ${userId}`);
     
     const { data, error } = await this.supabase.getClient()
@@ -511,7 +511,9 @@ Comienza DIRECTAMENTE con "- Encaje:" y luego "- Sugerencia:".
       .insert({
         id_usuario: userId,
         id_receta: idReceta,
-        fecha: new Date().toISOString()
+        fecha: new Date().toISOString(),
+        contexto_ia: contextoIa ?? null,
+        titulo_conversacion: tituloConversacion ?? null,
       })
       .select()
       .single();
