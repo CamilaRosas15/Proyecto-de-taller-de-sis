@@ -27,7 +27,7 @@ export class Registro implements OnInit {
       peso: 0,
       sexo: '', 
       altura: 0, 
-      objetivo_salud: 'Mantener peso',
+      objetivo: 'Mantener peso',
       calorias_diarias_objetivo: 2000,
       alergias: [],
       gustos: [],
