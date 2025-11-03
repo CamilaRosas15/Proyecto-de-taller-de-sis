@@ -33,7 +33,7 @@ export interface UserProfileData {
   peso: number;
   sexo: string;            // ✅ Nuevo campo
   altura: number;        // ✅ Nuevo campo
-  objetivo_salud: string;
+  objetivo: string;
   calorias_diarias_objetivo: number;
   alergias: string[];
   gustos: string[];

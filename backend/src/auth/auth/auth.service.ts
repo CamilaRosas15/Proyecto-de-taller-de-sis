@@ -19,10 +19,10 @@ export interface ProfileDto {
   altura?: number;
   sexo?: string;
   objetivo_calorico?: number;
-  gustos: string;
-  alergias: string;
-  objetivo_salud: string;
-  no_me_gusta: string;
+  gustos: string[];
+  alergias: string[];
+  objetivo: string;
+  no_me_gusta: string[];
   calorias_diarias_objetivo: number;
 }
 
@@ -189,6 +189,14 @@ export class AuthService {
   async saveUserProfile(userId: string, profileDto: ProfileDto): Promise<any> {
   try {
     this.logger.log(`Saving profile for user: ${userId}`);
+
+    this.logger.log(`🔍 DEBUG - Campos recibidos en profileDto:`);
+    this.logger.log(`- objetivo: ${profileDto.objetivo}`);
+    this.logger.log(`- Tipo: ${typeof profileDto.objetivo}`);
+    this.logger.log(`- ¿Está definido?: ${profileDto.objetivo !== undefined}`);
+    this.logger.log(`- ¿Es null?: ${profileDto.objetivo === null}`);
+    this.logger.log(`- Valor exacto: "${profileDto.objetivo}"`);
+
     this.logger.log(`Datos recibidos para perfil: ${JSON.stringify(profileDto, null, 2)}`);
 
     if (!profileDto.nombre_completo || profileDto.nombre_completo.trim() === '') {
@@ -205,6 +213,7 @@ export class AuthService {
       sexo: profileDto.sexo,
       altura: profileDto.altura ?? null,
       peso: profileDto.peso ?? null,
+      objetivo: profileDto.objetivo ?? null, 
       objetivo_calorico: profileDto.objetivo_calorico ?? profileDto.calorias_diarias_objetivo ?? null,
       gustos: Array.isArray(profileDto.gustos) ? profileDto.gustos.join(', ') : (profileDto.gustos ?? null),
       alergias: Array.isArray(profileDto.alergias) ? profileDto.alergias.join(', ') : (profileDto.alergias ?? null),
