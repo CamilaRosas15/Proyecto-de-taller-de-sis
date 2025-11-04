@@ -23,6 +23,8 @@ export class ChatIAComponent {
   recetaSeleccionada: any = null; 
   isMobileMenuOpen = false;
 
+  conversationHistory: any[] = [];
+
   userName: string | null = null;
   userEmail: string | null = null;
 
@@ -237,6 +239,7 @@ export class ChatIAComponent {
     this.opcionesRecetas = [];
     this.userMessage = '';
     this.errorMessage = '';
+    this.conversationHistory = [];
   }
 
   sendMessage() {
@@ -255,12 +258,23 @@ export class ChatIAComponent {
       this.userMessage = 'Recomiéndame recetas';
     }
 
+    // 1. AGREGAR MENSAJE DEL USUARIO AL HISTORIAL
+    this.conversationHistory.push({
+      type: 'user',
+      content: this.userMessage,
+      timestamp: new Date()
+    });
+
+    // 2. Limpiar y preparar para nueva generación
+    const currentMessage = this.userMessage;
+    this.userMessage = ''; // Limpiar input para próximo mensaje
+    this.recetaSeleccionada = null;
     this.cargando = true;
     this.errorMessage = '';
 
-    this.procesarMensaje(this.userMessage);
+    this.procesarMensaje(currentMessage);
 
-    this.generarRecomendaciones();
+    this.generarRecomendaciones(currentMessage);
   }
 
   procesarMensaje(mensaje: string) {
@@ -308,7 +322,7 @@ export class ChatIAComponent {
     }
   }
 
-  generarRecomendaciones() {
+  generarRecomendaciones(userMessage?: string) {
     const userId = localStorage.getItem('userId') || undefined;
 
     const params: RecommendRequest = {
@@ -317,8 +331,8 @@ export class ChatIAComponent {
       use_llm: true
     };
     
-    if (this.userMessage && this.userMessage.trim()) {
-    (params as any).user_msg = this.userMessage.trim(); // <--- AÑADIR
+    if (userMessage && userMessage.trim()) {
+      (params as any).user_msg = userMessage.trim();
     }
 
     if (this.preferencias.alergias.length)   params.alergias     = this.preferencias.alergias;
@@ -342,8 +356,19 @@ export class ChatIAComponent {
           }
           return receta;
         });
+
+        // 3. AGREGAR RESPUESTA DE LA IA AL HISTORIAL
+        this.conversationHistory.push({
+          type: 'assistant',
+          content: `Te recomiendo ${this.opcionesRecetas.length} recetas:`,
+          recipes: [...this.opcionesRecetas], // Copia de las recetas actuales
+          timestamp: new Date()
+        });
+
+        // Limpiar opcionesRecetas para la próxima generación
+        this.opcionesRecetas = [];
         
-        console.log('Recomendaciones procesadas:', this.opcionesRecetas);
+        console.log('Historial de conversación:', this.conversationHistory);
       },
       error: (error: any) => {
         this.cargando = false;
@@ -366,6 +391,7 @@ export class ChatIAComponent {
       kcalDiarias: 2000,
       tiempoMax: 30
     };
+    this.conversationHistory = [];
   }
 
 }

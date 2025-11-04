@@ -1263,3 +1263,403 @@ img {
 .recipe-full-card {
   background-color: #DCDCDC !important;
 }
+
+.conversation-history-container {
+  padding: 20px;
+  max-height: 65vh;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.conversation-message {
+  margin-bottom: 25px;
+  animation: fadeInUp 0.3s ease;
+}
+
+.message-bubble {
+  display: flex;
+  gap: 12px;
+  max-width: 85%;
+}
+
+/* Mensaje del usuario (alineado a la derecha) */
+.user-bubble {
+  margin-left: auto;
+  flex-direction: row-reverse;
+  
+  .message-content {
+    background: #0F314E;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 18px 18px 4px 18px;
+    
+    .message-text {
+      margin: 0 0 5px 0;
+      line-height: 1.4;
+    }
+    
+    .message-time {
+      font-size: 11px;
+      opacity: 0.7;
+      text-align: right;
+    }
+  }
+  
+  .message-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #0F314E;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+}
+
+/* Mensaje de la IA (alineado a la izquierda) */
+.assistant-bubble {
+  .message-content {
+    background: #F7F8F7;
+    border: 1px solid #e0e0e0;
+    padding: 16px;
+    border-radius: 18px 18px 18px 4px;
+    
+    .message-text {
+      margin: 0 0 15px 0;
+      color: #0F314E;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+    
+    .message-time {
+      font-size: 11px;
+      color: #666;
+      text-align: right;
+      margin-top: 10px;
+    }
+  }
+  
+  .message-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #8ed1c2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+}
+
+/* Recetas dentro de los mensajes de la IA */
+.recipes-in-message {
+  margin-top: 15px;
+}
+
+.message-recipe-card {
+  background: white;
+  border: 1px solid #d8dee2;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  
+  .recipe-message-title {
+    color: #0F314E;
+    margin: 0 0 8px 0;
+    font-size: 1.1em;
+    font-weight: 600;
+  }
+  
+  .recipe-message-desc {
+    color: #666;
+    margin: 0 0 10px 0;
+    font-size: 0.9em;
+    line-height: 1.4;
+  }
+  
+  .recipe-message-ingredients,
+  .recipe-message-preparation {
+    font-size: 0.85em;
+    color: #555;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  
+  .recipe-message-steps {
+    margin: 5px 0 0 15px;
+    font-size: 0.85em;
+    
+    li {
+      margin-bottom: 4px;
+    }
+  }
+  
+  .recipe-message-ia {
+    background: #eaf4f1;
+    border: 1px solid #99bdb5;
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 0.85em;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+  
+  .recipe-message-choose-btn {
+    background: #0F314E;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    cursor: pointer;
+    width: 100%;
+    
+    &:hover {
+      background: #2B4F6D;
+    }
+  }
+}
+
+/* Input en la parte inferior */
+.chat-input-bottom {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  
+  .input-container {
+    display: flex;
+    gap: 15px;
+    
+    .message-input {
+      flex-grow: 1;
+      padding: 15px 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      
+      &:focus {
+        border-color: #8ed1c2;
+      }
+    }
+    
+    .send-btn {
+      background: #0F314E;
+      color: white;
+      border: none;
+      padding: 15px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      white-space: nowrap;
+      
+      &:hover {
+        background: #2B4F6D;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+}
+
+/* Indicador de typing */
+.loading-message {
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    
+    span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #8ed1c2;
+      animation: typing 1.4s infinite ease-in-out;
+      
+      &:nth-child(1) { animation-delay: -0.32s; }
+      &:nth-child(2) { animation-delay: -0.16s; }
+    }
+  }
+}
+
+@keyframes typing {
+  0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ELIMINAR estilos que ya no se usan */
+.user-query-display,
+.continuation-input {
+  display: none;
+}
+
+/* Vista inicial */
+.initial-view {
+  .input-section {
+    margin-bottom: 0;
+    
+    h2 {
+      text-align: center;
+      font-size: 1.6em;
+      margin-bottom: 30px;
+      color: #0F314E;
+    }
+  }
+}
+
+/* Input en vista inicial */
+.chat-input-bottom-initial {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+  
+  .input-container {
+    .message-input {
+      font-size: 16px;
+      padding: 18px 25px;
+    }
+    
+    .send-btn {
+      padding: 18px 30px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+  }
+}
+
+/* Input en vista chat */
+.chat-input-bottom-chat {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  
+  .input-container {
+    .message-input {
+      font-size: 14px;
+      padding: 15px 20px;
+    }
+    
+    .send-btn {
+      padding: 15px 25px;
+      font-size: 14px;
+    }
+  }
+}
+
+/* Asegurar que el loading section se vea bien en vista inicial */
+.loading-section {
+  text-align: center;
+  padding: 40px 20px;
+  
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #8ed1c2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+  }
+  
+  p {
+    color: #0F314E;
+    font-size: 1.1em;
+  }
+}
+
+/* CORRECCIÓN: Asegurar que solo un input se muestre a la vez */
+.chat-input-bottom-initial,
+.chat-input-bottom-chat {
+  display: block; /* Ambos están en el DOM pero solo uno se muestra por ngIf */
+}
+
+/* Vista inicial */
+.initial-view {
+  .input-section {
+    margin-bottom: 0;
+    
+    h2 {
+      text-align: center;
+      font-size: 1.6em;
+      margin-bottom: 30px;
+      color: #0F314E;
+    }
+  }
+}
+
+/* Input en vista inicial */
+.chat-input-bottom-initial {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+  
+  .input-container {
+    .message-input {
+      font-size: 16px;
+      padding: 18px 25px;
+    }
+    
+    .send-btn {
+      padding: 18px 30px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+  }
+}
+
+/* Input en vista chat */
+.chat-input-bottom-chat {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  
+  .input-container {
+    .message-input {
+      font-size: 14px;
+      padding: 15px 20px;
+    }
+    
+    .send-btn {
+      padding: 15px 25px;
+      font-size: 14px;
+    }
+  }
+}
+
+/* Asegurar que el loading section se vea bien en vista inicial */
+.loading-section {
+  text-align: center;
+  padding: 40px 20px;
+  
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #8ed1c2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+  }
+  
+  p {
+    color: #0F314E;
+    font-size: 1.1em;
+  }
+}
