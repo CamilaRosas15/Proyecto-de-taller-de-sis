@@ -90,7 +90,8 @@
         </div>
 
         <div class="natural-analysis" [class.non-food-warning]="isNonFoodMessage">
-          <pre class="natural-text" [class.non-food-text]="isNonFoodMessage">{{ analysisResult }}</pre>
+          <app-food-dashboard *ngIf="dashboardData && !isNonFoodMessage" [data]="dashboardData"></app-food-dashboard>
+          <pre *ngIf="!dashboardData || isNonFoodMessage" class="natural-text" [class.non-food-text]="isNonFoodMessage">{{ analysisResult }}</pre>
         </div>
 
         <button class="new-analysis-btn" (click)="resetAnalysis()">

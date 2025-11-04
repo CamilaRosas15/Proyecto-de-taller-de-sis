@@ -10,9 +10,10 @@
     <button (click)="getAIGreeting()">Reintentar</button>
   </div>
   
-  <div *ngIf="greeting && !isLoading" class="greeting">
-    <h3>Mensaje de la IA:</h3>
-    <p>{{ greeting }}</p>
-    <button (click)="getAIGreeting()">Obtener nuevo mensaje</button>
+  <div *ngIf="dashboardData && !isLoading" class="dashboard-wrap">
+    <div class="toolbar">
+      <button (click)="getAIGreeting()">Actualizar análisis</button>
+    </div>
+    <app-food-dashboard [data]="dashboardData"></app-food-dashboard>
   </div>
 </div>

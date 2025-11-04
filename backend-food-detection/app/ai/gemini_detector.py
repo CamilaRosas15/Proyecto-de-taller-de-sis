@@ -10,6 +10,8 @@ from typing import Dict, List, Optional, Tuple
 import requests
 import asyncio
 import io
+import time
+import random
 
 from app.core.config import settings
 
@@ -92,6 +94,80 @@ class GeminiFoodDetector:
             "olive_oil": 15, "avocado": 150
         }
 
+    def _make_request_with_retry(self, url: str, json: Dict, headers: Dict, max_retries: int = 4) -> Optional[requests.Response]:
+        """
+        Make API request with exponential backoff retry logic for 429 errors.
+        
+        Args:
+            url: API endpoint URL
+            json: Request payload
+            headers: Request headers
+            max_retries: Maximum number of retry attempts
+            
+        Returns:
+            Response object or None if all retries failed
+        """
+        for attempt in range(max_retries + 1):
+            try:
+                response = requests.post(url, json=json, headers=headers, timeout=60)
+                
+                # If successful or non-retryable error, return immediately
+                if response.status_code == 200:
+                    return response
+                
+                # Handle 429 (Rate Limit) with retry
+                if response.status_code == 429:
+                    if attempt < max_retries:
+                        # Check for Retry-After header
+                        retry_after = response.headers.get("Retry-After")
+                        if retry_after:
+                            try:
+                                delay = float(retry_after)
+                                logger.warning(f"Rate limit (429) - Retry-After header: {delay}s. Esperando...")
+                            except ValueError:
+                                delay = None
+                        else:
+                            delay = None
+                        
+                        # Calculate exponential backoff with jitter
+                        if delay is None:
+                            base_delay = 2 ** attempt  # 1s, 2s, 4s, 8s...
+                            delay = random.uniform(base_delay, base_delay * 2)  # Add jitter
+                        
+                        logger.warning(f"Rate limit (429) alcanzado. Intento {attempt + 1}/{max_retries + 1}. Esperando {delay:.1f}s antes de reintentar...")
+                        time.sleep(delay)
+                        continue
+                    else:
+                        logger.error(f"Rate limit (429) - Se agotaron los reintentos después de {max_retries + 1} intentos")
+                        return response  # Return last response even if it's an error
+                
+                # For other errors, return immediately (no retry)
+                return response
+                
+            except requests.exceptions.Timeout as e:
+                logger.warning(f"Timeout en intento {attempt + 1}/{max_retries + 1}: {str(e)}")
+                if attempt < max_retries:
+                    delay = 2 ** attempt
+                    logger.info(f"Esperando {delay}s antes de reintentar...")
+                    time.sleep(delay)
+                    continue
+                else:
+                    logger.error("Timeout - Se agotaron los reintentos")
+                    return None
+                    
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Error de conexión en intento {attempt + 1}/{max_retries + 1}: {str(e)}")
+                if attempt < max_retries:
+                    delay = 2 ** attempt
+                    logger.info(f"Esperando {delay}s antes de reintentar...")
+                    time.sleep(delay)
+                    continue
+                else:
+                    logger.error("Error de conexión - Se agotaron los reintentos")
+                    return None
+        
+        return None
+
     async def detect_food(self, image_data: bytes) -> Dict:
         """
         Detect food items in an image using Gemini API.
@@ -135,13 +211,22 @@ class GeminiFoodDetector:
                 }
             }
             
-            # Make API request using requests
+            # Make API request using requests with retry logic
             headers = {
                 "Content-Type": "application/json"
             }
             
             logger.info(f"Enviando solicitud a Gemini API: {self.api_url}")
-            response = requests.post(self.api_url, json=payload, headers=headers)
+            response = self._make_request_with_retry(
+                url=self.api_url,
+                json=payload,
+                headers=headers,
+                max_retries=4
+            )
+            
+            if response is None:
+                logger.error("No se pudo obtener respuesta después de múltiples reintentos")
+                return self._simulate_detection()
             
             # Log response status
             logger.info(f"Respuesta de Gemini - Status: {response.status_code}")
