@@ -60,31 +60,38 @@
          (dragleave)="onDragLeave($event)"
          (drop)="onDrop($event)">
 
-      <!-- Sección de upload mejorada -->
-      <div class="upload-section">
+      <div class="upload-section" *ngIf="!imageUrl && !analysisResult">
         <h2>Sube o toma una imagen para analizar 🍽️</h2>
 
-        <!-- Botón de escritorio (solo visible en desktop) -->
-        <label class="upload-btn desktop-only">
-          Subir imagen
-          <input type="file" accept="image/*" (change)="onFileSelected($event)">
-        </label>
+        <!-- Botones de escritorio (solo visible en desktop/laptop) -->
+        <div class="desktop-buttons">
+          <label class="upload-btn">
+            Subir imagen
+            <input type="file" accept="image/*" (change)="onFileSelected($event)">
+          </label>
+        </div>
 
-        <!-- Botón de móviles/tablets (solo visible en dispositivos móviles) -->
-        <label class="upload-btn mobile-only">
-          Tomar foto
-          <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event)">
-        </label>
+        <!-- Botones de móvil (visible en tablets y móviles) -->
+        <div class="mobile-buttons">
+          <label class="upload-btn">
+            Subir imagen
+            <input type="file" accept="image/*" (change)="onFileSelected($event)">
+          </label>
+          
+          <label class="upload-btn camera-btn">
+            Tomar foto
+            <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event)">
+          </label>
+        </div>
 
-        <p class="hint desktop-only">
+        <p class="hint desktop-hint">
           Arrastra y suelta una imagen aquí o haz clic para seleccionarla desde tu dispositivo.
         </p>
         
-        <p class="hint mobile-only">
-          Toca el botón para abrir la cámara o seleccionar una imagen de tu galería.
+        <p class="hint mobile-hint">
+          Sube una imagen de tu galería o toma una foto con la cámara.
         </p>
       </div>
-
 
       <!-- Vista previa -->
       <div *ngIf="imageUrl && !analysisResult" class="image-preview">

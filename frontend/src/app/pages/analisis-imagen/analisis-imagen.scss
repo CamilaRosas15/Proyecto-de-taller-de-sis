@@ -279,6 +279,7 @@ body {
     display: inline-block;
     transition: background 0.2s ease, transform 0.1s ease;
     border: none;
+    margin: 0 8px;
 
     &:hover {
       background: #2B4F6D;
@@ -300,11 +301,36 @@ body {
     }
   }
 
+  .camera-btn {
+    background: #007b83;
+    
+    &:hover {
+      background: #005f63;
+    }
+  }
+
   .hint {
     margin-top: 12px;
     color: $color-muted;
     font-size: 13px;
     line-height: 1.4;
+  }
+
+  /* Desktop: solo mostrar botón de subir */
+  .desktop-buttons {
+    display: block;
+  }
+
+  .mobile-buttons {
+    display: none;
+  }
+
+  .desktop-hint {
+    display: block;
+  }
+
+  .mobile-hint {
+    display: none;
   }
 }
 
@@ -484,15 +510,6 @@ body {
   font-weight: 500;
 }
 
-/* Control de visibilidad según dispositivo */
-.desktop-only {
-  display: inline-block;
-}
-
-.mobile-only {
-  display: none;
-}
-
 /* Responsivo - Tablets medianas */
 @media (max-width: 1024px) {
   .app-container {
@@ -509,6 +526,7 @@ body {
   }
 }
 
+/* Móviles y tablets pequeñas - Mostrar ambos botones */
 @media (max-width: 768px) {
   .app-container {
     grid-template-columns: 1fr;
@@ -556,9 +574,32 @@ body {
     padding: 20px 15px;
   }
 
+  /* En móviles: ocultar botones desktop, mostrar botones móviles */
   .upload-section {
+    .desktop-buttons {
+      display: none !important;
+    }
+
+    .mobile-buttons {
+      display: flex !important;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      align-items: center;
+    }
+
+    .desktop-hint {
+      display: none !important;
+    }
+
+    .mobile-hint {
+      display: block !important;
+    }
+
     .upload-btn {
-      max-width: 100%;
+      width: 100%;
+      max-width: 300px;
+      margin: 0;
     }
   }
 
