@@ -367,4 +367,9 @@ export class ChatIAComponent {
       tiempoMax: 30
     };
   }
+  get botonIcono(): string {
+  // Si hay texto del usuario, mostrar flecha; si no, texto "Generar"
+  return this.userMessage && this.userMessage.trim().length > 0 ? '↑' : '🍳';
+}
+
 }
