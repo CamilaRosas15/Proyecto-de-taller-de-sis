@@ -60,14 +60,37 @@
          (dragleave)="onDragLeave($event)"
          (drop)="onDrop($event)">
 
-      <!-- Subir imagen -->
       <div class="upload-section" *ngIf="!imageUrl && !analysisResult">
-        <h2>Sube una imagen de tu comida</h2>
-        <label class="upload-btn">
-          Cargar imagen
-          <input type="file" (change)="onFileSelected($event)" accept="image/*">
-        </label>
-        <p class="hint">O arrastra tu imagen</p>
+        <h2>Sube o toma una imagen para analizar 🍽️</h2>
+
+        <!-- Botones de escritorio (solo visible en desktop/laptop) -->
+        <div class="desktop-buttons">
+          <label class="upload-btn">
+            Subir imagen
+            <input type="file" accept="image/*" (change)="onFileSelected($event)">
+          </label>
+        </div>
+
+        <!-- Botones de móvil (visible en tablets y móviles) -->
+        <div class="mobile-buttons">
+          <label class="upload-btn">
+            Subir imagen
+            <input type="file" accept="image/*" (change)="onFileSelected($event)">
+          </label>
+          
+          <label class="upload-btn camera-btn">
+            Tomar foto
+            <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event)">
+          </label>
+        </div>
+
+        <p class="hint desktop-hint">
+          Arrastra y suelta una imagen aquí o haz clic para seleccionarla desde tu dispositivo.
+        </p>
+        
+        <p class="hint mobile-hint">
+          Sube una imagen de tu galería o toma una foto con la cámara.
+        </p>
       </div>
 
       <!-- Vista previa -->
