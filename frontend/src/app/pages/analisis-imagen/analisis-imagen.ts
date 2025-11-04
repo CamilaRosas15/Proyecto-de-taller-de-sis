@@ -5,11 +5,13 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { RouterLink, Router } from '@angular/router';
 import { HistorialService, HistorialSidebar } from '../../services/historial.service';
 import { AuthService } from '../../services/auth';
+import { adaptFriendlyTextToFoodDashboard, FoodDashboardData } from '../../core/adapters/vision-dashboard.adapter';
+import { FoodDashboardComponent } from '../../components/food-dashboard/food-dashboard.component';
 
 @Component({
   selector: 'app-analisis-imagen',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FoodDashboardComponent],
   templateUrl: './analisis-imagen.html',
   styleUrl: './analisis-imagen.scss'
 })
@@ -17,6 +19,8 @@ export class AnalisisImagenComponent implements OnInit {
   selectedFile: File | null = null;
   imageUrl: string | null = null;
   analysisResult: string | null = null;
+  dashboardData: FoodDashboardData | null = null;
+  showRaw: boolean = false;
   errorMessage: string | null = null;
   isNonFoodMessage: boolean = false;
   historialSidebar: HistorialSidebar[] = [];
@@ -72,6 +76,7 @@ export class AnalisisImagenComponent implements OnInit {
       }).subscribe({
         next: (response: string) => {
           this.analysisResult = response;
+          this.dashboardData = adaptFriendlyTextToFoodDashboard(response);
           this.isNonFoodMessage = response.toLowerCase().includes('no contiene comida') || 
                                  response.toLowerCase().includes('especializada en análisis nutricional') ||
                                  response.toLowerCase().includes('no es una imagen de comida');
@@ -151,6 +156,7 @@ export class AnalisisImagenComponent implements OnInit {
         next: (plato) => {
           this.imageUrl = plato.imagen_url;
           this.analysisResult = plato.analisis;
+          this.dashboardData = adaptFriendlyTextToFoodDashboard(plato.analisis);
           this.isNonFoodMessage = false;
           this.errorMessage = null;
           this.selectedFile = null;
