@@ -810,17 +810,26 @@
   }
   
   .send-btn {
-    background: #70B8AD;
+    background: #0F314E;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 15px 25px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 16px;
-    transition: all 0.3s ease;
+    font-weight: 600;
+    white-space: nowrap;
     
     &:hover {
-      background: #5aa398;
+      background: #2B4F6D;
+    }
+
+    @media (max-width: 768px) {
+      padding: 15px 20px;
+    }
+
+    @media (max-width: 480px) {
+      padding: 12px 16px;
+      font-size: 14px;
     }
   }
 
