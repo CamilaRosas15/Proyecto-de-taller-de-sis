@@ -1,0 +1,327 @@
+<!-- Navbar Superior -->
+<nav class="profile-navbar">
+  <div class="nav-container">
+    <!-- Botón Atrás con fondo gris - FIJADO -->
+    <a class="back-button" (click)="volverAtras()">
+      <i class="fas fa-arrow-left"></i>
+      <span>Atrás</span>
+    </a>
+
+    <!-- Logo en el centro -->
+    <div class="nav-logo">
+      <img src="assets/logo.png" alt="Nutrichef IA" class="logo-img">
+      <h2>Nutrichef IA</h2>
+    </div>
+
+    <!-- Espacio para balancear el diseño -->
+    <div class="nav-spacer"></div>
+  </div>
+</nav>
+
+<div class="perfil-container">
+  <!-- Estados de carga y error -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Cargando perfil...</p>
+  </div>
+
+  <div *ngIf="errorMessage && !isLoading" class="error-container">
+    <div class="error-message">
+      <i class="fas fa-exclamation-triangle"></i>
+      {{ errorMessage }}
+      <button class="btn-reload" (click)="recargarPerfil()">Reintentar</button>
+    </div>
+  </div>
+
+  <!-- Mensaje de guardado exitoso -->
+  <div *ngIf="saveMessage" class="save-message" [class.error]="saveMessage.includes('Error')">
+    <i class="fas" [class.fa-check-circle]="!saveMessage.includes('Error')" [class.fa-exclamation-circle]="saveMessage.includes('Error')"></i>
+    {{ saveMessage }}
+  </div>
+
+  <!-- Contenido principal del perfil (solo mostrar si no está cargando y no hay error) -->
+  <div *ngIf="!isLoading && !errorMessage">
+    <!-- HEADER CORREGIDO - DIVISIÓN 50/50 -->
+    <div class="perfil-header">
+      <div class="perfil-header-content">
+        <!-- Imagen en el lado izquierdo (50%) -->
+        <div class="perfil-avatar-section">
+          <div class="perfil-avatar">
+            <img [src]="usuario.avatar" alt="Avatar del usuario" class="avatar-img">
+          </div>
+        </div>
+
+        <!-- Información en el lado derecho (50%) -->
+        <div class="perfil-info-section">
+          <h1 class="perfil-nombre">{{ usuario.nombre }}</h1>
+          <p class="perfil-email">{{ usuario.email }}</p>
+          
+          <!-- Botón Editar Perfil agregado aquí -->
+          <button class="btn-editar-perfil" (click)="editarPerfil()">
+            <i class="fas fa-edit"></i> Editar Perfil
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="perfil-content">
+      <div class="perfil-info">
+        <!-- Información Personal Básica -->
+        <div class="info-section">
+          <h3><i class="fas fa-user"></i> Información Personal</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Edad:</label>
+              <span>{{ usuario.edad }} años</span>
+            </div>
+            <div class="info-item">
+              <label>Sexo:</label>
+              <span>{{ usuario.sexo }}</span>
+            </div>
+            <div class="info-item">
+              <label>Altura:</label>
+              <span>{{ usuario.altura }} cm</span>
+            </div>
+            <div class="info-item">
+              <label>Peso:</label>
+              <span>{{ usuario.peso }} kg</span>
+            </div>
+            <div class="info-item">
+              <label>IMC:</label>
+              <span>{{ calcularIMC() }} ({{ getClasificacionIMC() }})</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Objetivos -->
+        <div class="info-section">
+          <h3><i class="fas fa-bullseye"></i> Objetivos</h3>
+          <div class="objetivo-principal">
+            <h4>Objetivo Principal</h4>
+            <p>{{ usuario.objetivo }}</p>
+          </div>
+          <div class="objetivo-calorico">
+            <h4>Objetivo Calórico Diario</h4>
+            <div class="calorias-display">
+              <div class="calorias-number">{{ usuario.objetivo_calorico }}</div>
+              <div class="calorias-text">kilocalorías</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preferencias Alimentarias -->
+        <div class="info-section">
+          <h3><i class="fas fa-heart"></i> Preferencias Alimentarias</h3>
+          <div class="preferencias-container">
+            <div class="preferencias-col">
+              <h4>Gustos</h4>
+              <div class="preferencias-list">
+                <span class="preferencia-tag gustos" *ngFor="let gusto of getGustosArray()">
+                  {{ gusto }}
+                </span>
+                <div *ngIf="getGustosArray().length === 0" class="no-data-message">
+                  No se han especificado gustos
+                </div>
+              </div>
+            </div>
+            <div class="preferencias-col">
+              <h4>No Me Gusta</h4>
+              <div class="preferencias-list">
+                <span class="preferencia-tag no-gustos" *ngFor="let noGusto of getNoGustosArray()">
+                  {{ noGusto }}
+                </span>
+                <div *ngIf="getNoGustosArray().length === 0" class="no-data-message">
+                  No se han especificado preferencias
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alergias y Restricciones -->
+        <div class="info-section">
+          <h3><i class="fas fa-exclamation-triangle"></i> Alergias y Restricciones</h3>
+          <div class="alergias-list">
+            <span class="alergia-tag" *ngFor="let alergia of getAlergiasArray()">
+              <i class="fas fa-ban"></i> {{ alergia }}
+            </span>
+            <div *ngIf="getAlergiasArray().length === 0" class="no-data-message">
+              No se han especificado alergias o restricciones
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Edición -->
+<div *ngIf="isEditing" class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2>Editar Perfil</h2>
+      <button class="modal-close" (click)="cancelarEdicion()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-content">
+      <form (ngSubmit)="guardarCambios()" #editForm="ngForm" class="registro-form">
+        
+        <!-- Información Personal -->
+        <div class="form-section">
+          <h3>Información Personal</h3>
+          
+          <div class="form-group">
+            <label for="nombre">Nombre Completo:</label>
+            <input type="text" id="nombre" name="nombre" 
+                   [(ngModel)]="usuarioEditado.nombre" 
+                   required
+                   placeholder="Tu nombre completo">
+          </div>
+
+          <div class="form-group">
+            <label for="edad">Edad:</label>
+            <input type="number" id="edad" name="edad" 
+                   [(ngModel)]="usuarioEditado.edad" 
+                   required min="12" max="120"
+                   placeholder="Tu edad en años">
+          </div>
+
+          <div class="form-group">
+            <label for="peso">Peso (kg):</label>
+            <input type="number" id="peso" name="peso" 
+                   [(ngModel)]="usuarioEditado.peso" 
+                   required min="30" max="300"
+                   placeholder="Peso en kilogramos">
+          </div>
+
+          <div class="form-group sexo">
+            <label for="sexo">Sexo:</label>
+            <select id="sexo" name="sexo" [(ngModel)]="usuarioEditado.sexo" required>
+              <option value="">Seleccione</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="Otro">Prefiero no decir</option>
+            </select>
+          </div>
+
+          <div class="form-group altura">
+            <label for="altura">Altura (cm):</label>
+            <input 
+                type="number" 
+                id="altura" 
+                name="altura" 
+                [(ngModel)]="usuarioEditado.altura" 
+                step="0.1" 
+                min="50" 
+                max="250" 
+                required
+                placeholder="Altura en centímetros">
+          </div>
+        </div>
+
+        <!-- Objetivos -->
+        <div class="form-section">
+          <h3>Objetivos</h3>
+          
+          <div class="form-group">
+            <label for="objetivo">Objetivo de Salud:</label>
+            <select id="objetivo" name="objetivo" [(ngModel)]="usuarioEditado.objetivo" required>
+              <option value="Perder peso">Perder peso</option>
+              <option value="Mantener peso">Mantener peso</option>
+              <option value="Ganar masa muscular">Ganar masa muscular</option>
+              <option value="Comer más saludable">Comer más saludable</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="objetivo_calorico">Calorías Diarias Objetivo:</label>
+            <input type="number" id="objetivo_calorico" name="objetivo_calorico" 
+                   [(ngModel)]="usuarioEditado.objetivo_calorico" 
+                   required min="1000" max="5000"
+                   placeholder="Calorías diarias objetivo">
+          </div>
+        </div>
+
+        <!-- Alergias -->
+        <div class="form-section">
+          <h3>Alergias</h3>
+          <div class="form-group">
+            <label for="nuevaAlergia">Alergias (una por una):</label>
+            <div class="input-with-button">
+              <input type="text" id="nuevaAlergia" 
+                     [(ngModel)]="nuevaAlergia" 
+                     name="nuevaAlergia" 
+                     placeholder="Ej: Maní, Gluten">
+              <button class="chip-add" type="button" (click)="addAlergia()">Añadir</button>
+            </div>
+            <div class="tags-container">
+              <span *ngFor="let alergia of usuarioEditado.alergias; let i = index" class="tag">
+                {{ alergia }} <span (click)="removeAlergia(i)">x</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gustos -->
+        <div class="form-section">
+          <h3>Gustos</h3>
+          <div class="form-group">
+            <label for="nuevoGusto">Me gusta (alimentos):</label>
+            <div class="input-with-button">
+              <input type="text" id="nuevoGusto" 
+                     [(ngModel)]="nuevoGusto" 
+                     name="nuevoGusto" 
+                     placeholder="Ej: Pollo, Chocolate">
+              <button class="chip-add" type="button" (click)="addGusto()">Añadir</button>
+            </div>
+            <div class="tags-container">
+              <span *ngFor="let gusto of usuarioEditado.gustos; let i = index" class="tag">
+                {{ gusto }} <span (click)="removeGusto(i)">x</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- No me gusta -->
+        <div class="form-section">
+          <h3>No me gusta</h3>
+          <div class="form-group">
+            <label for="nuevoNoMeGusta">No me gusta (alimentos):</label>
+            <div class="input-with-button">
+              <input type="text" id="nuevoNoMeGusta" 
+                     [(ngModel)]="nuevoNoMeGusta" 
+                     name="nuevoNoMeGusta" 
+                     placeholder="Ej: Brócoli, Setas">
+              <button class="chip-add" type="button" (click)="addNoMeGusta()">Añadir</button>
+            </div>
+            <div class="tags-container">
+              <span *ngFor="let noMeGusta of usuarioEditado.no_me_gusta; let i = index" class="tag">
+                {{ noMeGusta }} <span (click)="removeNoMeGusta(i)">x</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones del modal -->
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" 
+                  (click)="cancelarEdicion()" 
+                  [disabled]="isSaving">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary" 
+                    [disabled]="isSaving || !editForm.valid">
+            <span *ngIf="isSaving" class="loading-text">
+              <i class="fas fa-spinner fa-spin"></i> Guardando...
+            </span>
+            <span *ngIf="!isSaving">
+              <i class="fas fa-save"></i> Guardar Cambios
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,909 @@
+/* ===== NAVBAR SUPERIOR ===== */
+.perfil-header {
+  margin-bottom: 40px;
+  background: #068C7F; /* Color verde del botón hover */
+  border-radius: 15px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 15px 20px;
+  position: relative;
+}
+
+/* Botón Atrás con fondo gris - FIJADO */
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: #666;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  text-decoration: none;
+  
+  &:hover {
+    background: #068C7F;
+    border-color: #068C7F;
+    color: white;
+  }
+  
+  i {
+    font-size: 14px;
+  }
+  
+  span {
+    font-size: 14px;
+    font-weight: 600;
+  }
+}
+
+/* Logo en el centro */
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  
+  .logo-img {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  h2 {
+    margin: 0;
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #0F314E;
+    white-space: nowrap;
+  }
+}
+
+/* Espaciador para balancear */
+.nav-spacer {
+  width: 120px;
+  visibility: hidden;
+}
+
+/* ===== CONTENEDOR PRINCIPAL ===== */
+.perfil-container {
+  max-width: 1000px; /* CAMBIADO: Más ancho para desktop */
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+}
+
+/* ===== HEADER DEL PERFIL - CORREGIDO ===== */
+.profile-navbar {
+  border-bottom: 2px solid #e0e0e0;
+  background: white;
+}
+
+.perfil-header {
+  margin-bottom: 40px;
+  background: #068C7F; /* Color verde del botón hover */
+  border-radius: 15px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+}
+
+.perfil-header-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* División exacta 50/50 */
+  gap: 0; /* Sin espacio entre columnas */
+  align-items: center;
+  height: 100%;
+}
+
+/* Sección de avatar (lado izquierdo - 50%) */
+.perfil-avatar-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 30px;
+}
+
+.perfil-avatar {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.perfil-info-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  padding: 30px;
+}
+
+.perfil-nombre {
+  margin: 0 0 10px 0;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.perfil-email {
+  margin: 0 0 20px 0;
+  opacity: 0.9;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.btn-editar-perfil {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFE000; /* Cambiado a color amarillo */
+  border: none; /* Eliminado el borde blanco */
+  border-radius: 25px;
+  padding: 10px 20px;
+  color: #333; /* Cambiado a color oscuro para mejor contraste */
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: fit-content;
+  
+  &:hover {
+    background: #ffd700; /* Color amarillo más oscuro al hover */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 224, 0, 0.3);
+  }
+  
+  i {
+    font-size: 12px;
+  }
+}
+
+/* ===== INFORMACIÓN PRINCIPAL ===== */
+.perfil-info {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+}
+
+.info-section {
+  margin-bottom: 30px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  h3 {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 20px;
+    border-bottom: 2px solid #70B8AD;
+    padding-bottom: 10px;
+    
+    i {
+      margin-right: 10px;
+      color: #70B8AD;
+    }
+  }
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+
+    label {
+      font-weight: 600;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    span {
+      color: #333;
+      font-size: 16px;
+      
+      &.status-active {
+        color: #28a745;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+/* ===== OBJETIVOS ===== */
+.objetivo-principal, .objetivo-calorico {
+  margin-bottom: 20px;
+  
+  h4 {
+    color: #0F314E;
+    margin-bottom: 8px;
+    font-size: 16px;
+  }
+  
+  p {
+    margin: 0;
+    line-height: 1.5;
+    color: #555;
+  }
+}
+
+.calorias-display {
+  text-align: center;
+  background: #70B8AD;
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  
+  .calorias-number {
+    font-size: 36px;
+    font-weight: 700;
+  }
+  
+  .calorias-text {
+    font-size: 14px;
+    opacity: 0.9;
+  }
+}
+
+/* ===== PREFERENCIAS ===== */
+.preferencias-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.preferencias-col {
+  h4 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
+}
+
+.preferencias-list {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.preferencia-tag {
+  display: inline-block;
+  padding: 6px 12px;
+  margin: 4px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 500;
+  
+  &.gustos {
+    background: #e8f5e8;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+  }
+  
+  &.no-gustos {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+  }
+}
+
+/* ===== ALERGIAS ===== */
+.alergias-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.alergia-tag {
+  background: #fff3e0;
+  color: #ef6c00;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #ffcc80;
+  
+  i {
+    margin-right: 5px;
+  }
+}
+
+/* ===== ACCIONES ===== */
+.perfil-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+
+  .btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &.btn-primary {
+      background: #0F314E;
+      color: white;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      }
+    }
+
+    &.btn-secondary {
+      background: white;
+      color: #0F314E; /* Cambiado de #667eea a #0F314E */
+      border: 2px solid #0F314E;
+
+      &:hover {
+        background: #0F314E;
+        color: white;
+      }
+    }
+
+    &.btn-tertiary {
+      background: #6c757d;
+      color: white;
+      
+      &:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+      }
+    }
+    
+    i {
+      margin-right: 8px;
+    }
+  }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+  .perfil-container {
+    max-width: 95%; /* Más flexible en pantallas grandes */
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-container {
+    padding: 12px 15px;
+  }
+  
+  .back-button {
+    padding: 9px 12px;
+    
+    span {
+      display: inline; /* Mostrar el texto en móvil */
+      font-size: 12px; /* Tamaño ligeramente más pequeño pero legible */
+      font-weight: 600;
+    }
+    i {
+      font-size: 13px; /* Icono más grande */
+    }
+  }
+  
+  .nav-logo {
+    gap: 8px;
+    
+    .logo-img {
+      width: 30px;
+      height: 30px;
+    }
+    
+    h2 {
+      font-size: 1.1em;
+    }
+  }
+  
+  .nav-spacer {
+    width: 90px;
+  }
+
+  .perfil-container {
+    max-width: 100%; /* Ocupa todo el ancho en móvil */
+    padding: 10px;
+  }
+
+  .perfil-header-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .perfil-avatar-section,
+  .perfil-info-section {
+    padding: 20px;
+    text-align: center;
+  }
+
+  .perfil-avatar {
+    width: 140px;
+    height: 140px;
+  }
+
+  .perfil-nombre {
+    font-size: 28px;
+  }
+
+  .perfil-email {
+    font-size: 16px;
+  }
+
+  .btn-editar-perfil {
+    align-self: center; /* Centra el botón horizontalmente */
+    margin: 0 auto; /* Asegura el centrado */
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .preferencias-container {
+    grid-template-columns: 1fr;
+  }
+
+  .perfil-actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-container {
+    padding: 10px 12px;
+  }
+  
+  .nav-logo {
+    h2 {
+      font-size: 1em;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .perfil-avatar {
+    width: 120px;
+    height: 120px;
+  }
+
+  .perfil-nombre {
+    font-size: 24px;
+  }
+
+  .perfil-email {
+    font-size: 14px;
+  }
+
+  .btn-editar-perfil {
+    align-self: center;
+    margin: 0 auto;
+  }
+
+  .nav-spacer {
+    width: 80px; /* Ajustado para móviles pequeños */
+  }
+}
+
+/* Estados de carga y error */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #70B8AD;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+  }
+  
+  p {
+    color: #666;
+    font-size: 16px;
+  }
+}
+
+.error-container {
+  padding: 20px;
+  
+  .error-message {
+    background: #ffebee;
+    border: 1px solid #ffcdd2;
+    border-radius: 10px;
+    padding: 20px;
+    color: #c62828;
+    text-align: center;
+    
+    i {
+      margin-right: 8px;
+    }
+    
+    .btn-reload {
+      background: #70B8AD;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 16px;
+      margin-left: 15px;
+      cursor: pointer;
+      font-weight: 600;
+      
+      &:hover {
+        background: #5da89d;
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Mensaje de guardado */
+.save-message {
+  background: #e8f5e8;
+  border: 1px solid #c8e6c9;
+  border-radius: 10px;
+  padding: 15px 20px;
+  margin: 20px 0;
+  color: #2e7d32;
+  text-align: center;
+  
+  &.error {
+    background: #ffebee;
+    border-color: #ffcdd2;
+    color: #c62828;
+  }
+  
+  i {
+    margin-right: 8px;
+  }
+}
+
+/* Modal de edición mejorado */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 15px;
+  width: 100%;
+  max-width: 900px; /* CAMBIADO: Más ancho para coincidir con el perfil */
+  max-height: 95vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 30px;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  border-radius: 15px 15px 0 0;
+  
+  h2 {
+    margin: 0;
+    color: #0F314E;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #666;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background: #f5f5f5;
+      color: #333;
+    }
+  }
+}
+
+.modal-content {
+  padding: 30px;
+}
+
+/* Estilos del formulario tipo registro */
+.registro-form {
+  .form-section {
+    margin-bottom: 40px;
+    
+    h3 {
+      color: #0F314E;
+      margin-bottom: 25px;
+      font-size: 20px;
+      border-bottom: 2px solid #70B8AD;
+      padding-bottom: 10px;
+      font-weight: 600;
+    }
+  }
+
+  .form-group {
+    margin-bottom: 25px;
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+    
+    input, select, textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      background: white;
+      box-sizing: border-box;
+      
+      &:focus {
+        outline: none;
+        border-color: #70B8AD;
+        box-shadow: 0 0 0 3px rgba(112, 184, 173, 0.1);
+      }
+      
+      &::placeholder {
+        color: #999;
+      }
+    }
+    
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      background-size: 16px;
+      padding-right: 45px;
+    }
+    
+    &.sexo, &.altura {
+      display: inline-block;
+      width: calc(50% - 10px);
+      
+      &:first-child {
+        margin-right: 20px;
+      }
+    }
+  }
+}
+
+/* Input con botón para tags */
+.input-with-button {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  
+  input {
+    flex: 1;
+    margin-bottom: 0;
+  }
+  
+  .chip-add {
+    background: #70B8AD;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background: #5da89d;
+    }
+    
+    &:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+  }
+}
+
+/* Contenedor de tags */
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  
+  .tag {
+    background: #e8f5e8;
+    color: #2e7d32;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    
+    span {
+      cursor: pointer;
+      font-weight: bold;
+      padding: 2px;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: #c8e6c9;
+      }
+    }
+  }
+}
+
+/* Botones del modal */
+.modal-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  padding-top: 30px;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 20px;
+  
+  .btn {
+    padding: 14px 30px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 140px;
+    
+    &.btn-primary {
+      background: #0F314E;
+      color: white;
+      
+      &:hover:not(:disabled) {
+        background: #1a4466;
+        transform: translateY(-2px);
+      }
+      
+      &:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+    }
+    
+    &.btn-secondary {
+      background: white;
+      color: #0F314E;
+      border: 2px solid #0F314E;
+      
+      &:hover:not(:disabled) {
+        background: #0F314E;
+        color: white;
+      }
+    }
+  }
+}
+
+.loading-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-container {
+    max-width: 95%;
+    margin: 20px;
+  }
+  
+  .modal-content {
+    padding: 20px;
+  }
+  
+  .registro-form .form-group.sexo,
+  .registro-form .form-group.altura {
+    width: 100%;
+    margin-right: 0;
+  }
+  
+  .input-with-button {
+    flex-direction: column;
+    
+    .chip-add {
+      width: 100%;
+    }
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+    
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-header {
+    padding: 20px;
+    
+    h2 {
+      font-size: 20px;
+    }
+  }
+  
+  .modal-content {
+    padding: 15px;
+  }
+}
