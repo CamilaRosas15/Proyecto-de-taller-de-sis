@@ -1734,63 +1734,124 @@ img {
 .mobile-user-info {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
   padding: 15px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-top: 20px;
+  border: 1px solid #e0e0e0;
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
 
   .user-details {
     flex: 1;
+    min-width: 0;
     
     .username {
       font-size: 16px;
       font-weight: 600;
       margin: 0 0 4px 0;
       color: #333;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     .user-handle {
       font-size: 14px;
       color: #666;
       margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 
   .profile-btn {
-    background: #8ed1c2;
+    background: none;
     border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    border-radius: 0;
+    width: auto;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: white;
-    font-size: 16px;
+    padding: 6px;
     transition: all 0.3s ease;
     flex-shrink: 0;
     
     &:hover {
-      background: #70B8AD;
-      transform: scale(1.05);
+      background: none;
+      transform: scale(1.1);
     }
-    
-    i {
-      font-size: 14px;
+
+    .pencil-icon {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      border-radius: 0;
+      filter: brightness(0.7);
+      
+      &:hover {
+        filter: brightness(0.5);
+      }
     }
   }
 
   @media (max-width: 480px) {
-    gap: 12px;
+    gap: 10px;
     padding: 12px;
     
-    .profile-btn {
+    .avatar {
       width: 36px;
       height: 36px;
-      font-size: 14px;
+    }
+    
+    .user-details {
+      .username {
+        font-size: 15px;
+      }
+      
+      .user-handle {
+        font-size: 13px;
+      }
+    }
+    
+    .profile-btn {
+      padding: 5px;
+      
+      .pencil-icon {
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+
+  @media (max-width: 360px) {
+    gap: 8px;
+    padding: 10px;
+    
+    .avatar {
+      width: 32px;
+      height: 32px;
+    }
+    
+    .user-details {
+      .username {
+        font-size: 14px;
+      }
+      
+      .user-handle {
+        font-size: 12px;
+      }
     }
   }
 }
