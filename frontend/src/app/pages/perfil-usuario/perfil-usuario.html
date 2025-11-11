@@ -207,18 +207,18 @@
           </div>
 
           <div class="form-group altura">
-            <label for="altura">Altura (cm):</label>
-            <input 
-                type="number" 
-                id="altura" 
-                name="altura" 
-                [(ngModel)]="usuarioEditado.altura" 
-                step="0.1" 
-                min="50" 
-                max="250" 
-                required
-                placeholder="Altura en centímetros">
-          </div>
+  <label for="altura">Altura (m):</label>
+  <input 
+      type="number" 
+      id="altura" 
+      name="altura" 
+      [(ngModel)]="usuarioEditado.altura" 
+      step="0.01" 
+      min="1.0" 
+      max="2.5" 
+      required
+      placeholder="Ej: 1.90">
+</div>
         </div>
 
         <!-- Objetivos -->
