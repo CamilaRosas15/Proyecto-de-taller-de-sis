@@ -47,13 +47,17 @@
         </div>
       </nav>
 
-      <!-- 🔥 ELIMINADO: user-info del sidebar móvil -->
+      <!-- User info del sidebar con botón de perfil -->
       <div class="user-info">
         <img src="assets/user.png" alt="Usuario" class="avatar">
-        <div>
+        <div class="user-details">
           <p class="username">{{ userName || 'Usuario' }}</p>
           <p class="user-handle">{{ userEmail || '@usuario' }}</p>
         </div>
+        <!-- BOTÓN DE PERFIL AÑADIDO -->
+        <button class="profile-btn" routerLink="/perfil" title="Editar perfil">
+          <img src="https://cdn-icons-png.flaticon.com/512/1828/1828911.png" alt="Editar perfil" class="pencil-icon">
+        </button>
       </div>
     </aside>
 
@@ -107,13 +111,17 @@
           </div>
         </div>
 
-        <!-- User info en móvil -->
+        <!-- User info en móvil con botón de perfil -->
         <div class="mobile-user-info">
           <img src="assets/user.png" alt="Usuario" class="avatar">
           <div class="user-details">
             <p class="username">{{ userName || 'Usuario' }}</p>
             <p class="user-handle">{{ userEmail || '@usuario' }}</p>
           </div>
+          <!-- BOTÓN DE PERFIL AÑADIDO EN MÓVIL -->
+          <button class="profile-btn" routerLink="/perfil" (click)="closeMobileMenu()" title="Editar perfil">
+            <img src="https://cdn-icons-png.flaticon.com/512/1828/1828911.png" alt="Editar perfil" class="pencil-icon">
+          </button>
         </div>
       </div>
     </div>

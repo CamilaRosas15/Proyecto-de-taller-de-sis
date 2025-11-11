@@ -50,6 +50,10 @@
         <p class="username">{{ userName || 'Usuario' }}</p>
         <p class="user-handle">{{ authService.currentUserEmail || '@usuario' }}</p>
       </div>
+      <!-- BOTÓN DE PERFIL AÑADIDO -->
+      <button class="profile-btn" routerLink="/perfil" title="Editar perfil">
+        <img src="https://cdn-icons-png.flaticon.com/512/1828/1828911.png" alt="Editar perfil" class="pencil-icon">
+      </button>
     </div>
   </aside>
 

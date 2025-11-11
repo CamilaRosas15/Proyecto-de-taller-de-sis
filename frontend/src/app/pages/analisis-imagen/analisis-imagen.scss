@@ -232,6 +232,41 @@ body {
       color: $color-muted;
     }
   }
+  .profile-btn {
+    background: none; /* QUITADO el fondo verde */
+    border: none;
+    border-radius: 0; /* QUITADO el borde redondeado */
+    width: auto; /* Tamaño automático */
+    height: auto; /* Tamaño automático */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 5px; /* Un poco de padding para mejor click */
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    
+    &:hover {
+      background: none; /* QUITADO el fondo en hover */
+      transform: scale(1.1); /* Solo un poco más grande al hover */
+    }
+
+    .pencil-icon {
+      width: 20px; /* Tamaño un poco más grande */
+      height: 20px;
+      object-fit: contain;
+      border-radius: 0;
+      filter: brightness(0.7); /* Un poco más oscuro para mejor contraste */
+      
+      &:hover {
+        filter: brightness(0.5); /* Más oscuro al hover */
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    display: none !important;
+  }
 }
 
 /* ----- MAIN CONTENT ----- */

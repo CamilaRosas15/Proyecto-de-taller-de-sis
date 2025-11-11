@@ -1663,3 +1663,195 @@ img {
     font-size: 1.1em;
   }
 }
+
+/* ===== BOTÓN DE PERFIL EN USER INFO ===== */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  position: relative;
+
+  .user-details {
+    flex: 1;
+    
+    .username {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 2px 0;
+      color: #333;
+    }
+    
+    .user-handle {
+      font-size: 12px;
+      color: #666;
+      margin: 0;
+    }
+  }
+
+  .profile-btn {
+    background: none; /* QUITADO el fondo verde */
+    border: none;
+    border-radius: 0; /* QUITADO el borde redondeado */
+    width: auto; /* Tamaño automático */
+    height: auto; /* Tamaño automático */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 5px; /* Un poco de padding para mejor click */
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    
+    &:hover {
+      background: none; /* QUITADO el fondo en hover */
+      transform: scale(1.1); /* Solo un poco más grande al hover */
+    }
+
+    .pencil-icon {
+      width: 20px; /* Tamaño un poco más grande */
+      height: 20px;
+      object-fit: contain;
+      border-radius: 0;
+      filter: brightness(0.7); /* Un poco más oscuro para mejor contraste */
+      
+      &:hover {
+        filter: brightness(0.5); /* Más oscuro al hover */
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+}
+
+/* User info en móvil con botón de perfil */
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  border: 1px solid #e0e0e0;
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .user-details {
+    flex: 1;
+    min-width: 0;
+    
+    .username {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+      color: #333;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .user-handle {
+      font-size: 14px;
+      color: #666;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .profile-btn {
+    background: none;
+    border: none;
+    border-radius: 0;
+    width: auto;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 6px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    
+    &:hover {
+      background: none;
+      transform: scale(1.1);
+    }
+
+    .pencil-icon {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      border-radius: 0;
+      filter: brightness(0.7);
+      
+      &:hover {
+        filter: brightness(0.5);
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    gap: 10px;
+    padding: 12px;
+    
+    .avatar {
+      width: 36px;
+      height: 36px;
+    }
+    
+    .user-details {
+      .username {
+        font-size: 15px;
+      }
+      
+      .user-handle {
+        font-size: 13px;
+      }
+    }
+    
+    .profile-btn {
+      padding: 5px;
+      
+      .pencil-icon {
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+
+  @media (max-width: 360px) {
+    gap: 8px;
+    padding: 10px;
+    
+    .avatar {
+      width: 32px;
+      height: 32px;
+    }
+    
+    .user-details {
+      .username {
+        font-size: 14px;
+      }
+      
+      .user-handle {
+        font-size: 12px;
+      }
+    }
+  }
+}
