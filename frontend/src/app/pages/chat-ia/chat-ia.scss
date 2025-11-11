@@ -1854,4 +1854,31 @@ img {
       }
     }
   }
+
+  /* Imagen en vista completa */
+  .recipe-image {
+    width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    border: 1px solid #e0e0e0;
+  }
+
+  /* Imagen en tarjetas del chat */
+  .message-recipe-image {
+    width: 100%;
+    max-height: 220px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #e6e6e6;
+  }
+
+  @media (max-width: 480px) {
+  .message-recipe-image {
+    max-height: 180px;
+  }
+}
+
 }

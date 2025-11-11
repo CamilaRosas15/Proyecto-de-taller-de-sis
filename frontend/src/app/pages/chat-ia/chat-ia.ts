@@ -157,6 +157,11 @@ export class ChatIAComponent {
       if (itemHistorial.contexto_ia) {
         recetaMapeada.ia_explicacion = itemHistorial.contexto_ia;
       }
+
+      if (!recetaMapeada.imagen_url) {
+        recetaMapeada.imagen_url = this.getImagenRecetaSafe(itemHistorial.receta) || 'assets/placeholder-recipe.jpg';
+      }
+
       this.recetaSeleccionada = recetaMapeada;
       this.opcionesRecetas = [];
       this.userMessage = '';
@@ -227,7 +232,8 @@ export class ChatIAComponent {
       tiempo_preparacion: receta.tiempo_preparacion || null,
       kcal_totales: receta.calorias_totales || null,
       pasos: pasos,
-      imagen_url: receta.imagen_url || null,
+      //imagen_url: receta.imagen_url || null,
+      imagen_url: receta.imagen_url || receta.imagen || null,
       ingredientes: ingredientes,
       motivos: [], // No hay motivos en el historial
       ia_explicacion: null // No hay explicación IA en el historial
@@ -354,6 +360,11 @@ export class ChatIAComponent {
               return pasoLimpio.length > 0;
             });
           }
+
+          if (!receta.imagen_url) {
+            receta.imagen_url = 'assets/placeholder-recipe.jpg';
+          }
+  
           return receta;
         });
 
@@ -393,5 +404,10 @@ export class ChatIAComponent {
     };
     this.conversationHistory = [];
   }
+
+  getImagenRecetaSafe(receta: any): string | null {
+  const url = receta?.imagen_url || receta?.imagen || null;
+  return (typeof url === 'string' && url.trim().length > 0) ? url : null;
+}
 
 }

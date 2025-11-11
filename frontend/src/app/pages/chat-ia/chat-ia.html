@@ -142,6 +142,9 @@
                 <span class="meta-badge">🔥 {{ recetaSeleccionada.kcal_totales }} kcal</span>
               </div>
             </div>
+            
+            <img *ngIf="recetaSeleccionada?.imagen_url" [src]="recetaSeleccionada.imagen_url || 'assets/placeholder-recipe.jpg'"
+            alt="Imagen de {{ recetaSeleccionada.titulo }}" class="recipe-image" />
 
             <!-- Descripción -->
             <div class="recipe-full-description">
@@ -238,7 +241,9 @@
                     <div *ngIf="message.recipes && message.recipes.length > 0" class="recipes-in-message">
                       
                       <div *ngFor="let receta of message.recipes" class="message-recipe-card">
-                        
+                        <img *ngIf="receta?.imagen_url" [src]="receta.imagen_url || 'assets/placeholder-recipe.jpg'"
+                        alt="Imagen de {{ receta.titulo }}" class="message-recipe-image" />
+
                         <h4 class="recipe-message-title">{{ receta.titulo }}</h4>
                         <p class="recipe-message-desc">{{ receta.descripcion }}</p>
                         
