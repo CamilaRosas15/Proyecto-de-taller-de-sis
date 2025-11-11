@@ -184,13 +184,13 @@ export class PerfilUsuarioComponent implements OnInit {
     const altura = Number(this.usuario.altura) || 0;
     const peso = Number(this.usuario.peso) || 0;
 
-    const alturaEnCm = altura < 10 ? altura * 100 : altura;
+    const alturaEnMetros = altura > 10 ? altura / 100 : altura;
 
     this.usuarioEditado = {
       nombre: this.usuario.nombre || '',
       edad: edad,
       sexo: this.usuario.sexo || '',
-      altura: alturaEnCm,
+      altura: alturaEnMetros,
       peso: peso,
       objetivo_calorico: objetivoCalorico,
       gustos: this.getGustosArray(),
@@ -204,13 +204,13 @@ export class PerfilUsuarioComponent implements OnInit {
   private hayCambios(): boolean {
     // Convertir datos originales para comparación correcta
     const alturaOriginal = Number(this.usuario.altura) || 0;
-    const alturaOriginalEnCm = alturaOriginal < 10 ? alturaOriginal * 100 : alturaOriginal;
+    const alturaOriginalEnMetros = alturaOriginal > 10 ? alturaOriginal / 100 : alturaOriginal;
 
     const datosOriginales = {
       nombre: this.usuario.nombre || '',
       edad: Number(this.usuario.edad) || 0,
       sexo: this.usuario.sexo || '',
-      altura: alturaOriginalEnCm, // ← Usar la misma unidad que usuarioEditado.altura
+      altura: alturaOriginalEnMetros, // ← Usar la misma unidad que usuarioEditado.altura
       peso: Number(this.usuario.peso) || 0,
       objetivo_calorico: Number(this.usuario.objetivo_calorico) || 0,
       objetivo: this.usuario.objetivo || '',
@@ -350,15 +350,12 @@ export class PerfilUsuarioComponent implements OnInit {
     console.log('Alergias:', this.usuarioEditado.alergias);
     console.log('No me gusta:', this.usuarioEditado.no_me_gusta);
 
-    // Convertir altura a metros para el backend si es necesario
-    const alturaParaBackend = this.usuarioEditado.altura / 100; // Convertir cm a metros
-
     const profileData: UserProfileData = {
       nombre_completo: this.usuarioEditado.nombre,
       edad: this.usuarioEditado.edad,
       peso: this.usuarioEditado.peso,
       sexo: this.usuarioEditado.sexo,
-      altura: alturaParaBackend, // ← Enviar en metros al backend
+      altura: this.usuarioEditado.altura, // ← Enviar en metros al backend
       objetivo: this.usuarioEditado.objetivo,
       calorias_diarias_objetivo: this.usuarioEditado.objetivo_calorico,
       gustos: this.usuarioEditado.gustos,
