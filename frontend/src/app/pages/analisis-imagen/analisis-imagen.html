@@ -67,33 +67,24 @@
       <div class="upload-section" *ngIf="!imageUrl && !analysisResult">
         <h2>Sube o toma una imagen para analizar 🍽️</h2>
 
-        <!-- Botones de escritorio (solo visible en desktop/laptop) -->
-        <div class="desktop-buttons">
-          <label class="upload-btn">
-            Subir imagen
-            <input type="file" accept="image/*" (change)="onFileSelected($event)">
-          </label>
-        </div>
-
-        <!-- Botones de móvil (visible en tablets y móviles) -->
-        <div class="mobile-buttons">
+        <!-- Botones universales -->
+        <div class="upload-buttons">
           <label class="upload-btn">
             Subir imagen
             <input type="file" accept="image/*" (change)="onFileSelected($event)">
           </label>
           
-          <label class="upload-btn camera-btn">
+          <button class="upload-btn camera-btn" (click)="openCamera()" type="button">
             Tomar foto
-            <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event)">
-          </label>
+          </button>
         </div>
 
-        <p class="hint desktop-hint">
-          Arrastra y suelta una imagen aquí o haz clic para seleccionarla desde tu dispositivo.
+        <p class="hint">
+          Sube una imagen de tu galería o toma una foto con la cámara.
         </p>
         
-        <p class="hint mobile-hint">
-          Sube una imagen de tu galería o toma una foto con la cámara.
+        <p class="camera-status" *ngIf="!hasCameraSupport">
+          ⚠️ No se detectó cámara disponible en este dispositivo
         </p>
       </div>
 

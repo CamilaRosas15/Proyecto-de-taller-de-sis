@@ -1,5 +1,5 @@
 // analisis-imagen.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { RouterLink, Router } from '@angular/router';
@@ -14,7 +14,7 @@ import { AiTextToHtmlPipe } from '../../pipes/ai-text-to-html.pipe';
   standalone: true,
   imports: [CommonModule, RouterLink, FoodDashboardComponent, AiTextToHtmlPipe],
   templateUrl: './analisis-imagen.html',
-  styleUrl: './analisis-imagen.scss'
+  styleUrls: ['./analisis-imagen.scss']
 })
 export class AnalisisImagenComponent implements OnInit {
   selectedFile: File | null = null;
@@ -28,6 +28,7 @@ export class AnalisisImagenComponent implements OnInit {
   isNonFoodMessage: boolean = false;
   historialSidebar: HistorialSidebar[] = [];
   userName: string | null = null;
+  hasCameraSupport: boolean = false;
   
   private readonly FASTAPI_URL = 'http://localhost:8000/api/v1/ai/analyze-food-natural';
 
@@ -35,10 +36,11 @@ export class AnalisisImagenComponent implements OnInit {
     private http: HttpClient,
     private historialService: HistorialService,
     public authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdRef: ChangeDetectorRef
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
       return;
@@ -46,6 +48,182 @@ export class AnalisisImagenComponent implements OnInit {
 
     this.userName = this.authService.currentUserName;
     this.cargarHistorialSidebar();
+    
+    // Detectar si hay cámara disponible
+    await this.detectCamera();
+  }
+
+  // Detectar cámara disponible
+  async detectCamera(): Promise<void> {
+    try {
+      // Verificar si el navegador soporta getUserMedia
+      if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+        // Intentar enumerar dispositivos
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        this.hasCameraSupport = devices.some(device => device.kind === 'videoinput');
+        
+        console.log('Cámara detectada:', this.hasCameraSupport);
+      } else {
+        this.hasCameraSupport = false;
+      }
+    } catch (error) {
+      console.error('Error al detectar cámara:', error);
+      this.hasCameraSupport = false;
+    }
+  }
+
+  // Abrir la cámara del dispositivo
+  async openCamera(): Promise<void> {
+    try {
+      // Detectar si está en dispositivo móvil
+      const esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+      if (esMovil) {
+        // 📱 En móvil, usar input con capture
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore propiedad válida en navegadores móviles
+        input.capture = 'environment'; // Cámara trasera
+        input.onchange = (event: any) => {
+          const file = event.target.files?.[0];
+          if (file) {
+            // revoke anterior si existiera
+            if (this.imageUrl && this.imageUrl.startsWith('blob:')) {
+              URL.revokeObjectURL(this.imageUrl);
+            }
+            this.selectedFile = file;
+            this.imageUrl = URL.createObjectURL(file);
+            this.analysisResult = null;
+            this.errorMessage = null;
+            this.isNonFoodMessage = false;
+            
+            // Convertir a base64 para el análisis narrativo
+            this.convertToBase64(file);
+            
+            this.cdRef.detectChanges(); // forzar render inmediato
+          }
+        };
+        input.click();
+      } else if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+        // 💻 En laptop/PC, abrir cámara con getUserMedia
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.autoplay = true;
+        video.playsInline = true;
+        video.style.width = '100%';
+        video.style.maxWidth = '400px';
+        video.style.borderRadius = '10px';
+        video.style.display = 'block';
+
+        const captureButton = document.createElement('button');
+        captureButton.textContent = '📷 Capturar';
+        captureButton.style.marginTop = '10px';
+        captureButton.style.padding = '8px 16px';
+        captureButton.style.border = 'none';
+        captureButton.style.backgroundColor = '#4caf50';
+        captureButton.style.color = 'white';
+        captureButton.style.borderRadius = '8px';
+        captureButton.style.cursor = 'pointer';
+
+        const closeButton = document.createElement('button');
+        closeButton.textContent = '❌ Cancelar';
+        closeButton.style.marginTop = '10px';
+        closeButton.style.padding = '8px 16px';
+        closeButton.style.backgroundColor = '#e53935';
+        closeButton.style.color = 'white';
+        closeButton.style.border = 'none';
+        closeButton.style.borderRadius = '8px';
+        closeButton.style.cursor = 'pointer';
+
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.inset = '0';
+        overlay.style.background = 'rgba(0,0,0,0.85)';
+        overlay.style.display = 'flex';
+        overlay.style.flexDirection = 'column';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.style.zIndex = '10000';
+        overlay.style.padding = '20px';
+        overlay.appendChild(video);
+        overlay.appendChild(captureButton);
+        overlay.appendChild(closeButton);
+        document.body.appendChild(overlay);
+
+        // Asegurar que el video empiece a reproducir (algunos navegadores requieren play explícito)
+        try {
+          await (video as HTMLVideoElement).play();
+        } catch (playErr) {
+          // no fatal, pero sí log
+          console.warn('No se pudo auto-play video:', playErr);
+        }
+
+        // Capturar la imagen
+        captureButton.onclick = () => {
+          const w = video.videoWidth || 640;
+          const h = video.videoHeight || 480;
+
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (ctx) ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          canvas.toBlob((blob) => {
+            if (blob) {
+              if (this.imageUrl && this.imageUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(this.imageUrl);
+              }
+
+              const file = new File([blob], 'foto_capturada.png', { type: 'image/png' });
+              this.selectedFile = file;
+              this.imageUrl = URL.createObjectURL(file);
+              this.analysisResult = null;
+              this.errorMessage = null;
+              this.isNonFoodMessage = false;
+
+              // Convertir a base64 para el análisis narrativo
+              this.convertToBase64(file);
+
+              // 🔹 Forzar render para que Angular muestre la imagen y el botón "Analizar"
+              this.cdRef.detectChanges();
+            }
+          }, 'image/png');
+
+          // Detener video
+          try {
+            const s = video.srcObject as MediaStream | null;
+            if (s) s.getTracks().forEach(t => t.stop());
+          } catch (err) {
+            console.warn('Error deteniendo tracks:', err);
+          }
+          video.srcObject = null;
+
+          if (overlay.parentElement) overlay.parentElement.removeChild(overlay);
+        };
+
+
+        // Cerrar cámara sin capturar
+        closeButton.onclick = () => {
+          try {
+            const s = video.srcObject as MediaStream | null;
+            if (s) s.getTracks().forEach(t => t.stop());
+          } catch (stErr) {
+            console.warn('Error deteniendo tracks en close:', stErr);
+          }
+          video.srcObject = null;
+          if (overlay.parentElement) overlay.parentElement.removeChild(overlay);
+        };
+      } else {
+        this.errorMessage = 'Tu dispositivo no tiene cámara disponible.';
+      }
+    } catch (error) {
+      console.error('Error al abrir cámara:', error);
+      this.errorMessage = 'No se pudo acceder a la cámara. Verifica los permisos.';
+    }
   }
 
   get userId(): string | null {
@@ -53,8 +231,11 @@ export class AnalisisImagenComponent implements OnInit {
   }
 
   onFileSelected(event: any): void {
-    const file: File = event.target.files[0];
+    const file: File = event.target.files?.[0];
     if (file) {
+      if (this.imageUrl && this.imageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(this.imageUrl);
+      }
       this.selectedFile = file;
       this.imageUrl = URL.createObjectURL(file);
       this.analysisResult = null;
@@ -63,6 +244,8 @@ export class AnalisisImagenComponent implements OnInit {
       
       // Convertir a base64 para el análisis narrativo
       this.convertToBase64(file);
+      
+      this.cdRef.detectChanges();
     }
   }
 
@@ -79,14 +262,25 @@ export class AnalisisImagenComponent implements OnInit {
   }
 
   uploadImage(): void {
-    if (this.selectedFile) {
+    if (!this.selectedFile) {
+      this.errorMessage = 'Por favor, selecciona una imagen para subir.';
+      return;
+    }
+
+    this.errorMessage = null;
+    this.analysisResult = 'Analizando imagen...';
+    this.dashboardData = null;
+    this.isNonFoodMessage = false;
+
+    // 🔹 Forzar render del spinner antes de la petición
+    this.cdRef.detectChanges();
+
+    // 🔹 Pequeño delay para que Angular muestre el loading
+    setTimeout(() => {
       const formData = new FormData();
-      formData.append('file', this.selectedFile, this.selectedFile.name);
+      formData.append('file', this.selectedFile!, this.selectedFile!.name);
 
       const headers = new HttpHeaders();
-
-      this.errorMessage = null;
-      this.analysisResult = 'Analizando imagen...';
 
       this.http.post(this.FASTAPI_URL, formData, { 
         headers, 
@@ -118,25 +312,30 @@ export class AnalisisImagenComponent implements OnInit {
           
           this.dashboardData = adaptFriendlyTextToFoodDashboard(this.analysisResult);
           console.log('Dashboard data procesado:', this.dashboardData);
-          this.isNonFoodMessage = response.toLowerCase().includes('no contiene comida') || 
-                                 response.toLowerCase().includes('especializada en análisis nutricional') ||
-                                 response.toLowerCase().includes('no es una imagen de comida');
+          
+          const lower = response.toLowerCase();
+          this.isNonFoodMessage = 
+            lower.includes('no contiene comida') || 
+            lower.includes('especializada en análisis nutricional') ||
+            lower.includes('no es una imagen de comida');
+          
           this.errorMessage = null;
 
           // Guardar en el historial solo si es comida y tenemos el archivo original
           if (!this.isNonFoodMessage && this.selectedFile && this.userId) {
             this.guardarEnHistorial(this.selectedFile, this.analysisResult);
           }
+
+          this.cdRef.detectChanges();
         },
         error: (error) => {
           console.error('Error al subir la imagen:', error);
           this.errorMessage = 'Hubo un error al analizar la imagen. Por favor, inténtalo de nuevo.';
           this.analysisResult = null;
+          this.cdRef.detectChanges();
         }
       });
-    } else {
-      this.errorMessage = 'Por favor, selecciona una imagen para subir.';
-    }
+    }, 50);
   }
 
   private guardarEnHistorial(imagenFile: File, analysisResult: string): void {
@@ -240,18 +439,20 @@ export class AnalisisImagenComponent implements OnInit {
   }
 
   resetAnalysis(): void {
-    this.selectedFile = null;
-    
     if (this.imageUrl && this.imageUrl.startsWith('blob:')) {
       URL.revokeObjectURL(this.imageUrl);
     }
-    
+
+    this.selectedFile = null;
     this.imageUrl = null;
     this.imageBase64 = '';
     this.analysisResult = null;
     this.narrativeAnalysis = null;
     this.errorMessage = null;
     this.isNonFoodMessage = false;
+
+    // 👇 Fuerza a Angular a refrescar la vista, arregla el bug del botón
+    this.cdRef.detectChanges();
   }
 
   formatearFecha(fecha: string): string {
@@ -307,11 +508,19 @@ export class AnalisisImagenComponent implements OnInit {
     if (files && files.length > 0) {
       const file = files[0];
       if (file.type.startsWith('image/')) {
+        if (this.imageUrl && this.imageUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(this.imageUrl);
+        }
         this.selectedFile = file;
         this.imageUrl = URL.createObjectURL(file);
         this.analysisResult = null;
         this.errorMessage = null;
         this.isNonFoodMessage = false;
+        
+        // Convertir a base64 para el análisis narrativo
+        this.convertToBase64(file);
+        
+        this.cdRef.detectChanges();
       } else {
         this.errorMessage = 'Por favor, selecciona solo archivos de imagen.';
       }
