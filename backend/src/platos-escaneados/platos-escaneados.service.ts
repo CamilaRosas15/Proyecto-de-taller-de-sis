@@ -11,14 +11,18 @@ export class PlatosEscaneadosService {
   constructor(private readonly supabaseService: SupabaseService) {}
 
   // Método para subir imagen a Supabase Storage
-  async subirImagen(imagenBuffer: Buffer, nombreArchivo: string, userId: string): Promise<string> {
+  async subirImagen(imagenBuffer: Buffer, nombreArchivo: string, userId: string, token?: string): Promise<string> {
     try {
       const extension = nombreArchivo.split('.').pop() || 'jpg';
       const nombreUnico = `${uuidv4()}.${extension}`;
       const rutaArchivo = `users/${userId}/${nombreUnico}`;
       
-      const { data, error } = await this.supabaseService
-        .getClient()
+      // Usar cliente autenticado si tenemos token, sino usar el cliente anónimo
+      const client = token ? 
+        this.supabaseService.getClientForToken(token) : 
+        this.supabaseService.getClient();
+      
+      const { data, error } = await client
         .storage
         .from(this.bucketName)
         .upload(rutaArchivo, imagenBuffer, {
@@ -32,8 +36,7 @@ export class PlatosEscaneadosService {
       }
 
       // Obtener URL pública
-      const { data: urlData } = this.supabaseService
-        .getClient()
+      const { data: urlData } = client
         .storage
         .from(this.bucketName)
         .getPublicUrl(data.path);
@@ -59,13 +62,17 @@ export class PlatosEscaneadosService {
   }
 
   // Método para eliminar imagen del storage
-  async eliminarImagen(urlImagen: string): Promise<void> {
+  async eliminarImagen(urlImagen: string, token?: string): Promise<void> {
     try {
       // Extraer la ruta del archivo de la URL
       const rutaArchivo = urlImagen.split('/').slice(-2).join('/'); // users/user-id/uuid.ext
       
-      const { error } = await this.supabaseService
-        .getClient()
+      // Usar cliente autenticado si tenemos token
+      const client = token ? 
+        this.supabaseService.getClientForToken(token) : 
+        this.supabaseService.getClient();
+      
+      const { error } = await client
         .storage
         .from(this.bucketName)
         .remove([rutaArchivo]);
@@ -87,21 +94,27 @@ export class PlatosEscaneadosService {
       analisis: string;
       id_usuario: string;
     },
-    imagenFile: Express.Multer.File
+    imagenFile: Express.Multer.File,
+    token?: string
   ) {
     let imagenUrl: string | null = null;
 
     try {
-      // 1. Subir imagen a Supabase Storage
+      // 1. Subir imagen a Supabase Storage con el token del usuario
       imagenUrl = await this.subirImagen(
         imagenFile.buffer,
         imagenFile.originalname,
-        datos.id_usuario
+        datos.id_usuario,
+        token
       );
 
+      // Usar cliente autenticado para las operaciones de base de datos también
+      const client = token ? 
+        this.supabaseService.getClientForToken(token) : 
+        this.supabaseService.getClient();
+
       // 2. Contar historiales para el nombre
-      const { count } = await this.supabaseService
-        .getClient()
+      const { count } = await client
         .from('historial_escaneo')
         .select('*', { count: 'exact', head: true })
         .eq('id_usuario', datos.id_usuario);
@@ -110,8 +123,7 @@ export class PlatosEscaneadosService {
       const nombre = `Historial ${numeroHistorial}`;
 
       // 3. Crear plato en la base de datos
-      const { data: platoData, error: platoError } = await this.supabaseService
-        .getClient()
+      const { data: platoData, error: platoError } = await client
         .from('platos_escaneados')
         .insert({
           nombre: nombre,
@@ -131,8 +143,7 @@ export class PlatosEscaneadosService {
       }
 
       // 4. Crear registro en historial
-      const { error: histError } = await this.supabaseService
-        .getClient()
+      const { error: histError } = await client
         .from('historial_escaneo')
         .insert({
           id_usuario: datos.id_usuario,
@@ -142,7 +153,7 @@ export class PlatosEscaneadosService {
       if (histError) {
         this.logger.error('Error al crear historial:', histError.message);
         // Si falla, eliminar plato e imagen
-        await this.supabaseService.getClient()
+        await client
           .from('platos_escaneados')
           .delete()
           .eq('id_plato', platoData.id_plato);

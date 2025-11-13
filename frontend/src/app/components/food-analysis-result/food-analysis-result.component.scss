@@ -1,0 +1,142 @@
+:host {
+  display: block;
+  width: 100%;
+  max-width: 500px; // Ajusta el ancho máximo según tus necesidades
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+.analysis-container {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.food-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.food-item {
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 16px;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.food-details {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.food-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #eee;
+}
+
+.food-info {
+  flex: 1;
+}
+
+.food-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.nutrient-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  background-color: #f8f9fa;
+  color: #5f6368;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #e8eaed;
+}
+
+.totals-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.total-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.label {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.progress-bar-container {
+  width: 100%;
+  background-color: #e5e7eb;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #4a90e2, #50e3c2);
+  border-radius: 4px;
+  transition: width 0.5s ease-in-out;
+}
+
+.percentage {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+// Responsive adjustments
+@media (max-width: 480px) {
+  .totals-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .analysis-container {
+    padding: 16px;
+  }
+
+  .food-name {
+    font-size: 1rem;
+  }
+
+  .value {
+    font-size: 1.2rem;
+  }
+}

@@ -1,0 +1,53 @@
+<div class="analysis-container" *ngIf="data">
+  <div class="food-list">
+    <div class="food-item" *ngFor="let item of data.items; let i = index">
+      <div class="food-details">
+        <img *ngIf="i === 0 && imageUrl" [src]="imageUrl" alt="Food preview" class="food-image">
+        <div class="food-info">
+          <div class="food-name">{{ item.name }}</div>
+          <div class="nutrient-pills">
+            <span class="pill" *ngIf="item.calories !== undefined">Calories: {{ item.calories }}</span>
+            <span class="pill" *ngIf="item.carbsGrams !== undefined">Carbs: {{ item.carbsGrams }}g</span>
+            <span class="pill" *ngIf="item.proteinGrams !== undefined">Protein: {{ item.proteinGrams }}g</span>
+            <span class="pill" *ngIf="item.fatGrams !== undefined">Fat: {{ item.fatGrams }}g</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="totals-summary">
+    <div class="total-item">
+      <div class="label">Calorías</div>
+      <div class="value">{{ totalCalories }}</div>
+      <div class="progress-bar-container">
+        <div class="progress-bar" [style.width.%]="caloriesPct"></div>
+      </div>
+      <div class="percentage">{{ caloriesPct }}%</div>
+    </div>
+    <div class="total-item">
+      <div class="label">Carbos</div>
+      <div class="value">{{ data.aggregates?.carbsGrams || 0 }}g</div>
+      <div class="progress-bar-container">
+        <div class="progress-bar" [style.width.%]="carbsDailyPct"></div>
+      </div>
+      <div class="percentage">{{ carbsDailyPct }}%</div>
+    </div>
+    <div class="total-item">
+      <div class="label">Proteína</div>
+      <div class="value">{{ data.aggregates?.proteinGrams || 0 }}g</div>
+      <div class="progress-bar-container">
+        <div class="progress-bar" [style.width.%]="proteinDailyPct"></div>
+      </div>
+      <div class="percentage">{{ proteinDailyPct }}%</div>
+    </div>
+    <div class="total-item">
+      <div class="label">Grasa</div>
+      <div class="value">{{ data.aggregates?.fatGrams || 0 }}g</div>
+      <div class="progress-bar-container">
+        <div class="progress-bar" [style.width.%]="fatDailyPct"></div>
+      </div>
+      <div class="percentage">{{ fatDailyPct }}%</div>
+    </div>
+  </div>
+</div>

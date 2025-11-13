@@ -27,12 +27,20 @@ class GeminiFoodDetector:
         self.api_key = settings.GEMINI_API_KEY
         self.confidence_threshold = settings.GEMINI_CONFIDENCE_THRESHOLD
         
-        # Usar el modelo correcto disponible
-        model_name = settings.GEMINI_MODEL_NAME
-        if model_name == "gemini-2.5-flash":
-            model_name = "gemini-2.0-flash-exp"  # Corregir al modelo real disponible
+        # Usar el modelo configurado (acepta gemini-1.5-pro, gemini-2.0-flash-exp, gemini-2.5-pro, etc.)
+        # CAMBIAMOS POR DEFECTO A GEMINI-2.5-PRO QUE ES MEJOR PARA FORMATOS COMPLEJOS
+        model_name = (settings.GEMINI_MODEL_NAME or "gemini-2.5-pro").strip()
+        aliases = {
+            "gemini-2.5-pro": "gemini-2.5-pro",
+            "gemini-2.5-flash": "gemini-2.5-flash",
+            "gemini-1.5-pro": "gemini-1.5-pro",
+            "gemini-1.5-flash": "gemini-1.5-flash",
+            "gemini-2.0-pro-exp": "gemini-2.0-pro-exp",
+            "gemini-2.0-flash-exp": "gemini-2.0-flash-exp",
+        }
+        self.model_name = aliases.get(model_name, model_name)
         
-        self.api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={self.api_key}"
+        self.api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent?key={self.api_key}"
         
         # Nutritional database mapping
         self.nutritional_data = {
@@ -115,15 +123,15 @@ class GeminiFoodDetector:
                 if response.status_code == 200:
                     return response
                 
-                # Handle 429 (Rate Limit) with retry
-                if response.status_code == 429:
+                # Handle 429 (Rate Limit) and 503 (Service Unavailable) with retry
+                if response.status_code in [429, 503]:
                     if attempt < max_retries:
                         # Check for Retry-After header
                         retry_after = response.headers.get("Retry-After")
                         if retry_after:
                             try:
                                 delay = float(retry_after)
-                                logger.warning(f"Rate limit (429) - Retry-After header: {delay}s. Esperando...")
+                                logger.warning(f"Error {response.status_code} - Retry-After header: {delay}s. Esperando...")
                             except ValueError:
                                 delay = None
                         else:
@@ -131,14 +139,20 @@ class GeminiFoodDetector:
                         
                         # Calculate exponential backoff with jitter
                         if delay is None:
-                            base_delay = 2 ** attempt  # 1s, 2s, 4s, 8s...
-                            delay = random.uniform(base_delay, base_delay * 2)  # Add jitter
+                            if response.status_code == 503:
+                                # Para 503 (model overloaded), usar delays más largos
+                                base_delay = (2 ** attempt) * 3  # 3s, 6s, 12s, 24s...
+                            else:
+                                # Para 429 (rate limit), usar delays normales
+                                base_delay = 2 ** attempt  # 1s, 2s, 4s, 8s...
+                            delay = random.uniform(base_delay, base_delay * 1.5)  # Add jitter
                         
-                        logger.warning(f"Rate limit (429) alcanzado. Intento {attempt + 1}/{max_retries + 1}. Esperando {delay:.1f}s antes de reintentar...")
+                        error_name = "Model sobrecargado (503)" if response.status_code == 503 else "Rate limit (429)"
+                        logger.warning(f"{error_name} alcanzado. Intento {attempt + 1}/{max_retries + 1}. Esperando {delay:.1f}s antes de reintentar...")
                         time.sleep(delay)
                         continue
                     else:
-                        logger.error(f"Rate limit (429) - Se agotaron los reintentos después de {max_retries + 1} intentos")
+                        logger.error(f"Error {response.status_code} - Se agotaron los reintentos después de {max_retries + 1} intentos")
                         return response  # Return last response even if it's an error
                 
                 # For other errors, return immediately (no retry)
@@ -207,7 +221,10 @@ class GeminiFoodDetector:
                     "temperature": 0.1,
                     "topK": 32,
                     "topP": 1,
-                    "maxOutputTokens": 2048,
+                    # Aumentamos el límite de tokens de salida para evitar que la respuesta
+                    # sea truncada con finishReason = MAX_TOKENS cuando el prompt es grande.
+                    # Ajustar según límites del modelo/plan.
+                    "maxOutputTokens": 4096,
                 }
             }
             
@@ -216,12 +233,14 @@ class GeminiFoodDetector:
                 "Content-Type": "application/json"
             }
             
-            logger.info(f"Enviando solicitud a Gemini API: {self.api_url}")
+            # Evitar exponer la API key en logs
+            safe_url = self.api_url.split('?key=')[0] + '?key=***'
+            logger.info(f"Enviando solicitud a Gemini API: {safe_url}")
             response = self._make_request_with_retry(
                 url=self.api_url,
                 json=payload,
                 headers=headers,
-                max_retries=4
+                max_retries=6  # Aumentado para manejar mejor los errores 503
             )
             
             if response is None:
@@ -254,16 +273,13 @@ class GeminiFoodDetector:
             return self._simulate_detection()
 
     def _create_food_analysis_prompt(self) -> str:
-        """Create an optimized prompt for comprehensive food analysis."""
+        """Create an optimized, shorter prompt for comprehensive food analysis."""
         return """
         Analiza esta imagen y determina si contiene comida o alimentos. 
-        
-        IMPORTANTE: Solo analizo imágenes de comida y alimentos. Si la imagen NO contiene comida, responde EXACTAMENTE esto:
 
+        Si NO es comida, responde EXACTAMENTE:
         "¡Hola! 👋 
-
         Soy una IA especializada en análisis nutricional de alimentos, pero parece que la imagen que subiste no contiene comida. 
-
         🤖 **¿Qué puedo hacer por ti?**
         Solo puedo analizar imágenes que contengan:
         - Platos de comida preparados
@@ -271,58 +287,125 @@ class GeminiFoodDetector:
         - Snacks y bebidas
         - Ingredientes para cocinar
         - Cualquier tipo de alimento
-
         🍽️ **¿Podrías intentar de nuevo?**
         Sube una foto de tu comida y te daré un análisis nutricional detallado con recomendaciones personalizadas.
-
         ¡Estoy aquí para ayudarte a llevar una alimentación más saludable! 💪✨"
 
-        ---
+        Si SÍ es comida, responde con AMBAS partes separadas por "---SEPARADOR---":
 
-        Si la imagen SÍ contiene comida, analízala usando esta estructura en ESPAÑOL:
+        **PARTE 1 (Análisis narrativo):**
+        ¡Claro que sí! ¡Veamos qué tenemos en este plato! 😋
 
-        **🍽️ ¿Qué estoy viendo?**
-        Identifica el plato principal y describe brevemente lo que observas en la imagen.
+        🍽️ ¿Qué estoy viendo?
+        [Descripción detallada del plato]
 
-        **🥘 Alimentos detectados:**
-        Para cada alimento que veas, menciona:
-        - Qué es exactamente
-        - Qué tan seguro estás de la identificación (muy seguro/bastante seguro/posiblemente)
-        - El tamaño de la porción (pequeña/mediana/grande)
-        - Peso estimado en gramos
+        🥘 Alimentos detectados:
+        [Lista de alimentos con peso estimado]
 
-        **📊 Información nutricional:**
-        Para cada alimento, proporciona de manera conversacional:
-        - Calorías aproximadas de la porción
-        - Contenido de proteínas, carbohidratos y grasas
-        - Si tiene fibra significativa
-        - Cualquier nutriente destacable
+        📊 Información nutricional:
+        [Detalles nutricionales por alimento]
 
-        **🍴 Análisis de la comida:**
-        - ¿Qué tipo de comida es? (desayuno/almuerzo/cena/snack)
-        - Calorías totales estimadas
-        - ¿Está balanceada nutricionalmente?
-        - Puntuación de salud del 1 al 10 y por qué
+        🍴 Análisis de la comida:
+        Tipo de comida: [descripción]
+        Calorías totales estimadas: [número]
+        ¿Está balanceada nutricionalmente? [análisis]
+        Puntuación de salud: [X/10 con razón]
 
-        **💡 Recomendaciones:**
-        Da 2-3 consejos amigables sobre:
-        - Aspectos positivos de esta comida
-        - Qué se podría mejorar
-        - Sugerencias para complementar la comida
+        💡 Recomendaciones:
+        Aspectos positivos: [lista]
+        Qué se podría mejorar: [sugerencias]
+        Sugerencias para complementar: [recomendaciones]
 
-        **🎯 Resumen rápido:**
-        Termina con un resumen de una línea sobre la comida.
+        🎯 Resumen rápido:
+        [Conclusión final con emoji]
 
-        INSTRUCCIONES IMPORTANTES: 
-        - PRIMERO determina si hay comida en la imagen
-        - Si NO hay comida, usa EXACTAMENTE el mensaje de "no es comida" de arriba
-        - Si SÍ hay comida, sigue la estructura completa de análisis
-        - Usa un tono conversacional y amigable
-        - Evita ser demasiado técnico
-        - Incluye emojis para hacer la respuesta más visual
-        - Sé específico con los números pero explícalos de forma simple
-        - Si no estás seguro de algo, dilo honestamente
+        ---SEPARADOR---
+
+        **PARTE 2 (Formato estructurado):**
+        [Para cada alimento:]
+        Nombre del alimento (peso en gramos):
+        Calories: [número]
+        Carbs: [número]g
+        Protein: [número]g
+        Fat: [número]g
+
+        [Al final, totales:]
+        Calorías
+        [total]
+        [%]%
+
+        Carbos
+        [total]g
+        [%]%
+
+        Proteína
+        [total]g
+        [%]%
+
+        Grasa
+        [total]g
+        [%]%
+
+        Los porcentajes son sobre: 2000 cal, 250g carbos, 125g proteína, 55g grasa.
+        Sé preciso con pesos y valores nutricionales.
         """
+
+    def _extract_text_from_candidate(self, candidate: Dict) -> Optional[str]:
+        """
+        Intentar extraer texto desde diferentes estructuras que Gemini puede devolver.
+        Maneja:
+        - content.parts[0].text
+        - content.text
+        - content como string
+        - búsqueda recursiva de cualquier string largo que contenga claves como 'Calories' o 'Calor'
+        """
+        try:
+            content = candidate.get("content")
+
+            # Caso: content es directamente una cadena
+            if isinstance(content, str) and content.strip():
+                return content.strip()
+
+            # Caso: content es un dict
+            if isinstance(content, dict):
+                # parts (forma esperada)
+                parts = content.get("parts")
+                if isinstance(parts, list) and len(parts) > 0:
+                    first = parts[0]
+                    if isinstance(first, dict) and "text" in first and isinstance(first["text"], str):
+                        return first["text"].strip()
+
+                # text directo dentro de content
+                if "text" in content and isinstance(content["text"], str):
+                    return content["text"].strip()
+
+            # Búsqueda recursiva: encontrar strings dentro de la estructura candidate
+            def find_strings(obj):
+                if isinstance(obj, str):
+                    yield obj
+                elif isinstance(obj, dict):
+                    for v in obj.values():
+                        yield from find_strings(v)
+                elif isinstance(obj, list):
+                    for item in obj:
+                        yield from find_strings(item)
+
+            candidates_texts = [s.strip() for s in find_strings(candidate) if isinstance(s, str) and s.strip()]
+            # Preferir textos que contengan palabras claves del formato esperado
+            keywords = ["Calories", "Calor", "Carbs", "Carbos", "Protein", "Proteína", "Fat", "Grasa"]
+            for t in candidates_texts:
+                if any(k.lower() in t.lower() for k in keywords):
+                    return t
+
+            # Si no hay coincidencias con palabras clave, devolver el texto más largo (si lo hay)
+            if candidates_texts:
+                candidates_texts.sort(key=lambda x: len(x), reverse=True)
+                return candidates_texts[0]
+
+        except Exception as e:
+            logger.debug(f"Error extrayendo texto del candidate: {e}")
+
+        return None
 
     def _process_gemini_response(self, response: Dict) -> Dict:
         """
@@ -346,31 +429,55 @@ class GeminiFoodDetector:
                     logger.error("No se encontró 'content' en la respuesta de Gemini")
                     return self._simulate_natural_response()
                 
-                content_data = candidate["content"]
-                if "parts" not in content_data:
-                    logger.error("No se encontró 'parts' en el content de Gemini")
+                # Intentar extraer el texto por varias rutas; ser resiliente a cambios
+                content = None
+
+                # NUEVO EXTRACTOR ROBUSTO: uso del helper que soporta varias estructuras
+                logger.info("🔧 Intentando extraer texto usando extractor robusto mejorado...")
+                extracted = self._extract_text_from_candidate(candidate)
+                if extracted:
+                    content = extracted
+                    logger.info(f"✅ Texto extraído exitosamente. Longitud: {len(content)} caracteres")
+                else:
+                    # Si no se pudo extraer, registrar candidate para depuración (recortado)
+                    try:
+                        cand_str = json.dumps(candidate, indent=2, ensure_ascii=False)
+                    except Exception:
+                        cand_str = str(candidate)
+                    logger.error("❌ EXTRACTOR ROBUSTO: No se encontró texto utilizable en el content de Gemini. Candidate: %s", cand_str[:2000])
                     return self._simulate_natural_response()
-                
-                if len(content_data["parts"]) == 0:
-                    logger.error("Array 'parts' está vacío en la respuesta de Gemini")
-                    return self._simulate_natural_response()
-                
-                if "text" not in content_data["parts"][0]:
-                    logger.error("No se encontró 'text' en parts[0] de la respuesta de Gemini")
-                    return self._simulate_natural_response()
-                
-                content = content_data["parts"][0]["text"]
                 
                 # Clean the response (remove markdown formatting if present)
                 content = content.strip()
                 logger.info(f"Análisis natural de Gemini recibido: {content[:200]}...")
+                
+                # Check if response contains the separator (two parts)
+                if "---SEPARADOR---" in content:
+                    parts = content.split("---SEPARADOR---")
+                    if len(parts) >= 2:
+                        narrative_part = parts[0].strip()
+                        structured_part = parts[1].strip()
+                        logger.info("✅ Respuesta con ambas partes detectada")
+                        
+                        # Return both parts
+                        return {
+                            "analysis_type": "dual_format",
+                            "narrative_analysis": narrative_part,  # Para el modal
+                            "gemini_analysis": structured_part,    # Para el dashboard
+                            "timestamp": "real_time",
+                            "model_used": "gemini-2.5-pro",
+                            "nutrition_source": "gemini_dual"
+                        }
+                
+                # If no separator found, treat as single format (backward compatibility)
+                logger.info("📋 Respuesta en formato único detectada")
                 
                 # Return the natural language response directly
                 return {
                     "analysis_type": "natural_language",
                     "gemini_analysis": content,
                     "timestamp": "real_time",
-                    "model_used": "gemini-2.0-flash-exp",
+                    "model_used": "gemini-2.5-pro",
                     "nutrition_source": "gemini_natural"
                 }
             else:
@@ -411,67 +518,88 @@ class GeminiFoodDetector:
         Simulate enhanced food detection in natural language for development/testing.
         
         Returns:
-            Simulated natural language analysis
+            Simulated natural language analysis in dual format
         """
-        # Simular análisis de comida válida
-        natural_analysis = """
-**🍽️ ¿Qué estoy viendo?**
-¡Veo un delicioso plato que parece ser una comida balanceada! Se trata de lo que parece ser pechuga de pollo acompañada de arroz blanco y brócoli fresco.
+        # Parte narrativa para el modal
+        narrative_part = """¡Claro que sí! ¡Veamos qué tenemos en este plato! 😋
 
-**🥘 Alimentos detectados:**
+🍽️ ¿Qué estoy viendo?
+Veo un delicioso plato que combina proteínas de alta calidad con carbohidratos energéticos. Se trata de una preparación casera con carne deshebrada, huevos frescos, queso y papas cocidas.
 
-🍗 **Pechuga de pollo** - Estoy muy seguro de esta identificación
-- Porción: mediana
-- Peso estimado: 150 gramos
-- Se ve bien cocida y jugosa
+🥘 Alimentos detectados:
+• Carne seca deshebrada (100g) - Rica en proteína
+• Queso fresco (50g) - Fuente de calcio y proteína  
+• Huevos (2 piezas) - Proteína completa
+• Papas cocidas (2 piezas) - Carbohidratos complejos
 
-🍚 **Arroz blanco** - Bastante seguro de la identificación  
-- Porción: mediana
-- Peso estimado: 120 gramos
-- Parece ser arroz de grano largo
+📊 Información nutricional:
+La carne deshebrada aporta 350 calorías con 50g de proteína de alta calidad. Los huevos contribuyen con 140 calorías y proteína completa. El queso fresco añade 150 calorías con calcio. Las papas cocidas proporcionan 300 calorías de carbohidratos energéticos.
 
-🥦 **Brócoli** - Muy seguro de la identificación
-- Porción: pequeña
-- Peso estimado: 80 gramos
-- Se ve fresco y bien verde
+🍴 Análisis de la comida:
+Tipo de comida: Desayuno o almuerzo balanceado
+Calorías totales estimadas: 940 calorías
+¿Está balanceada nutricionalmente? Sí, tiene excelente balance proteico
+Puntuación de salud: 8/10 - Rica en proteínas, moderada en calorías
 
-**📊 Información nutricional:**
+💡 Recomendaciones:
+Aspectos positivos: Excelente fuente de proteína (78g), buena variedad de alimentos, preparación casera
+Qué se podría mejorar: Agregar vegetales verdes para fibra y vitaminas
+Sugerencias para complementar: Una ensalada fresca o vegetales salteados
 
-El **pollo** aporta aproximadamente 248 calorías, con un excelente contenido de proteína (46.5g) y muy poca grasa (5.4g). Es prácticamente libre de carbohidratos.
+🎯 Resumen rápido:
+¡Un plato muy nutritivo! 🌟 Perfecto para quienes buscan aumentar su consumo de proteína. Las 940 calorías están bien distribuidas y te mantendrán satisfecho por horas."""
 
-El **arroz** contribuye con unas 156 calorías, principalmente de carbohidratos (33.6g), con algo de proteína (3.2g) y muy poca grasa.
+        # Parte estructurada para el dashboard
+        structured_part = """Carne seca deshebrada (100 g):
+Calories: 350
+Carbs: 0g
+Protein: 50g
+Fat: 10g
 
-El **brócoli** es el héroe nutritivo con solo 27 calorías, pero rico en fibra (2.1g) y vitaminas, aportando 2.2g de proteína vegetal.
+Queso fresco (50 g):
+Calories: 150
+Carbs: 2g
+Protein: 10g
+Fat: 12g
 
-**🍴 Análisis de la comida:**
-- Tipo: Definitivamente un almuerzo o cena
-- Calorías totales: Aproximadamente 431 calorías
-- Balance nutricional: ¡Muy bien balanceado! 
-- Puntuación de salud: 8.5/10 - ¡Excelente elección!
+Huevos (2 pieza):
+Calories: 140
+Carbs: 2g
+Protein: 12g
+Fat: 10g
 
-**💡 Recomendaciones:**
+Papas cocidas (2 pieza):
+Calories: 300
+Carbs: 60g
+Protein: 6g
+Fat: 0g
 
-✅ **Lo que está genial:** 
-- Excelente fuente de proteína magra
-- Incluye vegetales frescos
-- Porciones adecuadas
+Calorías
+940
+47%
 
-🌟 **Para mejorar:**
-- Podrías agregar un poquito de aceite de oliva o aguacate para grasas saludables
-- Una ensalada pequeña le daría más color y nutrientes
+Carbos
+64g
+26%
 
-💪 **Sugerencia extra:** Este plato es perfecto si estás enfocado en mantener o ganar masa muscular.
+Proteína
+78g
+63%
 
-**🎯 Resumen rápido:**
-Un almuerzo saludable y balanceado que cualquier nutricionista aprobaría - ¡alta proteína, carbohidratos complejos y vegetales frescos!
-        """
+Grasa
+32g
+58%"""
+
+        # Combinar ambas partes con separador
+        dual_analysis = f"{narrative_part}\n\n---SEPARADOR---\n\n{structured_part}"
         
         return {
-            "analysis_type": "natural_language",
-            "gemini_analysis": natural_analysis,
+            "analysis_type": "dual_format",
+            "narrative_analysis": narrative_part,
+            "gemini_analysis": structured_part,
             "timestamp": "simulation",
             "model_used": "simulation_mode",
-            "nutrition_source": "simulation_natural"
+            "nutrition_source": "simulation_dual"
         }
 
     def _simulate_non_food_response(self) -> Dict:

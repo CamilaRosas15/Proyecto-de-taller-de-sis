@@ -1,5 +1,5 @@
 // platos-escaneados.controller.ts
-import { Controller, Get, Post, Delete, Body, Query, Param, Res, HttpStatus, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Query, Param, Res, HttpStatus, UseInterceptors, UploadedFile, Headers } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PlatosEscaneadosService } from './platos-escaneados.service';
 import { Response } from 'express';
@@ -17,6 +17,7 @@ export class PlatosEscaneadosController {
       analisis: string;
       id_usuario: string;
     },
+    @Headers('authorization') authHeader: string,
     @Res() res: Response
   ) {
     if (!datos.id_usuario || !datos.analisis || !imagen) {
@@ -26,8 +27,11 @@ export class PlatosEscaneadosController {
       });
     }
 
+    // Extraer token del header Authorization
+    const token = authHeader?.replace('Bearer ', '') || '';
+
     try {
-      const plato = await this.platosService.crearPlatoEscaneadoConImagen(datos, imagen);
+      const plato = await this.platosService.crearPlatoEscaneadoConImagen(datos, imagen, token);
       return res.status(HttpStatus.CREATED).json(plato);
     } catch (err: any) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({

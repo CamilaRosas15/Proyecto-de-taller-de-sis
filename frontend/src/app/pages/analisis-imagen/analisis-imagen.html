@@ -112,13 +112,14 @@
 
       <!-- Resultados -->
       <div *ngIf="analysisResult && analysisResult !== 'Analizando imagen...'" class="analysis-results">
-        <div class="results-header">
-          <img [src]="imageUrl" alt="Imagen de comida" class="result-img">
-        </div>
-
         <div class="natural-analysis" [class.non-food-warning]="isNonFoodMessage">
-          <app-food-dashboard *ngIf="dashboardData && !isNonFoodMessage" [data]="dashboardData"></app-food-dashboard>
-          <pre *ngIf="!dashboardData || isNonFoodMessage" class="natural-text" [class.non-food-text]="isNonFoodMessage">{{ analysisResult }}</pre>
+          <app-food-dashboard *ngIf="dashboardData && dashboardData.items && dashboardData.items.length > 0 && !isNonFoodMessage" 
+                              [data]="dashboardData" 
+                              [imageUrl]="imageUrl"
+                              [rawAnalysis]="narrativeAnalysis"></app-food-dashboard>
+      <div *ngIf="(!dashboardData || !dashboardData.items || dashboardData.items.length === 0) || isNonFoodMessage" 
+           class="natural-text ai-raw" 
+           [innerHTML]="analysisResult | aiTextToHtml"></div>
         </div>
 
         <button class="new-analysis-btn" (click)="resetAnalysis()">

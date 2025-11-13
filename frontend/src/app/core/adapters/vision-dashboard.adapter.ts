@@ -4,6 +4,11 @@ export interface FoodItemDetection {
   portionText?: string;
   estimatedGrams?: number;
   extra?: string[];
+  // Macros por ítem (si se logran extraer de la sección nutricional)
+  calories?: number;
+  proteinGrams?: number;
+  carbsGrams?: number;
+  fatGrams?: number;
 }
 
 export interface MacroTotals {
@@ -25,6 +30,7 @@ export interface FoodDashboardData {
   nutrition: { label: string; value: string }[];
   recommendations: string[];
   aggregates?: MacroTotals;
+  analysis?: string;
   raw: string;
 }
 
@@ -42,174 +48,228 @@ function parseEstimatedGrams(text?: string): number | undefined {
   return undefined;
 }
 
+function normalizeTextForMatch(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // quitar acentos
+    .replace(/\([^\)]*\)/g, '') // quitar paréntesis y contenido
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function adaptFriendlyTextToFoodDashboard(text: string): FoodDashboardData {
+  console.log('Procesando texto:', text);
+  
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   const items: FoodItemDetection[] = [];
   const recommendations: string[] = [];
   const nutrition: { label: string; value: string }[] = [];
   const totals: MacroTotals = { calories: 0, proteinGrams: 0, carbsGrams: 0, fatGrams: 0 };
+  let analysisParagraphs: string[] = [];
 
-  let section: 'seeing' | 'items' | 'nutrition' | 'analysis' | 'reco' | 'summary' | undefined;
-  for (const line of lines) {
-    if (/\*\*.*Qué estoy viendo\?\*\*/i.test(line)) { section = 'seeing'; continue; }
-    if (/\*\*.*Alimentos detectados\:*\*\*/i.test(line)) { section = 'items'; continue; }
-    if (/\*\*.*Información nutricional\:*\*\*/i.test(line)) { section = 'nutrition'; continue; }
-    if (/\*\*.*Análisis de la comida\:*\*\*/i.test(line)) { section = 'analysis'; continue; }
-    if (/\*\*.*Recomendaciones\:*\*\*/i.test(line)) { section = 'reco'; continue; }
-    if (/\*\*.*Resumen rápido\:*\*\*/i.test(line)) { section = 'summary'; continue; }
+  let currentItem: FoodItemDetection | null = null;
+  let i = 0;
+  let inTotalsSection = false;
 
-    if (section === 'items') {
-      const labelJoiners = ['Qué es', 'Seguridad', 'Tamaño', 'Peso estimado'];
-      if (line.startsWith('*')) {
-        const noAst = line.replace(/^\*\s*/, '');
-        const nameMatch = noAst.match(/^\*?\*?([^:]+):?/i) || noAst.match(/^([^:]+):/);
-        const name = (nameMatch ? nameMatch[1] : noAst).replace(/\*\*/g, '').trim();
-        const confidenceTextMatch = noAst.match(/(Muy seguro|Bastante seguro|Posiblemente|Poco seguro)/i);
-        const portionMatch = noAst.match(/(\b(?:porci[oó]n|vaso|taza|cucharada|gramos|ml|g)\b[^.,]*)/i);
-        const estimatedGrams = parseEstimatedGrams(noAst);
-        items.push({
-          name,
-          confidenceText: confidenceTextMatch?.[1],
-          portionText: portionMatch?.[1],
-          estimatedGrams,
-          extra: []
-        });
-        continue;
-      }
-      // Unbulleted lines: treat as attributes for the last item when matching known labels
-      const last = items[items.length - 1];
-      if (last) {
-        const labeled = labelJoiners.find(lbl => new RegExp(`^${lbl}`, 'i').test(line));
-        const hasConfidenceWord = /(Muy seguro|Bastante seguro|Posiblemente|Poco seguro)/i.test(line);
-        const hasPortionWord = /(porci[oó]n|taza|cucharada|vaso)/i.test(line);
-        const hasGrams = /(\~?\d+\s*g(ramos)?|\d+\s*ml)/i.test(line);
+  while (i < lines.length) {
+    const line = lines[i];
+    console.log(`Procesando línea ${i}: "${line}"`);
+    
+    // Detectar nombres de alimentos con patrones mejorados
+    const foodPatterns = [
+      /^(.+?)\s+\((\d+(?:\.\d+)?)\s*g\):\s*$/,     // "Carne seca deshebrada (100 g):"
+      /^(.+?)\s+\((.+?)\):\s*$/,                    // "Huevos (2 pieza):"
+      /^(.+?)\s+\((\d+(?:\.\d+)?)\s*pieza\):\s*$/, // "Papas cocidas (2 pieza):"
+      /^(.+?):\s*$/                                 // "Nombre del alimento:"
+    ];
 
-        if (labeled || hasConfidenceWord || hasPortionWord || hasGrams) {
-          // Extract meta into fields so the UI can render like the screenshot
-          const confMatch = line.match(/(Muy seguro|Bastante seguro|Posiblemente|Poco seguro)/i);
-          if (confMatch) last.confidenceText = confMatch[1];
-          const portionMatch = line.match(/(porci[oó]n\s*(?:grande|mediana|pequeña))/i);
-          if (portionMatch) last.portionText = portionMatch[1].replace(/\s+:/, '').trim();
-          const grams = parseEstimatedGrams(line);
-          if (grams !== undefined) last.estimatedGrams = grams;
-
-          // Keep raw line for reference too
-          last.extra = last.extra || [];
-          last.extra.push(line);
-          continue;
+    let foodMatch = null;
+    let estimatedGrams = null;
+    
+    for (const pattern of foodPatterns) {
+      foodMatch = line.match(pattern);
+      if (foodMatch) {
+        const weightText = foodMatch[2];
+        if (weightText && /\d+/.test(weightText)) {
+          // Si es solo números, asumir que son gramos
+          const numMatch = weightText.match(/(\d+(?:\.\d+)?)/);
+          estimatedGrams = numMatch ? parseFloat(numMatch[1]) : null;
+          
+          // Si dice "pieza", convertir a estimación de gramos
+          if (weightText.includes('pieza')) {
+            const count = estimatedGrams || 1;
+            // Estimaciones básicas por pieza
+            const foodName = foodMatch[1].toLowerCase();
+            if (foodName.includes('huevo')) {
+              estimatedGrams = count * 50; // ~50g por huevo
+            } else if (foodName.includes('papa')) {
+              estimatedGrams = count * 150; // ~150g por papa mediana
+            } else {
+              estimatedGrams = count * 100; // estimación general
+            }
+          }
         }
-      }
-      // Otherwise, consider it a new item name if it's not a key-value detail
-      if (!/:/.test(line)) {
-        const name = line.replace(/\*\*/g, '').trim();
-        if (name) {
-          items.push({ name, extra: [] });
-          continue;
-        }
+        break;
       }
     }
 
-    if (section === 'nutrition') {
-      // Acepta líneas con o sin viñetas ("*" o "-")
-      const noAst = line.replace(/^([*\-])\s*/, '');
-      if (!noAst) continue;
-      const parts = noAst.split(':');
-      const labelRaw = parts[0].replace(/\*\*/g, '').trim();
-      const valueRaw = parts.slice(1).join(':').trim();
-      const label = labelRaw;
-      const value = valueRaw || '';
-      nutrition.push({ label, value });
-
-      // Normaliza número decimal (comas a puntos)
-      const toNum = (s: string | undefined): number | undefined => {
-        if (!s) return undefined;
-        const n = s.replace(',', '.');
-        const num = Number(n);
-        return isNaN(num) ? undefined : num;
+    if (foodMatch) {
+      if (currentItem) {
+        items.push(currentItem);
+      }
+      
+      currentItem = {
+        name: foodMatch[1].trim(),
+        estimatedGrams: estimatedGrams || undefined,
+        extra: []
       };
+      console.log('Nuevo alimento detectado:', currentItem);
+      i++;
+      continue;
+    }
 
-      const lowerLabel = label.toLowerCase();
-      const joined = `${label} ${value}`;
-      const kcalNum = toNum((joined.match(/([0-9]+(?:[\.,][0-9]+)?)\s*(?:k?cal|calor[ií]as)/i) || [])[1]);
-      const protNum = toNum((joined.match(/prote[ií]na[^0-9]*\(?\s*([0-9]+(?:[\.,][0-9]+)?)\s*g/i) || [])[1])
-        ?? toNum((joined.match(/([0-9]+(?:[\.,][0-9]+)?)\s*g(?:r|ramos)?\b.*?(prote[ií]na|prot\b)/i) || [])[1])
-        ?? toNum((value.match(/([0-9]+(?:[\.,][0-9]+)?)\s*g\b/) || [])[1]);
-      const carbNum = toNum((joined.match(/carboh?idratos|hidratos|carbs?/i) ? (joined.match(/([0-9]+(?:[\.,][0-9]+)?)\s*g/i) || [])[1] : undefined))
-        ?? toNum((joined.match(/([0-9]+(?:[\.,][0-9]+)?)\s*g(?:r|ramos)?\b.*?(carboh?idratos|hidratos|carbs?)/i) || [])[1]);
-      const fatNum = toNum((joined.match(/grasa[s]?/i) ? (joined.match(/([0-9]+(?:[\.,][0-9]+)?)\s*g/i) || [])[1] : undefined))
-        ?? toNum((joined.match(/([0-9]+(?:[\.,][0-9]+)?)\s*g(?:r|ramos)?\b.*?(grasa|grasas|fat)/i) || [])[1]);
+    // Detectar información nutricional individual (formato exacto de la imagen)
+    const nutritionPatterns = [
+      /^Calories:\s*(\d+(?:\.\d+)?)$/,
+      /^Protein:\s*(\d+(?:\.\d+)?)g?$/,
+      /^Carbs:\s*(\d+(?:\.\d+)?)g?$/,
+      /^Fat:\s*(\d+(?:\.\d+)?)g?$/
+    ];
 
-      // Si el label indica el nutriente, acepta cualquier nº + unidad en el valor
-      if (lowerLabel.includes('calor')) {
-        const n = toNum((value.match(/([0-9]+(?:[\.,][0-9]+)?)/) || [])[1]);
-        if (n !== undefined) totals.calories += n;
-      } else if (lowerLabel.startsWith('prote')) {
-        if (protNum !== undefined && totals.proteinGrams !== undefined) totals.proteinGrams += protNum;
-      } else if (lowerLabel.includes('carbo')) {
-        if (carbNum !== undefined && totals.carbsGrams !== undefined) totals.carbsGrams += carbNum;
-      } else if (lowerLabel.startsWith('grasa')) {
-        if (fatNum !== undefined && totals.fatGrams !== undefined) totals.fatGrams += fatNum;
-      } else {
-        // Fallback por fraseo en párrafo dentro de la sección
-        if (kcalNum !== undefined) totals.calories += kcalNum;
-        if (protNum !== undefined && totals.proteinGrams !== undefined) totals.proteinGrams += protNum;
-        if (carbNum !== undefined && totals.carbsGrams !== undefined) totals.carbsGrams += carbNum;
-        if (fatNum !== undefined && totals.fatGrams !== undefined) totals.fatGrams += fatNum;
+    let nutritionMatch = null;
+    for (const pattern of nutritionPatterns) {
+      nutritionMatch = line.match(pattern);
+      if (nutritionMatch) break;
+    }
+
+    if (nutritionMatch && currentItem) {
+      const value = parseFloat(nutritionMatch[1]);
+      const lowerLine = line.toLowerCase();
+      
+      if (lowerLine.startsWith('calories')) {
+        currentItem.calories = value;
+      } else if (lowerLine.startsWith('protein')) {
+        currentItem.proteinGrams = value;
+      } else if (lowerLine.startsWith('carbs')) {
+        currentItem.carbsGrams = value;
+      } else if (lowerLine.startsWith('fat')) {
+        currentItem.fatGrams = value;
       }
+      
+      console.log('Información nutricional añadida:', line, value);
+      i++;
       continue;
     }
 
-    if (section === 'reco' && line.startsWith('*')) {
-      const noAst = line.replace(/^\*\s*/, '');
-      const clean = noAst.replace(/\*\*/g, '').trim();
-      const tip = clean.replace(/^(Aspectos positivos:|Qu[eé] se podr[ií]a mejorar:|Sugerencias para complementar:)\s*/i, '');
-      recommendations.push(tip);
-      continue;
+    // Detectar sección de totales (formato exacto)
+    if (line.match(/^(Calorías|Carbos|Proteína|Grasa)$/)) {
+      if (currentItem) {
+        items.push(currentItem);
+        currentItem = null;
+      }
+      
+      inTotalsSection = true;
+      const label = line;
+      
+      // Buscar valor en las siguientes líneas
+      if (i + 1 < lines.length) {
+        const valueLine = lines[i + 1];
+        const valueMatch = valueLine.match(/^(\d+(?:\.\d+)?)g?$/);
+        
+        if (valueMatch) {
+          const numValue = parseFloat(valueMatch[1]);
+          
+          switch (label) {
+            case 'Calorías':
+              totals.calories = numValue;
+              break;
+            case 'Carbos':
+              totals.carbsGrams = numValue;
+              break;
+            case 'Proteína':
+              totals.proteinGrams = numValue;
+              break;
+            case 'Grasa':
+              totals.fatGrams = numValue;
+              break;
+          }
+          
+          console.log('Total detectado:', label, numValue);
+          i += 2; // Saltar línea del valor
+          
+          // Saltar porcentaje si existe
+          if (i < lines.length && lines[i].match(/^\d+%$/)) {
+            i++;
+          }
+          continue;
+        }
+      }
     }
+
+    // Líneas de información adicional del alimento actual
+    if (currentItem && !inTotalsSection) {
+      const infoPatterns = [
+        /^Qué es:/,
+        /^Seguridad:/,
+        /^Tamaño de la porción:/,
+        /^Peso estimado:/
+      ];
+      
+      for (const pattern of infoPatterns) {
+        if (pattern.test(line)) {
+          currentItem.extra = currentItem.extra || [];
+          currentItem.extra.push(line);
+          break;
+        }
+      }
+    }
+
+    i++;
   }
 
-  // KPIs
-  // Calorías totales estimadas si existe
-  const totalCalsLine = lines.find(l => /Calor[ií]as totales estimadas/i.test(l));
-  const totalCaloriesEst = totalCalsLine ? (totalCalsLine.match(/\*\*.*\*\*\s*([^\n]+)/)?.[1] || totalCalsLine) : undefined;
+  // Agregar el último alimento si existe
+  if (currentItem) {
+    items.push(currentItem);
+  }
 
-  // Puntuación de salud
-  const healthScoreLine = lines.find(l => /Puntuaci[oó]n de salud/i.test(l));
-  const healthScore = healthScoreLine ? parseNumberFromText(healthScoreLine) : undefined;
+  console.log('Alimentos procesados:', items);
+  console.log('Totales procesados:', totals);
 
-  // Meal type
-  const mealTypeLine = lines.find(l => /Tipo de comida/i.test(l));
-  const mealType = mealTypeLine ? (mealTypeLine.split(':')[1] || '').trim() : undefined;
+  // Si no se detectaron totales pero sí alimentos, calcular totales
+  if (items.length > 0 && totals.calories === 0) {
+    totals.calories = items.reduce((sum, item) => sum + (item.calories || 0), 0);
+    totals.proteinGrams = items.reduce((sum, item) => sum + (item.proteinGrams || 0), 0);
+    totals.carbsGrams = items.reduce((sum, item) => sum + (item.carbsGrams || 0), 0);
+    totals.fatGrams = items.reduce((sum, item) => sum + (item.fatGrams || 0), 0);
+    
+    console.log('Totales calculados a partir de items:', totals);
+  }
 
+  // KPIs básicos
   const kpis: { label: string; value: string | number }[] = [];
   if (items.length) kpis.push({ label: 'Alimentos detectados', value: items.length });
-  if (totalCaloriesEst) kpis.push({ label: 'Calorías totales (estim.)', value: totalCaloriesEst });
-  if (healthScore !== undefined) kpis.push({ label: 'Puntuación de salud', value: `${healthScore}/10` });
-  if (totals.calories > 0) kpis.push({ label: 'Calorías (sumadas)', value: Math.round(totals.calories) });
+  if (totals.calories > 0) kpis.push({ label: 'Calorías totales', value: Math.round(totals.calories) });
 
-  // Macro totales aproximados si hay fila de "Arroz frito (...)" etc., ya vienen en nutrition
-  const proteinLine = lines.find(l => /prote[ií]na/i.test(l) && /g/.test(l) && /Calor[ií]as totales estimadas/i.test(l) === false);
-  // No forzamos parsing profundo; nutrition ya expone detalle por ítem
-
-  const sanitize = (s?: string) => s?.replace(/\*\*|\*/g, '').trim();
-  const quickSummaryLine = lines.find(l => /Resumen r[aá]pido/i.test(l));
-  const quickSummaryRaw = quickSummaryLine ? lines[lines.indexOf(quickSummaryLine) + 1] : undefined;
-  const quickSummary = sanitize(quickSummaryRaw);
-
-  return {
+  const result = {
     summary: {
-      quickSummary,
-      mealType,
-      healthScore,
-      totalCaloriesEst
+      quickSummary: undefined,
+      mealType: undefined,
+      healthScore: undefined,
+      totalCaloriesEst: undefined
     },
     kpis,
     items,
     nutrition,
     recommendations,
-    aggregates: totals.calories > 0 ? totals : undefined,
+    aggregates: (totals.calories > 0 || (totals.proteinGrams || 0) > 0 || (totals.carbsGrams || 0) > 0 || (totals.fatGrams || 0) > 0) ? totals : undefined,
+    analysis: analysisParagraphs.length ? analysisParagraphs.join('\n\n') : undefined,
     raw: text
   };
+
+  console.log('Resultado final del adaptador:', result);
+  return result;
 }
 
 
