@@ -52,7 +52,7 @@
                 De momento lo dejo sin (click) para que NO te dé el error de
                 "onEliminarDelHistorial no existe".
               -->
-              <span class="historial-delete">
+              <span class="historial-delete" (click)="onEliminarDelHistorial(item, $event)">
                 ✕
               </span>
             </div>
@@ -126,7 +126,7 @@
                   {{ item.receta?.nombre || ('Receta ' + item.id_receta) }}
                 </span>
         
-                <span class="historial-delete">
+                <span class="historial-delete" (click)="onEliminarDelHistorial(item, $event)">
                   ✕
                 </span>
               </div>

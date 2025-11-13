@@ -408,6 +408,66 @@ export class ChatIAComponent {
   getImagenRecetaSafe(receta: any): string | null {
   const url = receta?.imagen_url || receta?.imagen || null;
   return (typeof url === 'string' && url.trim().length > 0) ? url : null;
-}
+  }
+
+  onEliminarDelHistorial(itemHistorial: any, event: MouseEvent) {
+    event.stopPropagation();
+
+    if (!this.authService.isLoggedIn()) {
+      this.errorMessage = 'Debes iniciar sesión para gestionar tu historial';
+      return;
+    }
+
+    console.log('🧾 Item historial recibido para borrar:', itemHistorial);
+
+    // 👇 Usamos el id_historial que viene de la tabla
+    const historyId: string =
+      itemHistorial.id_historial ??
+      itemHistorial.id ??
+      itemHistorial.historial_id;
+
+    console.log('➡️ ID usado para borrar historial:', historyId);
+
+    if (!historyId) {
+      console.error('❌ No se encontró un ID de historial en el item:', itemHistorial);
+      this.errorMessage =
+        'No se pudo identificar el elemento del historial a eliminar';
+      return;
+    }
+
+    if (!confirm('¿Eliminar esta receta del historial?')) {
+      return;
+    }
+
+    console.log('🗑 Eliminando historial con id:', historyId);
+
+    this.historyService.deleteHistoryEntry(historyId).subscribe({
+      next: () => {
+        console.log('✅ Historial eliminado en backend');
+
+        // Quitar del array local
+        this.historialRecetas = this.historialRecetas.filter((h: any) => {
+          const hId =
+            h.id_historial ??
+            h.id ??
+            h.historial_id;
+          return hId !== historyId;
+        });
+
+        if (
+          this.recetaSeleccionada &&
+          this.recetaSeleccionada.id_receta === itemHistorial.id_receta
+        ) {
+          this.recetaSeleccionada = null;
+        }
+
+        this.errorMessage = '';
+      },
+      error: (err: any) => {
+        console.error('❌ Error eliminando historial:', err);
+        this.errorMessage = 'Error al eliminar la receta del historial';
+      },
+    });
+  }
 
 }
