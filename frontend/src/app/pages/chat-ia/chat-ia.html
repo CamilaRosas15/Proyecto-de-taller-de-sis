@@ -34,13 +34,30 @@
         
         <div class="historial">
           <h4>Historial de Recetas</h4>
-          <button 
-            *ngFor="let item of historialRecetas" 
-            class="historial-btn"
-            (click)="onCargarRecetaDelHistorial(item)">
-            {{ item.receta?.nombre || 'Receta ' + item.id_receta }}
+        
+          <button *ngFor="let item of historialRecetas" class="historial-btn" (click)="onCargarRecetaDelHistorial(item)">
+        
+            <div class="historial-item">
+              <img class="historial-thumb" [src]="getImagenRecetaSafe(item.receta) || 'assets/placeholder-recipe.jpg'"
+                alt="Miniatura de {{ item.receta?.nombre || ('Receta ' + item.id_receta) }}" />
+        
+              <span class="historial-title">
+                {{ item.receta?.nombre || ('Receta ' + item.id_receta) }}
+              </span>
+        
+              <!--
+                Si más adelante quieres que la X elimine del historial:
+                - Agregamos (click)="onEliminarDelHistorial(item, $event)"
+                - Implementamos el método en el .ts
+                De momento lo dejo sin (click) para que NO te dé el error de
+                "onEliminarDelHistorial no existe".
+              -->
+              <span class="historial-delete">
+                ✕
+              </span>
+            </div>
           </button>
-          
+        
           <div *ngIf="historialRecetas.length === 0" class="no-historial">
             <p>No hay recetas guardadas</p>
           </div>
@@ -98,18 +115,29 @@
         <div class="mobile-historial">
           <h4>Historial de Recetas</h4>
           <div class="historial-list">
-            <button 
-              *ngFor="let item of historialRecetas" 
-              class="historial-btn"
+            <button *ngFor="let item of historialRecetas" class="historial-btn"
               (click)="onCargarRecetaDelHistorial(item); closeMobileMenu()">
-              {{ item.receta?.nombre || 'Receta ' + item.id_receta }}
+        
+              <div class="historial-item">
+                <img class="historial-thumb" [src]="getImagenRecetaSafe(item.receta) || 'assets/placeholder-recipe.jpg'"
+                  alt="Miniatura de {{ item.receta?.nombre || ('Receta ' + item.id_receta) }}" />
+        
+                <span class="historial-title">
+                  {{ item.receta?.nombre || ('Receta ' + item.id_receta) }}
+                </span>
+        
+                <span class="historial-delete">
+                  ✕
+                </span>
+              </div>
             </button>
-            
+        
             <div *ngIf="historialRecetas.length === 0" class="no-historial">
               <p>No hay recetas guardadas</p>
             </div>
           </div>
         </div>
+
 
         <!-- User info en móvil con botón de perfil -->
         <div class="mobile-user-info">
@@ -142,6 +170,9 @@
                 <span class="meta-badge">🔥 {{ recetaSeleccionada.kcal_totales }} kcal</span>
               </div>
             </div>
+            
+            <img *ngIf="recetaSeleccionada?.imagen_url" [src]="recetaSeleccionada.imagen_url || 'assets/placeholder-recipe.jpg'"
+            alt="Imagen de {{ recetaSeleccionada.titulo }}" class="recipe-image" />
 
             <!-- Descripción -->
             <div class="recipe-full-description">
@@ -238,7 +269,9 @@
                     <div *ngIf="message.recipes && message.recipes.length > 0" class="recipes-in-message">
                       
                       <div *ngFor="let receta of message.recipes" class="message-recipe-card">
-                        
+                        <img *ngIf="receta?.imagen_url" [src]="receta.imagen_url || 'assets/placeholder-recipe.jpg'"
+                        alt="Imagen de {{ receta.titulo }}" class="message-recipe-image" />
+
                         <h4 class="recipe-message-title">{{ receta.titulo }}</h4>
                         <p class="recipe-message-desc">{{ receta.descripcion }}</p>
                         

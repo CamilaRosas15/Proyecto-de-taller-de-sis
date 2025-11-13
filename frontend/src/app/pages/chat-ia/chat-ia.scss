@@ -410,20 +410,21 @@
   display: block;
   width: 100%;
   margin: 6px 0;
-  padding: 10px 12px;
-  border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.1); /* Borde sutil */
+  padding: 0; /* el padding lo maneja la card interna */
+  border-radius: 12px;
+  border: none;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.7); /* Fondo blanco semi-transparente */
-  color: #333; /* Texto negro */
-  font-size: 13px;
+  background: transparent;
   text-align: left;
-  transition: all 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   
   &:hover {
-    background: rgba(255, 255, 255, 0.9); /* Fondo más blanco al hover */
-    border-color: rgba(0, 0, 0, 0.2);
     transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  &:focus {
+    outline: none;
   }
 }
 
@@ -853,13 +854,16 @@
 
 .recipes-grid {
   display: grid;
-  gap: 25px;
+  gap: 24px;               /* usa un solo gap (24) */
   margin-top: 20px;
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
 
-  grid-template-columns: 1fr;
-  max-width: 100%;
+  grid-template-columns: 1fr;      /* móvil: 1 columna */
+  @media (min-width: 992px) {
+    grid-template-columns: 1fr 1fr; /* desktop: 2 columnas */
+  }
 }
 
 /* 🔥 Asegurar que las recipe cards no causen overflow */
@@ -983,6 +987,7 @@
   justify-content: center;
   gap: 15px;
   flex-wrap: wrap;
+  margin: 8px 0 14px;
 
   @media (max-width: 480px) {
     gap: 8px;
@@ -1236,14 +1241,6 @@ img {
   transform: translateY(-1px);
 }
 
-.recipes-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  width: 100%;
-  max-width: 100%;
-}
-
 .recipes-section > h3 {
   color: #0F314E;
   margin-bottom: 20px;
@@ -1358,70 +1355,103 @@ img {
 /* Recetas dentro de los mensajes de la IA */
 .recipes-in-message {
   margin-top: 15px;
+  display: grid;           /* nuevo */
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+
+  @media (min-width: 992px) {
+    grid-template-columns: 1fr; /* 2 columnas en desktop */
+  }
 }
 
+/* Tarjeta de receta dentro del chat (todas mismas alturas) */
 .message-recipe-card {
   background: white;
   border: 1px solid #d8dee2;
   border-radius: 8px;
   padding: 15px;
-  margin-bottom: 15px;
-  
-  .recipe-message-title {
-    color: #0F314E;
-    margin: 0 0 8px 0;
-    font-size: 1.1em;
-    font-weight: 600;
-  }
-  
-  .recipe-message-desc {
-    color: #666;
-    margin: 0 0 10px 0;
-    font-size: 0.9em;
-    line-height: 1.4;
-  }
-  
-  .recipe-message-ingredients,
-  .recipe-message-preparation {
-    font-size: 0.85em;
-    color: #555;
-    margin-bottom: 10px;
-    line-height: 1.4;
-  }
-  
-  .recipe-message-steps {
-    margin: 5px 0 0 15px;
-    font-size: 0.85em;
-    
-    li {
-      margin-bottom: 4px;
-    }
-  }
-  
-  .recipe-message-ia {
-    background: #eaf4f1;
-    border: 1px solid #99bdb5;
-    border-radius: 4px;
-    padding: 10px 12px;
-    font-size: 0.85em;
-    margin-bottom: 12px;
-    line-height: 1.4;
-  }
-  
-  .recipe-message-choose-btn {
-    background: #0F314E;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 0.9em;
-    cursor: pointer;
-    width: 100%;
-    
-    &:hover {
-      background: #2B4F6D;
-    }
-  }
+  /* OJO: ya usamos gap en .recipes-in-message, así que no duplicamos espaciado */
+  margin-bottom: 0;
+
+  /* Igualar alturas + botón pegado abajo */
+  display: flex;
+  flex-direction: column;
+  min-height: 480px;     /* misma altura para todas */
+  overflow: hidden;
+}
+
+/* Imagen fija y recortada (mismo alto en todas las tarjetas) */
+.message-recipe-image {
+  width: 100%;
+  height: 240px;        /* antes 200px: más “horizontal” */
+  object-fit: cover;
+  object-position: center;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border: 1px solid #e6e6e6; /* si no quieres borde, quita esta línea */
+}
+
+.message-recipe-card .recipe-message-title {
+  color: #0F314E;
+  margin: 0 0 8px 0;
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.message-recipe-card .recipe-message-desc {
+  color: #666;
+  margin: 0 0 10px 0;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+/* Estas secciones pueden crecer; permitimos scroll si se pasan */
+.message-recipe-card .recipe-message-ingredients,
+.message-recipe-card .recipe-message-preparation {
+  font-size: 0.85em;
+  color: #555;
+  margin-bottom: 10px;
+  line-height: 1.4;
+  overflow: auto;         /* evita que rompan la altura fija */
+  max-height: 160px;      /* ajusta si quieres ver más/menos */
+}
+
+.message-recipe-card .recipe-message-steps {
+  margin: 5px 0 0 15px;
+  font-size: 0.85em;
+  li { margin-bottom: 4px; }
+}
+
+.message-recipe-card .recipe-message-ia {
+  background: #eaf4f1;
+  border: 1px solid #99bdb5;
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 0.85em;
+  margin-bottom: 12px;
+  line-height: 1.4;
+  overflow: auto;
+}
+
+/* Botón siempre al fondo de la tarjeta */
+.message-recipe-card .recipe-message-choose-btn {
+  background: #0F314E;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9em;
+  cursor: pointer;
+  width: 100%;
+  margin-top: auto;       /* <- magia: empuja el botón al final */
+  &:hover { background: #2B4F6D; }
+}
+
+/* Ajustes móviles */
+@media (max-width: 480px) {
+  .message-recipe-card { min-height: 360px; }
+  .message-recipe-image { height: 160px; }
 }
 
 /* Input en la parte inferior */
@@ -1853,5 +1883,91 @@ img {
         font-size: 12px;
       }
     }
+  }
+
+  /* Imagen en vista completa */
+  .recipe-image {
+    width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    border: 1px solid #e0e0e0;
+  }
+
+  @media (max-width: 480px) {
+  .message-recipe-image {
+    max-height: 180px;
+  }
+}
+
+}
+
+/* Card interna del historial (imagen + título + X) */
+.historial-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: #fdfbf0;              /* tono clarito sobre el amarillo */
+  border-radius: 12px;
+  border: 2px solid #0F314E;
+  box-sizing: border-box;
+}
+
+/* Miniatura de la receta */
+.historial-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #ddd;
+}
+
+/* Título de la receta en el historial */
+.historial-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0F314E;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* Icono de cerrar (de momento solo visual) */
+.historial-delete {
+  font-size: 18px;
+  color: #777;
+  margin-left: 8px;
+  flex-shrink: 0;
+  transition: color 0.2s ease, transform 0.15s ease;
+  
+  &:hover {
+    color: #0F314E;
+    transform: scale(1.1);
+  }
+}
+
+/* Ajustes en móvil para que no se vea gigante */
+@media (max-width: 480px) {
+  .historial-item {
+    padding: 8px 10px;
+    gap: 10px;
+  }
+
+  .historial-thumb {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+  }
+
+  .historial-title {
+    font-size: 13px;
+  }
+
+  .historial-delete {
+    font-size: 16px;
   }
 }
