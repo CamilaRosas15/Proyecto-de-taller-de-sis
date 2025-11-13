@@ -1971,3 +1971,273 @@ img {
     font-size: 16px;
   }
 }
+
+/* ===== ESTILOS PARA EDICIÓN INLINE DE MENSAJES ===== */
+
+/* Botón de edición en mensajes del usuario */
+.message-actions {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.edit-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+/* Contenedor de edición */
+.message-edit {
+  width: 100%;
+}
+
+.edit-input-container {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.edit-message-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #8ed1c2;
+  border-radius: 18px;
+  background: white;
+  color: #0F314E;
+  font-size: 14px;
+  outline: none;
+  
+  &:focus {
+    border-color: #0F314E;
+    box-shadow: 0 0 0 2px rgba(15, 49, 78, 0.1);
+  }
+}
+
+.edit-actions {
+  display: flex;
+  gap: 4px;
+  flex-direction: column;
+}
+
+.edit-save-btn, .edit-cancel-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.1);
+    background: white;
+  }
+}
+
+.edit-save-btn {
+  color: #4CAF50;
+  
+  &:hover {
+    border-color: #4CAF50;
+    background: #f1f8e9;
+  }
+}
+
+.edit-cancel-btn {
+  color: #f44336;
+  
+  &:hover {
+    border-color: #f44336;
+    background: #ffebee;
+  }
+}
+
+.edit-hint {
+  font-size: 11px;
+  color: #666;
+  text-align: center;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* Lógica para mostrar/ocultar modos de visualización y edición */
+.message-display {
+  display: block;
+}
+
+.message-edit {
+  display: none;
+}
+
+/* Cuando está en modo edición, ocultar visualización y mostrar edición */
+.conversation-message.editing {
+  .message-display {
+    display: none !important;
+  }
+  
+  .message-edit {
+    display: block !important;
+  }
+}
+
+/* Estados visuales para mensaje en edición */
+.user-bubble.editing .message-content {
+  background: #e3f2fd !important;
+  border: 2px solid #8ed1c2 !important;
+}
+
+/* Mejoras responsivas para edición inline */
+@media (max-width: 768px) {
+  .edit-input-container {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .edit-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  
+  .edit-save-btn, .edit-cancel-btn {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  
+  .edit-message-input {
+    font-size: 16px; /* Mejor para móviles */
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-message-input {
+    padding: 10px 14px;
+    font-size: 16px;
+  }
+  
+  .edit-hint {
+    font-size: 10px;
+  }
+}
+
+/* En móviles, mostrar siempre el botón de edición */
+@media (max-width: 768px) {
+  .edit-btn {
+    opacity: 1 !important;
+  }
+}
+
+/* ===== ESTILOS MEJORADOS PARA SUGERENCIAS - ALINEADO IZQUIERDA ===== */
+.suggestions-section {
+  margin-top: 25px;
+  text-align: left; /* Cambiado de center a left */
+  
+  .suggestions-label {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 15px 0;
+    font-weight: 500;
+    font-style: italic;
+  }
+}
+
+.suggestion-btn {
+  background: #0F314E;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  width: auto;
+  display: block; /* Cambiado de inline-block a block para ocupar ancho completo pero alineado izquierda */
+  
+  &:hover {
+    background: #2B4F6D;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(15, 49, 78, 0.3);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* Ajustes responsivos para sugerencias */
+@media (max-width: 768px) {
+  .suggestions-section {
+    margin-top: 20px;
+    
+    .suggestions-label {
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+  }
+  
+  .suggestion-btn {
+    width: 100%; /* En móvil ocupa el ancho completo pero texto alineado izquierda */
+    padding: 12px 20px;
+    font-size: 14px;
+    text-align: center; /* En móvil centramos el texto del botón */
+  }
+}
+
+@media (max-width: 480px) {
+  .suggestions-section {
+    margin-top: 15px;
+    
+    .suggestions-label {
+      font-size: 12px;
+    }
+  }
+  
+  .suggestion-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+
+/* ===== SOLUCIÓN PARA EDITAR MENSAJES - CORREGIR VISIBILIDAD ===== */
+
+/* Mostrar el modo edición cuando está activo */
+.conversation-message .message-edit {
+  display: none;
+}
+
+.conversation-message .message-edit:not([style*="display: none"]) {
+  display: block !important;
+}
+
+/* Asegurar que cuando se está editando, se oculte la visualización normal */
+.conversation-message.editing .message-display {
+  display: none !important;
+}
+
+.conversation-message.editing .message-edit {
+  display: block !important;
+}
+
+/* También usar una clase específica para controlar la visibilidad */
+.message-edit.active {
+  display: block !important;
+}
+
+.message-display.hidden {
+  display: none !important;
+}

@@ -227,10 +227,17 @@
                   placeholder="Escribe tus preferencias aquí..."
                   class="message-input"
                   (keyup.enter)="sendMessage()">
-                <button (click)="sendMessage()" class="send-btn">Generar recomendaciones</button>
+                <button (click)="sendMessageWithValidation()" class="send-btn">Enviar</button>
+              </div>
+              <!-- NUEVO: Sección de sugerencias agregada -->
+              <div class="suggestions-section">
+                <p class="suggestions-label">¿Quieres algo adaptado a tu perfil?: </p>
+                <button (click)="sendMessage()" class="suggestion-btn">
+                  Generar recomendaciones
+                </button>
               </div>
             </div>
-
+            
             <!-- Loading general (para la vista inicial) -->
             <div *ngIf="cargando" class="loading-section">
               <div class="spinner"></div>
@@ -245,7 +252,7 @@
             <div class="conversation-history-container">
               
               <!-- Mostrar todos los mensajes de la conversación -->
-              <div *ngFor="let message of conversationHistory" 
+              <div *ngFor="let message of conversationHistory; let i = index" 
                    class="conversation-message"
                    [class.user-message]="message.type === 'user'"
                    [class.assistant-message]="message.type === 'assistant'">
@@ -254,8 +261,43 @@
                 <div *ngIf="message.type === 'user'" class="message-bubble user-bubble">
                   <div class="message-avatar">👤</div>
                   <div class="message-content">
-                    <div class="message-text">{{ message.content }}</div>
-                    <div class="message-time">{{ message.timestamp | date:'shortTime' }}</div>
+                    
+                    <!-- Modo visualización normal - MOSTRAR cuando NO estamos editando este mensaje -->
+                    <div *ngIf="editingMessageIndex !== i" class="message-display">
+                      <div class="message-text">{{ message.content }}</div>
+                      <div class="message-actions">
+                        <button class="edit-btn" (click)="startEditMessage(i)" title="Editar mensaje">
+                          ✏
+                        </button>
+                      </div>
+                      <div class="message-time">{{ message.timestamp | date:'shortTime' }}</div>
+                    </div>
+                    
+                    <!-- Modo edición inline - MOSTRAR cuando SÍ estamos editando este mensaje -->
+                    <div *ngIf="editingMessageIndex === i" class="message-edit">
+                      <div class="edit-input-container">
+                        <input 
+                          type="text" 
+                          [(ngModel)]="editingMessageText"
+                          class="edit-message-input"
+                          placeholder="Edita tu mensaje..."
+                          (keyup.enter)="saveEditedMessage()"
+                          (keyup.escape)="cancelEdit()"
+                          #editInput>
+                        <div class="edit-actions">
+                          <button class="edit-cancel-btn" (click)="cancelEdit()" title="Cancelar">
+                            ❌
+                          </button>
+                          <button class="edit-save-btn" (click)="saveEditedMessage()" title="Guardar">
+                            ✅
+                          </button>
+                        </div>
+                      </div>
+                      <div class="edit-hint">
+                        Presiona Enter para guardar, Esc para cancelar
+                      </div>
+                    </div>
+                    
                   </div>
                 </div>
 
