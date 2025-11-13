@@ -564,4 +564,24 @@ Comienza DIRECTAMENTE con "- Encaje:" y luego "- Sugerencia:".
 
     return recetasConDetalles;
   }
+
+    async deleteHistoryEntry(userId: string, historyId: string): Promise<void> {
+    this.logger.log(
+      `🗑 [RecipesService] Eliminando historial ${historyId} para usuario ${userId}`,
+    );
+
+    const { error } = await this.supabase
+      .getClient()
+      .from('historial_recetas')
+      .delete()
+      .eq('id_usuario', userId)        // columna usuario
+      .eq('id_historial', historyId);  // 👈 nombre real de la PK
+
+    if (error) {
+      this.logger.error('❌ Error borrando historial en Supabase:', error);
+      throw new Error(`No se pudo eliminar el historial: ${error.message}`);
+    }
+
+    this.logger.log(`✅ Historial ${historyId} eliminado correctamente`);
+  }
 }

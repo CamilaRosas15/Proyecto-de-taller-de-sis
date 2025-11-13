@@ -553,6 +553,31 @@ body {
   color: #b3261e;
   padding: 12px 16px;
   border-radius: 8px;
+
+  /* Styling for AI raw formatted text (converted from markdown-like text) */
+  .ai-raw {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+    color: #1f2937;
+    line-height: 1.45;
+    max-width: 980px;
+    margin: 12px auto 20px;
+  }
+
+  .ai-raw .ai-heading {
+    font-weight: 700;
+    font-size: 16px;
+    margin: 6px 0 10px;
+  }
+
+  .ai-raw p { margin: 8px 0; }
+  .ai-raw .ai-line { margin: 6px 0; color: #374151; }
+  .ai-raw ul.ai-list { margin: 8px 0 12px 18px; color: #374151; }
+  .ai-raw ul.ai-list li { margin: 6px 0; }
+  .ai-raw strong { color: #111827; }
+
   font-weight: 500;
 }
 

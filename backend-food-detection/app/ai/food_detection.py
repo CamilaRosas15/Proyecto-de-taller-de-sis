@@ -109,7 +109,7 @@ class FoodDetectionSystem:
         
         return {
             "backend": "gemini",
-            "model_name": "Gemini 1.5 Flash",
+            "model_name": settings.GEMINI_MODEL_NAME,
             "provider": "Google AI",
             "status": "active" if self.detector else "simulation",
             "capabilities": [

@@ -7,18 +7,21 @@ import { HistorialService, HistorialSidebar } from '../../services/historial.ser
 import { AuthService } from '../../services/auth';
 import { adaptFriendlyTextToFoodDashboard, FoodDashboardData } from '../../core/adapters/vision-dashboard.adapter';
 import { FoodDashboardComponent } from '../../components/food-dashboard/food-dashboard.component';
+import { AiTextToHtmlPipe } from '../../pipes/ai-text-to-html.pipe';
 
 @Component({
   selector: 'app-analisis-imagen',
   standalone: true,
-  imports: [CommonModule, RouterLink, FoodDashboardComponent],
+  imports: [CommonModule, RouterLink, FoodDashboardComponent, AiTextToHtmlPipe],
   templateUrl: './analisis-imagen.html',
   styleUrls: ['./analisis-imagen.scss']
 })
 export class AnalisisImagenComponent implements OnInit {
   selectedFile: File | null = null;
   imageUrl: string | null = null;
+  imageBase64: string = '';
   analysisResult: string | null = null;
+  narrativeAnalysis: string | null = null; // Parte narrativa para el modal
   dashboardData: FoodDashboardData | null = null;
   showRaw: boolean = false;
   errorMessage: string | null = null;
@@ -95,6 +98,10 @@ export class AnalisisImagenComponent implements OnInit {
             this.analysisResult = null;
             this.errorMessage = null;
             this.isNonFoodMessage = false;
+            
+            // Convertir a base64 para el análisis narrativo
+            this.convertToBase64(file);
+            
             this.cdRef.detectChanges(); // forzar render inmediato
           }
         };
@@ -178,6 +185,9 @@ export class AnalisisImagenComponent implements OnInit {
               this.errorMessage = null;
               this.isNonFoodMessage = false;
 
+              // Convertir a base64 para el análisis narrativo
+              this.convertToBase64(file);
+
               // 🔹 Forzar render para que Angular muestre la imagen y el botón "Analizar"
               this.cdRef.detectChanges();
             }
@@ -231,8 +241,24 @@ export class AnalisisImagenComponent implements OnInit {
       this.analysisResult = null;
       this.errorMessage = null;
       this.isNonFoodMessage = false;
+      
+      // Convertir a base64 para el análisis narrativo
+      this.convertToBase64(file);
+      
       this.cdRef.detectChanges();
     }
+  }
+
+  private convertToBase64(file: File): void {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        const base64String = e.target.result as string;
+        // Remover el prefijo "data:image/...;base64,"
+        this.imageBase64 = base64String.split(',')[1];
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   uploadImage(): void {
@@ -256,37 +282,61 @@ export class AnalisisImagenComponent implements OnInit {
 
       const headers = new HttpHeaders();
 
-      this.http.post(this.FASTAPI_URL, formData, { headers, responseType: 'text' })
-        .subscribe({
-          next: (response: string) => {
-            this.analysisResult = response;
-            this.dashboardData = adaptFriendlyTextToFoodDashboard(response);
-
-            const lower = response.toLowerCase();
-            this.isNonFoodMessage =
-              lower.includes('no contiene comida') ||
-              lower.includes('especializada en análisis nutricional') ||
-              lower.includes('no es una imagen de comida');
-
-            this.errorMessage = null;
-
-            if (!this.isNonFoodMessage && this.selectedFile && this.userId) {
-              this.guardarEnHistorial(this.selectedFile, response);
+      this.http.post(this.FASTAPI_URL, formData, { 
+        headers, 
+        responseType: 'text'
+      }).subscribe({
+        next: (response: string) => {
+          console.log('Respuesta cruda de la IA:', response);
+          
+          // Procesar respuesta dual si contiene separador
+          if (response.includes('---SEPARADOR---')) {
+            const parts = response.split('---SEPARADOR---');
+            if (parts.length >= 2) {
+              this.narrativeAnalysis = parts[0].trim(); // Parte narrativa para el modal
+              this.analysisResult = parts[1].trim(); // Parte estructurada para el dashboard
+              console.log('✅ ANÁLISIS SEPARADO CORRECTAMENTE');
+              console.log('📖 Análisis narrativo (para modal):', this.narrativeAnalysis.substring(0, 200) + '...');
+              console.log('📊 Análisis estructurado (para dashboard):', this.analysisResult.substring(0, 200) + '...');
+            } else {
+              this.analysisResult = response;
+              this.narrativeAnalysis = response;
+              console.log('⚠️ SEPARADOR ENCONTRADO PERO NO SE PUDIERON SEPARAR LAS PARTES');
             }
-
-            this.cdRef.detectChanges();
-          },
-          error: (error) => {
-            console.error('Error al subir la imagen:', error);
-            this.errorMessage = 'Hubo un error al analizar la imagen. Por favor, inténtalo de nuevo.';
-            this.analysisResult = null;
-            this.cdRef.detectChanges();
+          } else {
+            // Respuesta simple (backward compatibility)
+            this.analysisResult = response;
+            this.narrativeAnalysis = response;
+            console.log('⚠️ NO SE ENCONTRÓ SEPARADOR - USANDO RESPUESTA COMPLETA PARA AMBAS');
           }
-        });
+          
+          this.dashboardData = adaptFriendlyTextToFoodDashboard(this.analysisResult);
+          console.log('Dashboard data procesado:', this.dashboardData);
+          
+          const lower = response.toLowerCase();
+          this.isNonFoodMessage = 
+            lower.includes('no contiene comida') || 
+            lower.includes('especializada en análisis nutricional') ||
+            lower.includes('no es una imagen de comida');
+          
+          this.errorMessage = null;
+
+          // Guardar en el historial solo si es comida y tenemos el archivo original
+          if (!this.isNonFoodMessage && this.selectedFile && this.userId) {
+            this.guardarEnHistorial(this.selectedFile, this.analysisResult);
+          }
+
+          this.cdRef.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error al subir la imagen:', error);
+          this.errorMessage = 'Hubo un error al analizar la imagen. Por favor, inténtalo de nuevo.';
+          this.analysisResult = null;
+          this.cdRef.detectChanges();
+        }
+      });
     }, 50);
   }
-
-
 
   private guardarEnHistorial(imagenFile: File, analysisResult: string): void {
     const userId = this.userId;
@@ -395,14 +445,15 @@ export class AnalisisImagenComponent implements OnInit {
 
     this.selectedFile = null;
     this.imageUrl = null;
+    this.imageBase64 = '';
     this.analysisResult = null;
+    this.narrativeAnalysis = null;
     this.errorMessage = null;
     this.isNonFoodMessage = false;
 
     // 👇 Fuerza a Angular a refrescar la vista, arregla el bug del botón
     this.cdRef.detectChanges();
   }
-
 
   formatearFecha(fecha: string): string {
     try {
@@ -465,6 +516,10 @@ export class AnalisisImagenComponent implements OnInit {
         this.analysisResult = null;
         this.errorMessage = null;
         this.isNonFoodMessage = false;
+        
+        // Convertir a base64 para el análisis narrativo
+        this.convertToBase64(file);
+        
         this.cdRef.detectChanges();
       } else {
         this.errorMessage = 'Por favor, selecciona solo archivos de imagen.';

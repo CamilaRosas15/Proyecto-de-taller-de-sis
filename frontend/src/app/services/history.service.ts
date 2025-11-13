@@ -53,6 +53,24 @@ export class HistoryService {
     );
     }
 
+  deleteHistoryEntry(historyId: string): Observable<any> {
+    const userId = this.authService.currentUserId;
+    if (!userId) {
+      return throwError(() => new Error('Usuario no autenticado'));
+    }
+
+    const url = `${this.baseUrl}/history/user/${userId}/${historyId}`;
+    console.log('🔗 DELETE historial →', url);
+
+    return this.http
+      .delete(url, {
+        headers: {
+          Authorization: `Bearer ${this.authService.accessToken}`,
+        },
+      })
+      .pipe(catchError(this.handleError));
+  }
+
   private handleError(error: any) {
     console.error('Error en HistoryService:', error);
     return throwError(() => 

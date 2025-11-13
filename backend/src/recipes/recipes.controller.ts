@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body, NotFoundException, Logger, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, NotFoundException, Logger, UseGuards, Delete } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // AÑADIR
 
@@ -66,5 +66,17 @@ export class RecipesController {
   async getUserHistory(@Param('userId') userId: string) {
     this.logger.log(`📚 Obteniendo historial para usuario ${userId}`);
     return this.recipesService.getUserHistoryWithDetails(userId);
+  }
+
+  @Delete('history/user/:userId/:historyId')
+  @UseGuards(JwtAuthGuard)
+  async deleteHistoryEntry(
+    @Param('userId') userId: string,
+    @Param('historyId') historyId: string,
+  ) {
+    this.logger.log(`🗑 Eliminando historial ${historyId} para usuario ${userId}`);
+    // 👇 YA NO CONVERTIMOS A Number, ES UUID
+    await this.recipesService.deleteHistoryEntry(userId, historyId);
+    return { ok: true };
   }
 }
