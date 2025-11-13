@@ -167,8 +167,18 @@ async def analyze_food_natural(file: UploadFile = File(...)):
         # Realizar detección
         result = await food_detector.detect_objects(image_data)
         
-        # Si es análisis en lenguaje natural, devolver directamente el texto
-        if result.get("analysis_type") == "natural_language":
+        # Manejar nuevo formato dual
+        if result.get("analysis_type") == "dual_format":
+            from fastapi.responses import PlainTextResponse
+            # Devolver ambas partes con separador para que el frontend las pueda separar
+            narrative_part = result.get("narrative_analysis", "")
+            structured_part = result.get("gemini_analysis", "")
+            dual_response = f"{narrative_part}\n\n---SEPARADOR---\n\n{structured_part}"
+            return PlainTextResponse(
+                content=dual_response,
+                media_type="text/plain; charset=utf-8"
+            )
+        elif result.get("analysis_type") == "natural_language":
             from fastapi.responses import PlainTextResponse
             return PlainTextResponse(
                 content=result.get("gemini_analysis", "No se pudo analizar la imagen"),
@@ -185,6 +195,45 @@ async def analyze_food_natural(file: UploadFile = File(...)):
         raise
     except Exception as e:
         logger.error(f"Error en análisis natural: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/get-narrative-analysis")
+async def get_narrative_analysis(file: UploadFile = File(...)):
+    """
+    Obtiene solo el análisis narrativo completo para el modal.
+    """
+    try:
+        # Validar tipo de archivo
+        if not file.content_type.startswith('image/'):
+            raise HTTPException(
+                status_code=400, 
+                detail="El archivo debe ser una imagen"
+            )
+        
+        # Leer datos de la imagen
+        image_data = await file.read()
+        
+        # Realizar detección
+        result = await food_detector.detect_objects(image_data)
+        
+        # Devolver análisis narrativo si está disponible
+        if result.get("analysis_type") == "dual_format":
+            from fastapi.responses import PlainTextResponse
+            return PlainTextResponse(
+                content=result.get("narrative_analysis", "No se pudo obtener análisis narrativo"),
+                media_type="text/plain; charset=utf-8"
+            )
+        else:
+            # Para otros formatos, devolver el análisis disponible
+            return PlainTextResponse(
+                content=result.get("gemini_analysis", "No se pudo analizar la imagen"),
+                media_type="text/plain; charset=utf-8"
+            )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error en análisis narrativo: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/nutrition-database", response_model=Dict)

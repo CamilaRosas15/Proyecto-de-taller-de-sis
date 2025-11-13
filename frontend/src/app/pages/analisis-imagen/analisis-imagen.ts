@@ -7,18 +7,21 @@ import { HistorialService, HistorialSidebar } from '../../services/historial.ser
 import { AuthService } from '../../services/auth';
 import { adaptFriendlyTextToFoodDashboard, FoodDashboardData } from '../../core/adapters/vision-dashboard.adapter';
 import { FoodDashboardComponent } from '../../components/food-dashboard/food-dashboard.component';
+import { AiTextToHtmlPipe } from '../../pipes/ai-text-to-html.pipe';
 
 @Component({
   selector: 'app-analisis-imagen',
   standalone: true,
-  imports: [CommonModule, RouterLink, FoodDashboardComponent],
+  imports: [CommonModule, RouterLink, FoodDashboardComponent, AiTextToHtmlPipe],
   templateUrl: './analisis-imagen.html',
   styleUrl: './analisis-imagen.scss'
 })
 export class AnalisisImagenComponent implements OnInit {
   selectedFile: File | null = null;
   imageUrl: string | null = null;
+  imageBase64: string = '';
   analysisResult: string | null = null;
+  narrativeAnalysis: string | null = null; // Parte narrativa para el modal
   dashboardData: FoodDashboardData | null = null;
   showRaw: boolean = false;
   errorMessage: string | null = null;
@@ -57,7 +60,22 @@ export class AnalisisImagenComponent implements OnInit {
       this.analysisResult = null;
       this.errorMessage = null;
       this.isNonFoodMessage = false;
+      
+      // Convertir a base64 para el análisis narrativo
+      this.convertToBase64(file);
     }
+  }
+
+  private convertToBase64(file: File): void {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        const base64String = e.target.result as string;
+        // Remover el prefijo "data:image/...;base64,"
+        this.imageBase64 = base64String.split(',')[1];
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   uploadImage(): void {
@@ -75,8 +93,31 @@ export class AnalisisImagenComponent implements OnInit {
         responseType: 'text'
       }).subscribe({
         next: (response: string) => {
-          this.analysisResult = response;
-          this.dashboardData = adaptFriendlyTextToFoodDashboard(response);
+          console.log('Respuesta cruda de la IA:', response);
+          
+          // Procesar respuesta dual si contiene separador
+          if (response.includes('---SEPARADOR---')) {
+            const parts = response.split('---SEPARADOR---');
+            if (parts.length >= 2) {
+              this.narrativeAnalysis = parts[0].trim(); // Parte narrativa para el modal
+              this.analysisResult = parts[1].trim(); // Parte estructurada para el dashboard
+              console.log('✅ ANÁLISIS SEPARADO CORRECTAMENTE');
+              console.log('📖 Análisis narrativo (para modal):', this.narrativeAnalysis.substring(0, 200) + '...');
+              console.log('📊 Análisis estructurado (para dashboard):', this.analysisResult.substring(0, 200) + '...');
+            } else {
+              this.analysisResult = response;
+              this.narrativeAnalysis = response;
+              console.log('⚠️ SEPARADOR ENCONTRADO PERO NO SE PUDIERON SEPARAR LAS PARTES');
+            }
+          } else {
+            // Respuesta simple (backward compatibility)
+            this.analysisResult = response;
+            this.narrativeAnalysis = response;
+            console.log('⚠️ NO SE ENCONTRÓ SEPARADOR - USANDO RESPUESTA COMPLETA PARA AMBAS');
+          }
+          
+          this.dashboardData = adaptFriendlyTextToFoodDashboard(this.analysisResult);
+          console.log('Dashboard data procesado:', this.dashboardData);
           this.isNonFoodMessage = response.toLowerCase().includes('no contiene comida') || 
                                  response.toLowerCase().includes('especializada en análisis nutricional') ||
                                  response.toLowerCase().includes('no es una imagen de comida');
@@ -84,7 +125,7 @@ export class AnalisisImagenComponent implements OnInit {
 
           // Guardar en el historial solo si es comida y tenemos el archivo original
           if (!this.isNonFoodMessage && this.selectedFile && this.userId) {
-            this.guardarEnHistorial(this.selectedFile, response);
+            this.guardarEnHistorial(this.selectedFile, this.analysisResult);
           }
         },
         error: (error) => {
@@ -206,7 +247,9 @@ export class AnalisisImagenComponent implements OnInit {
     }
     
     this.imageUrl = null;
+    this.imageBase64 = '';
     this.analysisResult = null;
+    this.narrativeAnalysis = null;
     this.errorMessage = null;
     this.isNonFoodMessage = false;
   }
