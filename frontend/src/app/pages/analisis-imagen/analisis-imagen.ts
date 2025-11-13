@@ -25,6 +25,7 @@ export class AnalisisImagenComponent implements OnInit {
   isNonFoodMessage: boolean = false;
   historialSidebar: HistorialSidebar[] = [];
   userName: string | null = null;
+  hasCameraSupport: boolean = false;
   
   private readonly FASTAPI_URL = 'http://localhost:8000/api/v1/ai/analyze-food-natural';
 
@@ -35,7 +36,7 @@ export class AnalisisImagenComponent implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
       return;
@@ -43,7 +44,137 @@ export class AnalisisImagenComponent implements OnInit {
 
     this.userName = this.authService.currentUserName;
     this.cargarHistorialSidebar();
+    
+    // Detectar si hay cámara disponible
+    await this.detectCamera();
   }
+
+  // Detectar cámara disponible
+  async detectCamera(): Promise<void> {
+    try {
+      // Verificar si el navegador soporta getUserMedia
+      if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+        // Intentar enumerar dispositivos
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        this.hasCameraSupport = devices.some(device => device.kind === 'videoinput');
+        
+        console.log('Cámara detectada:', this.hasCameraSupport);
+      } else {
+        this.hasCameraSupport = false;
+      }
+    } catch (error) {
+      console.error('Error al detectar cámara:', error);
+      this.hasCameraSupport = false;
+    }
+  }
+
+  // Abrir la cámara del dispositivo
+  async openCamera(): Promise<void> {
+    try {
+      // Detectar si está en dispositivo móvil
+      const esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+      if (esMovil) {
+        // 📱 En móvil, usar input con capture
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.capture = 'environment'; // Cámara trasera
+        input.onchange = (event: any) => {
+          const file = event.target.files[0];
+          if (file) {
+            this.selectedFile = file;
+            this.imageUrl = URL.createObjectURL(file);
+            this.analysisResult = null;
+            this.errorMessage = null;
+            this.isNonFoodMessage = false;
+          }
+        };
+        input.click();
+      } else if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+        // 💻 En laptop/PC, abrir cámara con getUserMedia
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.autoplay = true;
+        video.style.width = '100%';
+        video.style.maxWidth = '400px';
+        video.style.borderRadius = '10px';
+        video.style.display = 'block';
+
+        const captureButton = document.createElement('button');
+        captureButton.textContent = '📷 Capturar';
+        captureButton.style.marginTop = '10px';
+        captureButton.style.padding = '8px 16px';
+        captureButton.style.border = 'none';
+        captureButton.style.backgroundColor = '#4caf50';
+        captureButton.style.color = 'white';
+        captureButton.style.borderRadius = '8px';
+        captureButton.style.cursor = 'pointer';
+
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.inset = '0';
+        overlay.style.background = 'rgba(0,0,0,0.85)';
+        overlay.style.display = 'flex';
+        overlay.style.flexDirection = 'column';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.style.zIndex = '10000';
+
+        const closeButton = document.createElement('button');
+        closeButton.textContent = '❌ Cancelar';
+        closeButton.style.marginTop = '10px';
+        closeButton.style.padding = '8px 16px';
+        closeButton.style.backgroundColor = '#e53935';
+        closeButton.style.color = 'white';
+        closeButton.style.border = 'none';
+        closeButton.style.borderRadius = '8px';
+        closeButton.style.cursor = 'pointer';
+
+        overlay.appendChild(video);
+        overlay.appendChild(captureButton);
+        overlay.appendChild(closeButton);
+        document.body.appendChild(overlay);
+
+        // Capturar la imagen
+        captureButton.onclick = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          // Convertir a blob y File
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const file = new File([blob], 'foto_capturada.png', { type: 'image/png' });
+              this.selectedFile = file;
+              this.imageUrl = URL.createObjectURL(file);
+              this.analysisResult = null;
+              this.errorMessage = null;
+              this.isNonFoodMessage = false;
+            }
+          }, 'image/png');
+
+          stream.getTracks().forEach(t => t.stop());
+          document.body.removeChild(overlay);
+        };
+
+        // Cerrar cámara sin capturar
+        closeButton.onclick = () => {
+          stream.getTracks().forEach(t => t.stop());
+          document.body.removeChild(overlay);
+        };
+      } else {
+        this.errorMessage = 'Tu dispositivo no tiene cámara disponible.';
+      }
+    } catch (error) {
+      console.error('Error al abrir cámara:', error);
+      this.errorMessage = 'No se pudo acceder a la cámara. Verifica los permisos.';
+    }
+  }
+
 
   get userId(): string | null {
     return this.authService.currentUserId;

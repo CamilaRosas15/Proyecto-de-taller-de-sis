@@ -233,33 +233,33 @@ body {
     }
   }
   .profile-btn {
-    background: none; /* QUITADO el fondo verde */
+    background: none;
     border: none;
-    border-radius: 0; /* QUITADO el borde redondeado */
-    width: auto; /* Tamaño automático */
-    height: auto; /* Tamaño automático */
+    border-radius: 0;
+    width: auto;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    padding: 5px; /* Un poco de padding para mejor click */
+    padding: 5px;
     transition: all 0.3s ease;
     flex-shrink: 0;
     
     &:hover {
-      background: none; /* QUITADO el fondo en hover */
-      transform: scale(1.1); /* Solo un poco más grande al hover */
+      background: none;
+      transform: scale(1.1);
     }
 
     .pencil-icon {
-      width: 20px; /* Tamaño un poco más grande */
+      width: 20px;
       height: 20px;
       object-fit: contain;
       border-radius: 0;
-      filter: brightness(0.7); /* Un poco más oscuro para mejor contraste */
+      filter: brightness(0.7);
       
       &:hover {
-        filter: brightness(0.5); /* Más oscuro al hover */
+        filter: brightness(0.5);
       }
     }
   }
@@ -363,21 +363,20 @@ body {
     line-height: 1.4;
   }
 
-  /* Desktop: solo mostrar botón de subir */
-  .desktop-buttons {
-    display: block;
+  .camera-status {
+    margin-top: 8px;
+    color: #f39c12;
+    font-size: 12px;
+    font-weight: 500;
   }
 
-  .mobile-buttons {
-    display: none;
-  }
-
-  .desktop-hint {
-    display: block;
-  }
-
-  .mobile-hint {
-    display: none;
+  /* Botones universales - visibles en todos los dispositivos */
+  .upload-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
   }
 }
 
@@ -573,7 +572,7 @@ body {
   }
 }
 
-/* Móviles y tablets pequeñas - Mostrar ambos botones */
+/* Móviles y tablets pequeñas */
 @media (max-width: 768px) {
   .app-container {
     grid-template-columns: 1fr;
@@ -621,26 +620,11 @@ body {
     padding: 20px 15px;
   }
 
-  /* En móviles: ocultar botones desktop, mostrar botones móviles */
+  /* Responsivo para botones en móvil */
   .upload-section {
-    .desktop-buttons {
-      display: none !important;
-    }
-
-    .mobile-buttons {
-      display: flex !important;
+    .upload-buttons {
       flex-direction: column;
-      gap: 12px;
       width: 100%;
-      align-items: center;
-    }
-
-    .desktop-hint {
-      display: none !important;
-    }
-
-    .mobile-hint {
-      display: block !important;
     }
 
     .upload-btn {
