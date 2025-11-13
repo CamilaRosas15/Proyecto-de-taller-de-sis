@@ -24,7 +24,8 @@ export class ChatIAComponent {
   isMobileMenuOpen = false;
 
   conversationHistory: any[] = [];
-
+  editingMessageIndex: number = -1;
+  editingMessageText: string = '';
   userName: string | null = null;
   userEmail: string | null = null;
 
@@ -246,10 +247,105 @@ export class ChatIAComponent {
     this.userMessage = '';
     this.errorMessage = '';
     this.conversationHistory = [];
+    this.cancelEdit();
+  }
+  // NUEVO: Método para validar antes de enviar (para el botón "Enviar")
+  sendMessageWithValidation() {
+    if (!this.userMessage.trim()) {
+      this.errorMessage = 'Por favor, escribe tu mensaje para comenzar la conversación';
+      return; // Detener si está vacío
+    }
+    
+    this.sendMessage();
+  }
+
+  // NUEVO: Iniciar edición inline
+  startEditMessage(messageIndex: number) {
+    console.log('✏ Iniciando edición del mensaje:', messageIndex);
+    
+    const messageToEdit = this.conversationHistory[messageIndex];
+    this.editingMessageIndex = messageIndex;
+    this.editingMessageText = messageToEdit.content;
+    
+    // Forzar la detección de cambios
+    setTimeout(() => {
+      const inputElement = document.querySelector('.edit-message-input') as HTMLInputElement;
+      if (inputElement) {
+        inputElement.focus();
+        inputElement.select();
+        console.log('✅ Input de edición enfocado');
+      } else {
+        console.log('❌ No se encontró el input de edición');
+      }
+    }, 100);
+  }
+
+  // NUEVO: Guardar mensaje editado
+  saveEditedMessage() {
+    console.log('💾 Intentando guardar mensaje editado...');
+    
+    if (!this.editingMessageText.trim()) {
+      console.log('❌ Mensaje vacío, cancelando');
+      this.cancelEdit();
+      return;
+    }
+
+    if (this.editingMessageIndex !== -1) {
+      console.log('✅ Guardando mensaje en índice:', this.editingMessageIndex);
+      
+      // Actualizar el mensaje en el historial
+      this.conversationHistory[this.editingMessageIndex].content = this.editingMessageText.trim();
+      this.conversationHistory[this.editingMessageIndex].timestamp = new Date();
+      
+      const userMessageIndex = this.editingMessageIndex;
+      
+      console.log('📝 Mensaje actualizado:', this.editingMessageText);
+      
+      // Eliminar mensajes de IA posteriores al mensaje editado
+      this.conversationHistory = this.conversationHistory.slice(0, userMessageIndex + 1);
+      console.log('🗑 Mensajes posteriores eliminados');
+      
+      // Limpiar estado de edición
+      this.cancelEdit();
+      
+      // Generar nueva respuesta basada en el mensaje editado
+      this.regenerateResponse(userMessageIndex);
+    } else {
+      console.log('❌ Índice de edición inválido');
+    }
+  }
+
+  // NUEVO: Cancelar edición
+  cancelEdit() {
+    console.log('❌ Cancelando edición');
+    this.editingMessageIndex = -1;
+    this.editingMessageText = '';
+  }
+
+  // NUEVO: Regenerar respuesta después de editar
+  regenerateResponse(messageIndex: number) {
+    console.log('🔄 Regenerando respuesta para mensaje:', messageIndex);
+    
+    const editedMessage = this.conversationHistory[messageIndex].content;
+    
+    this.cargando = true;
+    this.errorMessage = '';
+    this.recetaSeleccionada = null;
+
+    // Procesar el mensaje editado
+    this.procesarMensaje(editedMessage);
+
+    // Generar nuevas recomendaciones basadas en el mensaje editado
+    this.generarRecomendaciones(editedMessage);
   }
 
   sendMessage() {
     // AÑADIR estas 2 líneas:
+    // Limpiar estado de edición si existe
+    if (this.editingMessageIndex !== -1) {
+      this.cancelEdit();
+    }
+
     this.recetaSeleccionada = null;
 
     this.preferencias = {
@@ -395,6 +491,8 @@ export class ChatIAComponent {
     this.errorMessage = '';
     this.ultimoPayload = null;
     this.recetaSeleccionada = null; // AÑADIR esta línea
+    this.editingMessageIndex = -1; // NUEVO: Limpiar estado de edición
+    this.editingMessageText = ''; // NUEVO: Limpiar texto de edición
     this.preferencias = {
       alergias: [],
       noMeGusta: [],
