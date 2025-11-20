@@ -112,7 +112,7 @@ export class SupabaseService {
   async listRecetas(limit = 200): Promise<any[]> {
     const { data, error } = await this.supabase
       .from('recetas')
-      .select('id_receta, nombre, descripcion, categoria, tiempo_preparacion, calorias_totales, instrucciones, imagen_url, ingredientes')
+      .select('id_receta, nombre, descripcion, categoria, tiempo_preparacion, calorias_totales, instrucciones, imagen_url, ingredientes,ingredientes_detalles')
       .limit(limit);
 
     if (error) {

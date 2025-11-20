@@ -79,4 +79,24 @@ export class RecipesController {
     await this.recipesService.deleteHistoryEntry(userId, historyId);
     return { ok: true };
   }
+
+    @Get(':id/shopping-list')
+  async getShoppingListForRecipe(@Param('id') id: string) {
+    this.logger.log(`🛒 GET /recipes/${id}/shopping-list llamado`);
+
+    const numId = Number(id);
+    if (Number.isNaN(numId)) {
+      throw new NotFoundException('El ID de receta debe ser numérico.');
+    }
+
+    const lista = await this.recipesService.getShoppingListForRecipe(numId);
+
+    if (!lista.length) {
+      // Puede ser receta inexistente o sin ingredientes; tú decides si tiras excepción o devuelves []
+      this.logger.warn(`⚠️ Lista de ingredientes vacía para receta ${numId}`);
+    }
+
+    return lista;
+  }
+
 }

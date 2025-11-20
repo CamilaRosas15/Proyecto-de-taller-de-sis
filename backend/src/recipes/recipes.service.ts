@@ -41,6 +41,11 @@ export interface OpcionOut {
   ia_explicacion?: string | null;
 }
 
+export interface ShoppingListItem {
+  nombre: string;
+  detalles: string[];   // lista de textos de ingredientes_detalles
+}
+
 function isValidUuid(v?: string): boolean {
   if (!v) return false;
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
@@ -584,4 +589,72 @@ Comienza DIRECTAMENTE con "- Encaje:" y luego "- Sugerencia:".
 
     this.logger.log(`✅ Historial ${historyId} eliminado correctamente`);
   }
+
+  async getShoppingListForRecipe(idReceta: number): Promise<ShoppingListItem[]> {
+    this.logger.log(`🛒 Generando lista de ingredientes para receta ${idReceta}`);
+
+    // 1) Traemos la receta cruda desde Supabase (incluye ingredientes + ingredientes_detalles)
+    const receta = await this.supabase.getRecetaById(idReceta);
+    if (!receta) {
+      this.logger.warn(`⚠️ No se encontró la receta ${idReceta} para lista de ingredientes`);
+      return [];
+    }
+
+    const ingredientes: any[] = Array.isArray(receta.ingredientes)
+      ? receta.ingredientes
+      : [];
+
+    const detallesArr: any[] = Array.isArray(receta.ingredientes_detalles)
+      ? receta.ingredientes_detalles
+      : [];
+
+    // 2) Mapeamos por índice: ingredientes[i] ↔ ingredientes_detalles[i]
+    //    (por si acaso agrupamos por nombre, aunque normalmente serán únicos)
+    const listaMap = new Map<string, { nombre: string; detalles: string[] }>();
+
+    const normalize = (s?: string) =>
+      (s ?? '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+
+    ingredientes.forEach((ing, index) => {
+      const nombre = typeof ing === 'string' ? ing.trim() : String(ing);
+      if (!nombre) return;
+
+      const key = normalize(nombre);
+
+      const detalleRaw = detallesArr[index];
+      const detalle =
+        typeof detalleRaw === 'string'
+          ? detalleRaw.trim()
+          : detalleRaw
+          ? String(detalleRaw).trim()
+          : '';
+
+      if (!listaMap.has(key)) {
+        listaMap.set(key, {
+          nombre,
+          detalles: detalle ? [detalle] : [],
+        });
+      } else {
+        const entry = listaMap.get(key)!;
+        if (detalle && !entry.detalles.includes(detalle)) {
+          entry.detalles.push(detalle);
+        }
+      }
+    });
+
+    const lista: ShoppingListItem[] = Array.from(listaMap.values()).sort((a, b) =>
+      a.nombre.localeCompare(b.nombre),
+    );
+
+    this.logger.log(
+      `✅ Lista de ingredientes para receta ${idReceta} generada con ${lista.length} ítems`,
+    );
+
+    return lista;
+  }
+
 }
