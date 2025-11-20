@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { RecipeService, RecommendRequest, RecommendResponse, OpcionOut } from '../../services/recipe';
+import { RecipeService, RecommendRequest, RecommendResponse, OpcionOut,ShoppingListItem } from '../../services/recipe';
 import { RouterLink} from '@angular/router'; 
 import { HistoryService } from '../../services/history.service'; // AÑADIR
 import { AuthService } from '../../services/auth'; // AÑADIR
@@ -22,6 +22,7 @@ export class ChatIAComponent {
   historialRecetas: any[] = []; 
   recetaSeleccionada: any = null; 
   isMobileMenuOpen = false;
+  shoppingList: ShoppingListItem[] = []; 
 
   conversationHistory: any[] = [];
   editingMessageIndex: number = -1;
@@ -137,6 +138,7 @@ export class ChatIAComponent {
           this.errorMessage = '';
           this.recetaSeleccionada = receta;
           this.opcionesRecetas = [];
+          this.shoppingList = [];
           this.cargarHistorial(); // recarga panel izquierdo
           console.log('✅ Receta guardada en historial:', receta.titulo);
         },
@@ -167,6 +169,7 @@ export class ChatIAComponent {
       this.opcionesRecetas = [];
       this.userMessage = '';
       this.errorMessage = '';
+      this.shoppingList = [];
       console.log('📋 Receta cargada del historial:', recetaMapeada);
     } else {
       this.errorMessage = 'No se pudo cargar la receta del historial';
@@ -247,6 +250,7 @@ export class ChatIAComponent {
     this.userMessage = '';
     this.errorMessage = '';
     this.conversationHistory = [];
+    this.shoppingList = [];
     this.cancelEdit();
   }
   // NUEVO: Método para validar antes de enviar (para el botón "Enviar")
@@ -490,9 +494,10 @@ export class ChatIAComponent {
     this.opcionesRecetas = [];
     this.errorMessage = '';
     this.ultimoPayload = null;
-    this.recetaSeleccionada = null; // AÑADIR esta línea
-    this.editingMessageIndex = -1; // NUEVO: Limpiar estado de edición
-    this.editingMessageText = ''; // NUEVO: Limpiar texto de edición
+    this.recetaSeleccionada = null; 
+    this.shoppingList = [];
+    this.editingMessageIndex = -1; 
+    this.editingMessageText = ''; 
     this.preferencias = {
       alergias: [],
       noMeGusta: [],
@@ -564,6 +569,33 @@ export class ChatIAComponent {
       error: (err: any) => {
         console.error('❌ Error eliminando historial:', err);
         this.errorMessage = 'Error al eliminar la receta del historial';
+      },
+    });
+  }
+
+  verListaIngredientesSeleccionada() {
+    if (!this.recetaSeleccionada || !this.recetaSeleccionada.id_receta) {
+      this.errorMessage = 'Primero selecciona una receta del top o desde tu historial';
+      return;
+    }
+
+    const id = this.recetaSeleccionada.id_receta;
+    console.log('🛒 Pidiendo lista de ingredientes para receta', id);
+
+    this.cargando = true;
+    this.errorMessage = '';
+    this.shoppingList = [];
+
+    this.recipeService.getShoppingListForRecipe(id).subscribe({
+      next: (lista) => {
+        this.cargando = false;
+        this.shoppingList = lista || [];
+        console.log('🛒 Lista de ingredientes recibida:', this.shoppingList);
+      },
+      error: (err) => {
+        this.cargando = false;
+        console.error('❌ Error al obtener lista de ingredientes:', err);
+        this.errorMessage = 'Error al obtener la lista de ingredientes para esta receta';
       },
     });
   }

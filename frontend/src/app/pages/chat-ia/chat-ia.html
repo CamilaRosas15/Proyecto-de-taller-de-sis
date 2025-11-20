@@ -191,6 +191,35 @@
                 </div>
               </div>
             </div>
+            
+            <!-- Lista de compras / ingredientes detallados -->
+            <div class="recipe-full-section shopping-list-section">
+              <div class="shopping-list-header">
+                <h3>🛒 Lista de ingredientes</h3>
+                <button class="shopping-list-btn" (click)="verListaIngredientesSeleccionada()">
+                  Ver lista detallada
+                </button>
+              </div>
+            
+              <!-- Cuando ya cargamos la lista -->
+              <div *ngIf="shoppingList.length > 0" class="shopping-list-content">
+                <ul class="shopping-list">
+                  <li *ngFor="let item of shoppingList" class="shopping-list-item">
+                    <strong>{{ item.nombre }}</strong>
+                    <ul class="shopping-list-detalles" *ngIf="item.detalles && item.detalles.length > 0">
+                      <li *ngFor="let d of item.detalles">
+                        {{ d }}
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            
+              <!-- Si la lista vino vacía (receta sin ingredientes_detalles) -->
+              <p *ngIf="!shoppingList.length" class="shopping-list-empty-hint">
+                Haz clic en "Ver lista detallada" para generar la lista de ingredientes de esta receta.
+              </p>
+            </div>
 
             <!-- Preparación -->
             <div class="recipe-full-section">

@@ -54,6 +54,11 @@ export interface OpcionOut {
   ia_explicacion?: string | null;
 }
 
+export interface ShoppingListItem {
+  nombre: string;
+  detalles: string[]; // viene de ingredientes_detalles
+}
+
 export interface RecommendResponse {
   opciones: OpcionOut[];
   mensaje?: string;
@@ -88,6 +93,12 @@ export class RecipeService {
     return this.http.post<RecommendResponse>(`${this.baseUrl}/recomendaciones`, params).pipe(
       catchError(this.handleError)
     );
+  }
+
+  getShoppingListForRecipe(idReceta: number): Observable<ShoppingListItem[]> {
+    return this.http
+      .get<ShoppingListItem[]>(`${this.baseUrl}/${idReceta}/shopping-list`)
+      .pipe(catchError(this.handleError));
   }
 
   private handleError(error: any) {
