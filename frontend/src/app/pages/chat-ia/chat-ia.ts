@@ -7,6 +7,8 @@ import { RouterLink} from '@angular/router';
 import { HistoryService } from '../../services/history.service'; // AÑADIR
 import { AuthService } from '../../services/auth'; // AÑADIR
 
+import jsPDF from 'jspdf';
+
 @Component({
   selector: 'app-chat-ia',
   standalone: true,
@@ -600,4 +602,111 @@ export class ChatIAComponent {
     });
   }
 
+  async descargarListaComprasPDF() {
+    if (!this.recetaSeleccionada) {
+      console.error('No hay receta seleccionada para descargar');
+      return;
+    }
+
+    // Verificar si tenemos la lista de compras
+    if (this.shoppingList.length === 0) {
+      alert('Primero debes cargar la lista de compras haciendo clic en "Ver lista detallada"');
+      return;
+    }
+
+    console.log('📄 Generando PDF de lista de compras para:', this.recetaSeleccionada.titulo);
+    
+    try {
+      this.cargando = true;
+
+      // Crear PDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 20;
+      const contentWidth = pageWidth - (margin * 2);
+      
+      let yPosition = 40;
+
+      // Título principal centrado
+      pdf.setFontSize(24);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(this.recetaSeleccionada.titulo, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 15;
+
+      // Subtítulo "Lista de Compras" centrado
+      pdf.setFontSize(18);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Lista de Compras', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 25;
+
+      // Línea separadora
+      pdf.setDrawColor(200, 200, 200);
+      pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 20;
+
+      // Lista de ingredientes - SOLO DETALLES
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+
+      // Recopilar todos los detalles en una sola lista
+      const todosLosDetalles: string[] = [];
+      
+      this.shoppingList.forEach((item) => {
+        if (item.detalles && item.detalles.length > 0) {
+          todosLosDetalles.push(...item.detalles);
+        }
+      });
+
+      // Mostrar todos los detalles como lista simple
+      todosLosDetalles.forEach((detalle: string, index: number) => {
+        // Verificar espacio para nuevo ítem
+        if (yPosition > 250) {
+          pdf.addPage();
+          yPosition = 40;
+          pdf.setFontSize(18);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('Lista de Compras (continuación)', pageWidth / 2, yPosition, { align: 'center' });
+          yPosition += 25;
+          pdf.setDrawColor(200, 200, 200);
+          pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+          yPosition += 20;
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'normal');
+        }
+
+        // Mostrar cada detalle con viñeta
+        const detalleConVineta = `• ${detalle}`;
+        const detalleLines = pdf.splitTextToSize(detalleConVineta, contentWidth);
+        
+        detalleLines.forEach((line: string) => {
+          pdf.text(line, margin, yPosition);
+          yPosition += 5;
+        });
+        
+        yPosition += 3; // Espacio entre detalles
+      });
+
+      // Footer con fecha
+      const currentDate = new Date().toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Generado por Nutrichef IA - ${currentDate}`, pageWidth / 2, 280, { align: 'center' });
+
+      // Descargar PDF
+      pdf.save(`Lista de Compras - ${this.recetaSeleccionada.titulo}.pdf`);
+      
+      console.log('✅ PDF de lista de compras generado exitosamente');
+      
+    } catch (error) {
+      console.error('❌ Error al generar PDF de lista de compras:', error);
+      alert('Error al generar el PDF. Por favor, intenta nuevamente.');
+    } finally {
+      this.cargando = false;
+    }
+  }
 }

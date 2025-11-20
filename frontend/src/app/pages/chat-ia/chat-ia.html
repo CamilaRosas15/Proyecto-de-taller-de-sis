@@ -205,7 +205,6 @@
               <div *ngIf="shoppingList.length > 0" class="shopping-list-content">
                 <ul class="shopping-list">
                   <li *ngFor="let item of shoppingList" class="shopping-list-item">
-                    <strong>{{ item.nombre }}</strong>
                     <ul class="shopping-list-detalles" *ngIf="item.detalles && item.detalles.length > 0">
                       <li *ngFor="let d of item.detalles">
                         {{ d }}
@@ -213,6 +212,11 @@
                     </ul>
                   </li>
                 </ul>
+                <div class="download-pdf-section">
+                  <button class="download-pdf-btn" (click)="descargarListaComprasPDF()">
+                    📄 Descargar Lista de Compras PDF
+                  </button>
+                </div>
               </div>
             
               <!-- Si la lista vino vacía (receta sin ingredientes_detalles) -->
