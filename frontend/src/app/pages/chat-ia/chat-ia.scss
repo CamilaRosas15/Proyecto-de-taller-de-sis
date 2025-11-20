@@ -2241,3 +2241,131 @@ img {
 .message-display.hidden {
   display: none !important;
 }
+
+/* ===== ESTILOS MEJORADOS PARA BOTONES ===== */
+
+/* Botón "Ver lista detallada" - Color #63CDC1 */
+.shopping-list-btn {
+  background: #63CDC1 !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 6px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  white-space: nowrap !important;
+  
+  &:hover {
+    background: #4BB5A8 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(99, 205, 193, 0.3) !important;
+  }
+  
+  &:active {
+    transform: translateY(0) !important;
+  }
+}
+
+/* Botón "Descargar Lista de Compras PDF" - Color #FFE000 */
+.download-pdf-btn {
+  background: #FFE000 !important;
+  color: #333 !important;
+  border: none !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  
+  &:hover {
+    background: #E6CA00 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(255, 224, 0, 0.4) !important;
+  }
+  
+  &:active {
+    transform: translateY(0) !important;
+  }
+}
+
+/* ===== QUITAR EL FONDO GRIS DEL CONTENEDOR DEL BOTÓN DESCARGAR ===== */
+.shopping-list-content {
+  .shopping-list {
+    list-style: none;
+    padding: 0;
+    
+    .shopping-list-item {
+      margin-bottom: 8px;
+      
+      .shopping-list-detalles {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        
+        li {
+          padding: 8px 12px;
+          background: #f8f9fa;
+          border-radius: 6px;
+          margin-bottom: 5px;
+          border-left: 4px solid #70B8AD;
+        }
+      }
+    }
+  }
+  
+  /* 🔥 ELIMINAR el fondo gris y borde del contenedor */
+  .download-pdf-section {
+    margin-top: 25px;
+    text-align: center;
+    padding: 20px 0;
+    /* ELIMINADO: border-top: 2px dashed #ddd; */
+    /* ELIMINADO: background: #f9f9f9; */
+    /* ELIMINADO: border-radius: 8px; */
+  }
+
+  /* 🔥 ELIMINAR estos estilos duplicados (ya están arriba) */
+  /* .download-pdf-btn {
+    ... 
+  } */
+}
+
+/* ===== ESTILOS RESPONSIVOS PARA BOTONES ===== */
+@media (max-width: 768px) {
+  .shopping-list-btn {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+  }
+  
+  .download-pdf-btn {
+    padding: 10px 20px !important;
+    font-size: 14px !important;
+  }
+  
+  .shopping-list-content .download-pdf-section {
+    margin-top: 20px;
+    padding: 15px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .shopping-list-btn {
+    padding: 8px 14px !important;
+    font-size: 12px !important;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .download-pdf-btn {
+    padding: 10px 18px !important;
+    font-size: 14px !important;
+    width: 100%;
+  }
+  
+  .shopping-list-content .download-pdf-section {
+    margin-top: 15px;
+    padding: 10px 0;
+  }
+}
