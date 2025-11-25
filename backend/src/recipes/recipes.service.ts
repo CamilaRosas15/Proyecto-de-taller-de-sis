@@ -140,7 +140,7 @@ export class RecipesService {
   }
 
   private sanitizeLlmAnswer(txt: string): string {
-    const fallback = 'Encaje: Cumple preferencias y tiempo.\nSugerencia: ninguna';
+    const fallback = 'Encaje: La receta encaja con tu tiempo máximo, tu objetivo calórico aproximado y respeta tus alergias y preferencias.\nSugerencia: ninguna';
     if (!txt) return fallback;
 
     txt = txt.replace(/<\/?think>/gi, '').replace(/<think[\s\S]*?<\/think>/gi, '');
@@ -466,7 +466,7 @@ Eres NutriChef IA. RESPONDE EXCLUSIVAMENTE en ESPAÑOL con un tono cálido y pro
 Responde SOLO con este formato exacto (máximo 4 líneas). Prohibido razonamientos ocultos, texto meta e inglés.
 
 - Encaje: Indica en 2–3 líneas si la receta encaja con el perfil, mencionando explícitamente tiempo (≤ ${tiempoMax} min), objetivo calórico (≈ ${kcal} kcal/día) y que respeta alergias/no me gusta.
-- Sugerencia: Si hay un detalle menor a ajustar, propone UNA sustitución “X por Y”. Si no hace falta, escribe “ninguna”.
+- Sugerencia: SIEMPRE propone UNA sustitución o pequeño ajuste concreto en la receta (“X por Y” o “reduce Z”). NO está permitido responder “ninguna” ni variantes.
 
 Perfil del usuario:
 - Alergias: ${alergias.join(', ') || 'ninguna'}
