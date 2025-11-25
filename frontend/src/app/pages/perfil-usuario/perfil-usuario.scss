@@ -20,6 +20,7 @@
 }
 
 /* Botón Atrás con fondo gris - FIJADO */
+/* Botón Atrás con fondo gris - FIJADO */
 .back-button {
   display: flex;
   align-items: center;
@@ -36,8 +37,8 @@
   text-decoration: none;
   
   &:hover {
-    background: #068C7F;
-    border-color: #068C7F;
+    background: #0F314E; /* CAMBIADO: Azul Oscuro para el hover */
+    border-color: #0F314E; /* CAMBIADO: Borde azul */
     color: white;
   }
   
@@ -164,11 +165,11 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #FFE000; /* Cambiado a color amarillo */
-  border: none; /* Eliminado el borde blanco */
+  background: #FFE000; /* CAMBIADO: Azul Oscuro (Color Primario) */
+  border: none;
   border-radius: 25px;
   padding: 10px 20px;
-  color: #333; /* Cambiado a color oscuro para mejor contraste */
+  color: #0F314E; /* CAMBIADO: Blanco para contraste sobre el azul */
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -176,9 +177,9 @@
   width: fit-content;
   
   &:hover {
-    background: #ffd700; /* Color amarillo más oscuro al hover */
+    background: #FFF6B3; /* CAMBIADO: Azul más claro/hover del primario */
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 224, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(15, 49, 78, 0.3);
   }
   
   i {
@@ -562,17 +563,18 @@
     }
     
     .btn-reload {
-      background: #70B8AD;
+      background: #0F314E; /* CAMBIADO: Azul oscuro como base (#0F314E) */
       color: white;
       border: none;
-      border-radius: 5px;
-      padding: 8px 16px;
+      border-radius: 8px; /* Cambiado a 8px para una estética más moderna */
+      padding: 10px 20px; /* Ligeramente más grande */
       margin-left: 15px;
       cursor: pointer;
       font-weight: 600;
+      transition: background 0.3s ease; /* Añadida transición para el hover */
       
       &:hover {
-        background: #5da89d;
+        background: #2B4F6D; /* CAMBIADO: Azul más suave al hover (#2B4F6D) */
       }
     }
   }
