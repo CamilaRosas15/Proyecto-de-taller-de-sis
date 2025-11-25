@@ -1307,12 +1307,14 @@ img {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: #0F314E;
+    background: white; /* Fondo blanco o transparente para que se vea el fondo de la página */
+    border: 2px solid #0F314E; /* Borde con tu color primario */
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 14px;
     flex-shrink: 0;
+    color: #0F314E; /* Asegura que el emoji/texto interno sea visible */
   }
 }
 
@@ -1343,12 +1345,14 @@ img {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: #8ed1c2;
+    background: white; /* Fondo blanco o transparente */
+    border: 2px solid #8ed1c2; /* Borde con tu color secundario/menta */
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 14px;
     flex-shrink: 0;
+    color: #0F314E; /* Asegura que el emoji/texto interno sea visible */
   }
 }
 
