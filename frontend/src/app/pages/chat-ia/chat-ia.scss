@@ -1141,7 +1141,7 @@ img {
   color: #666; /* Texto gris oscuro */
   font-size: 12px;
   padding: 10px;
-  font-style: italic;
+  //font-style: italic;
   
   @media (max-width: 768px) {
     font-size: 14px;
@@ -2070,7 +2070,7 @@ img {
   font-size: 11px;
   color: #666;
   text-align: center;
-  font-style: italic;
+  //font-style: italic;
   margin-top: 4px;
 }
 
@@ -2151,7 +2151,7 @@ img {
     color: #666;
     margin: 0 0 15px 0;
     font-weight: 500;
-    font-style: italic;
+    //font-style: normal;
   }
 }
 
@@ -2160,13 +2160,13 @@ img {
   color: white;
   border: none;
   padding: 12px 24px;
-  border-radius: 25px;
+  border-radius: 8px; /* MODIFICADO: Cambiado de 25px a 8px (cuadrado) */
   cursor: pointer;
   font-weight: 500;
   font-size: 14px;
   transition: all 0.3s ease;
   width: auto;
-  display: block; /* Cambiado de inline-block a block para ocupar ancho completo pero alineado izquierda */
+  display: block; /* Mantenido: block para que ocupe el ancho en la vista inicial */
   
   &:hover {
     background: #2B4F6D;
@@ -2191,10 +2191,10 @@ img {
   }
   
   .suggestion-btn {
-    width: 100%; /* En móvil ocupa el ancho completo pero texto alineado izquierda */
+    width: 100%; /* Sigue ocupando el ancho completo en móvil */
     padding: 12px 20px;
     font-size: 14px;
-    text-align: center; /* En móvil centramos el texto del botón */
+    text-align: center;
   }
 }
 
