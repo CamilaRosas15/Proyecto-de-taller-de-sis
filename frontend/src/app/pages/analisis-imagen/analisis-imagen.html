@@ -45,10 +45,11 @@
     </nav>
 
     <div class="user-info">
-      <img src="assets/user.png" alt="Usuario" class="avatar">
+      <!-- ACTUALIZADO: Usar foto del usuario dinámicamente -->
+      <img [src]="userAvatar" alt="Usuario" class="avatar">
       <div class="user-details">
         <p class="username">{{ userName || 'Usuario' }}</p>
-        <p class="user-handle">{{ authService.currentUserEmail || '@usuario' }}</p>
+        <p class="user-handle">{{ userEmail || authService.currentUserEmail || '@usuario' }}</p>
       </div>
       <!-- BOTÓN DE PERFIL AÑADIDO -->
       <button class="profile-btn" routerLink="/perfil" title="Editar perfil">
