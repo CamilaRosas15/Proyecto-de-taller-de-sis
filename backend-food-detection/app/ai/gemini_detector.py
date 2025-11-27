@@ -27,9 +27,9 @@ class GeminiFoodDetector:
         self.api_key = settings.GEMINI_API_KEY
         self.confidence_threshold = settings.GEMINI_CONFIDENCE_THRESHOLD
         
-        # Usar el modelo configurado (acepta gemini-1.5-pro, gemini-2.0-flash-exp, gemini-2.5-pro, etc.)
-        # CAMBIAMOS POR DEFECTO A GEMINI-2.5-PRO QUE ES MEJOR PARA FORMATOS COMPLEJOS
-        model_name = (settings.GEMINI_MODEL_NAME or "gemini-2.5-pro").strip()
+        # Usar el modelo configurado (acepta gemini-1.5-pro, gemini-2.0-flash-exp, gemini-2.5-flash, etc.)
+        # CAMBIAMOS POR DEFECTO A GEMINI-2.5-FLASH QUE ES MEJOR PARA FORMATOS COMPLEJOS
+        model_name = (settings.GEMINI_MODEL_NAME or "gemini-2.5-flash").strip()
         aliases = {
             "gemini-2.5-pro": "gemini-2.5-pro",
             "gemini-2.5-flash": "gemini-2.5-flash",
@@ -252,7 +252,7 @@ class GeminiFoodDetector:
             
             if response.status_code != 200:
                 logger.error(f"Error en respuesta de Gemini: {response.status_code} - {response.text}")
-                return self._simulate_detection()
+                return self._get_server_error_response()
             
             response.raise_for_status()
             result = response.json()
@@ -264,17 +264,19 @@ class GeminiFoodDetector:
             
         except requests.exceptions.RequestException as e:
             logger.error(f"Error de conexión con Gemini API: {str(e)}")
-            return self._simulate_detection()
+            return self._get_server_error_response()
         except json.JSONDecodeError as e:
             logger.error(f"Error decodificando respuesta JSON de Gemini: {str(e)}")
-            return self._simulate_detection()
+            return self._get_server_error_response()
         except Exception as e:
             logger.error(f"Error inesperado en Gemini food detection: {str(e)}")
-            return self._simulate_detection()
+            return self._get_server_error_response()
 
     def _create_food_analysis_prompt(self) -> str:
         """Create an optimized, shorter prompt for comprehensive food analysis."""
         return """
+        IMPORTANTE: Debes responder en un formato específico con dos partes separadas por "---SEPARADOR---".
+
         Analiza esta imagen y determina si contiene comida o alimentos. 
 
         Si NO es comida, responde EXACTAMENTE:
@@ -291,7 +293,7 @@ class GeminiFoodDetector:
         Sube una foto de tu comida y te daré un análisis nutricional detallado con recomendaciones personalizadas.
         ¡Estoy aquí para ayudarte a llevar una alimentación más saludable! 💪✨"
 
-        Si SÍ es comida, responde con AMBAS partes separadas por "---SEPARADOR---":
+        Si SÍ es comida, DEBES responder OBLIGATORIAMENTE con AMBAS partes separadas por "---SEPARADOR---" (EXACTAMENTE esa palabra):
 
         **PARTE 1 (Análisis narrativo):**
         ¡Claro que sí! ¡Veamos qué tenemos en este plato! 😋
@@ -465,21 +467,15 @@ class GeminiFoodDetector:
                             "narrative_analysis": narrative_part,  # Para el modal
                             "gemini_analysis": structured_part,    # Para el dashboard
                             "timestamp": "real_time",
-                            "model_used": "gemini-2.5-pro",
+                            "model_used": "gemini-2.5-flash",
                             "nutrition_source": "gemini_dual"
                         }
                 
-                # If no separator found, treat as single format (backward compatibility)
-                logger.info("📋 Respuesta en formato único detectada")
+                # Si no tiene separador, usar formato simulado para mantener consistencia
+                logger.info("📋 Respuesta sin separador detectada, forzando formato consistente")
                 
-                # Return the natural language response directly
-                return {
-                    "analysis_type": "natural_language",
-                    "gemini_analysis": content,
-                    "timestamp": "real_time",
-                    "model_used": "gemini-2.5-pro",
-                    "nutrition_source": "gemini_natural"
-                }
+                # Si Gemini no siguió el formato dual, usar la simulación para mantener consistencia
+                return self._simulate_natural_response()
             else:
                 logger.warning("No se encontraron candidates en la respuesta de Gemini")
             
@@ -600,6 +596,42 @@ Grasa
             "timestamp": "simulation",
             "model_used": "simulation_mode",
             "nutrition_source": "simulation_dual"
+        }
+
+    def _get_server_error_response(self) -> Dict:
+        """
+        Return server error response when API is not available.
+        
+        Returns:
+            Error response indicating server issues
+        """
+        # Mensaje de error del servidor
+        error_message = """⚠️ **Error del Servidor** 
+
+Lo sentimos, nuestro servicio de análisis de imágenes no está disponible en este momento debido a limitaciones técnicas.
+
+🔧 **¿Qué está pasando?**
+- Nuestro servicio de inteligencia artificial está experimentando problemas
+- Hemos alcanzado los límites de uso diarios de la API
+- El servidor está realizando mantenimiento
+
+⏰ **¿Qué puedes hacer?**
+- Intenta nuevamente en unos minutos
+- Si el problema persiste, contacta al administrador del sistema
+- Mientras tanto, puedes explorar nuestras recetas saludables
+
+💡 **Servicio alternativo:**
+Aunque no podemos analizar tu imagen ahora, puedes usar nuestro catálogo de recetas para encontrar comidas nutritivas y balanceadas.
+
+¡Gracias por tu paciencia! 🙏"""
+        
+        return {
+            "analysis_type": "server_error",
+            "gemini_analysis": error_message,
+            "timestamp": "error",
+            "model_used": "error_mode",
+            "nutrition_source": "server_error",
+            "error": True
         }
 
     def _simulate_non_food_response(self) -> Dict:

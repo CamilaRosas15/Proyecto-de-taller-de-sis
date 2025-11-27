@@ -92,7 +92,7 @@
       <div *ngIf="imageUrl && !analysisResult" class="image-preview">
         <img [src]="imageUrl" alt="Imagen de comida">
         <button class="analyze-btn" (click)="uploadImage()">Analizar imagen</button>
-        <button class="new-analysis-btn" (click)="resetAnalysis()">🔄 Elegir otra imagen</button>
+        <button class="new-analysis-btn" (click)="resetAnalysis()">Elegir otra imagen</button>
       </div>
 
       <!-- Loading -->
@@ -114,14 +114,14 @@
         </div>
 
         <button class="new-analysis-btn" (click)="resetAnalysis()">
-          {{ isNonFoodMessage ? '📷 Subir imagen de comida' : '🔄 Analizar nueva imagen' }}
+          {{ isNonFoodMessage ? '📷 Subir imagen de comida' : 'Analizar nueva imagen' }}
         </button>
       </div>
 
       <!-- Error -->
       <div *ngIf="errorMessage" class="error-message">
         <p>Error: {{ errorMessage }}</p>
-        <button class="new-analysis-btn" (click)="resetAnalysis()">🔄 Intentar de nuevo</button>
+        <button class="new-analysis-btn" (click)="resetAnalysis()">Intentar de nuevo</button>
       </div>
     </div>
   </main>
