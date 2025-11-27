@@ -1,5 +1,6 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Logger, Get, Param, BadRequestException, NotFoundException, Headers, UnauthorizedException } from '@nestjs/common';
-import { AuthService,ProfileDto as AuthServiceProfileDto} from './auth/auth.service';
+import { Controller, Post, Body, HttpCode, HttpStatus, Logger, Get, Param, BadRequestException, NotFoundException, Headers, UnauthorizedException, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthService, ProfileDto as AuthServiceProfileDto } from './auth/auth.service';
 import { IsEmail, IsString, MinLength } from 'class-validator';
 
 // DTOs para validación de entrada
@@ -19,9 +20,6 @@ class LoginDto {
   @IsString()
   password: string;
 }
-
-// ❌ ¡Eliminamos la definición duplicada de ProfileDto aquí!
-// Ahora, cuando se use 'ProfileDto' en el controlador, se referirá a 'AuthServiceProfileDto'.
 
 @Controller('auth')
 export class AuthController {
@@ -57,29 +55,26 @@ export class AuthController {
   }
 
   @Post('profile/:userId') 
-  // Endpoint para guardar/actualizar el perfil
   @HttpCode(HttpStatus.OK)
-  // ✅ Usamos AuthServiceProfileDto directamente como el tipo para el body
   async saveProfile(@Param('userId') userId: string, @Body() profileDto: AuthServiceProfileDto) {
-      if (!userId) {
-          throw new BadRequestException('User ID is required in the URL parameter.');
-      }
-      this.logger.log(`Saving profile for user ID: ${userId}`);
-      const savedProfile = await this.authService.saveUserProfile(userId, profileDto);
-      return { message: 'User profile saved successfully', profile: savedProfile };
+    if (!userId) {
+      throw new BadRequestException('User ID is required in the URL parameter.');
+    }
+    this.logger.log(`Saving profile for user ID: ${userId}`);
+    const savedProfile = await this.authService.saveUserProfile(userId, profileDto);
+    return { message: 'User profile saved successfully', profile: savedProfile };
   }
 
-  @Get('profile/:userId') // Endpoint para obtener el perfil
+  @Get('profile/:userId')
   @HttpCode(HttpStatus.OK)
-  // ✅ Usamos AuthServiceProfileDto directamente como el tipo de retorno
   async getProfile(@Param('userId') userId: string): Promise<AuthServiceProfileDto> {
     if (!userId) {
-        throw new BadRequestException('User ID is required in the URL parameter.');
+      throw new BadRequestException('User ID is required in the URL parameter.');
     }
     this.logger.log(`Fetching profile for user ID: ${userId}`);
     const userProfile = await this.authService.getUserProfile(userId);
     if (!userProfile) {
-        throw new NotFoundException(`Profile for user ID ${userId} not found.`);
+      throw new NotFoundException(`Profile for user ID ${userId} not found.`);
     }
     return userProfile;
   }
@@ -113,6 +108,44 @@ export class AuthController {
       accessToken: result.accessToken ?? null,
       refreshToken: result.refreshToken ?? null,
       user: result.user ?? null,
+    };
+  }
+
+  // 📸 NUEVO: Endpoint para subir foto de perfil
+  @Post('profile/:userId/upload-picture')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadProfilePicture(
+    @Param('userId') userId: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Headers('authorization') auth: string,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No se proporcionó ningún archivo');
+    }
+
+    const token = auth?.replace('Bearer ', '');
+    if (!token) {
+      throw new UnauthorizedException('Token no proporcionado');
+    }
+
+    // Verificar que el usuario está autenticado
+    const currentUser = await this.authService.getCurrentUser(token);
+    if (currentUser.id !== userId) {
+      throw new UnauthorizedException('No tienes permiso para modificar este perfil');
+    }
+
+    this.logger.log(`📸 Uploading profile picture for user: ${userId}`);
+
+    // Eliminar foto antigua antes de subir la nueva
+    await this.authService.deleteOldProfilePicture(userId);
+
+    // Subir nueva foto
+    const publicUrl = await this.authService.uploadProfilePicture(userId, file);
+
+    return {
+      message: 'Foto de perfil actualizada exitosamente',
+      url: publicUrl,
     };
   }
 }

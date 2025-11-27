@@ -28,6 +28,8 @@ export class AnalisisImagenComponent implements OnInit {
   isNonFoodMessage: boolean = false;
   historialSidebar: HistorialSidebar[] = [];
   userName: string | null = null;
+  userEmail: string | null = null;
+  userAvatar: string = 'assets/user.png'; // NUEVA PROPIEDAD PARA LA FOTO
   hasCameraSupport: boolean = false;
   
   private readonly FASTAPI_URL = 'http://localhost:8000/api/v1/ai/analyze-food-natural';
@@ -47,10 +49,70 @@ export class AnalisisImagenComponent implements OnInit {
     }
 
     this.userName = this.authService.currentUserName;
+    this.userEmail = this.authService.currentUserEmail;
+    this.cargarDatosUsuario(); // NUEVO: Cargar datos del usuario incluyendo foto
     this.cargarHistorialSidebar();
     
     // Detectar si hay cámara disponible
     await this.detectCamera();
+  }
+
+  // NUEVO MÉTODO: Cargar datos del usuario incluyendo foto de perfil
+  cargarDatosUsuario() {
+    // Intentar cargar la foto del usuario si está autenticado
+    if (this.authService.isAuthenticated()) {
+      const userId = this.authService.currentUserId;
+      if (userId) {
+        this.authService.getCurrentUser().subscribe({
+          next: (userData) => {
+            console.log('Datos del usuario cargados en análisis-imagen:', userData);
+            const profile = userData.profile;
+            if (profile) {
+              // Usar propiedades seguras con type assertion
+              this.userAvatar = this.getSafeProfileProperty(profile, 'foto_perfil_url') || 
+                               this.getSafeProfileProperty(profile, 'avatar') || 
+                               this.getSafeProfileProperty(profile, 'photo_url') || 
+                               'assets/user.png';
+              
+              this.userName = this.getSafeProfileProperty(profile, 'nombre') || 
+                             this.getSafeProfileProperty(profile, 'nombre_completo') || 
+                             this.authService.currentUserName || 
+                             'Usuario';
+              
+              this.userEmail = userData.email || this.authService.currentUserEmail || '@usuario';
+            } else {
+              // Fallback: intentar cargar solo el perfil
+              this.authService.getUserProfile(userId).subscribe({
+                next: (profileData) => {
+                  console.log('Perfil cargado por fallback en análisis-imagen:', profileData);
+                  this.userAvatar = this.getSafeProfileProperty(profileData, 'foto_perfil_url') || 
+                                   this.getSafeProfileProperty(profileData, 'avatar') || 
+                                   this.getSafeProfileProperty(profileData, 'photo_url') || 
+                                   'assets/user.png';
+                  
+                  this.userName = this.getSafeProfileProperty(profileData, 'nombre') || 
+                                 this.getSafeProfileProperty(profileData, 'nombre_completo') || 
+                                 'Usuario';
+                },
+                error: (fallbackError) => {
+                  console.error('Error en fallback también en análisis-imagen:', fallbackError);
+                }
+              });
+            }
+          },
+          error: (error) => {
+            console.error('Error cargando datos del usuario en análisis-imagen:', error);
+          }
+        });
+      }
+    }
+  }
+
+  // MÉTODO AUXILIAR: Obtener propiedades de perfil de manera segura
+  private getSafeProfileProperty(profile: any, property: string): string | null {
+    return profile && typeof profile === 'object' && property in profile 
+      ? (profile as any)[property] 
+      : null;
   }
 
   // Detectar cámara disponible

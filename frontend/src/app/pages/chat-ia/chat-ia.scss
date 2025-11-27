@@ -317,10 +317,10 @@
   align-items: center;
   gap: 15px;
   padding: 15px;
-  background: #0F314E; /* Fondo blanco */
-  border-radius: 12px; /* Esquinas redondeadas */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  border: none; /* Eliminar borde superior */
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
   margin-top: 20px;
 
   .user-details {
@@ -328,12 +328,12 @@
       font-size: 16px;
       font-weight: 600;
       margin: 0 0 4px 0;
-      color: #333; /* Texto negro */
+      color: #333;
     }
     
     .user-handle {
       font-size: 14px;
-      color: #666; /* Texto gris oscuro */
+      color: #666;
       margin: 0;
     }
   }
@@ -434,24 +434,63 @@
   align-items: center;
   gap: 12px;
   padding: 15px;
-  background: white; /* Fondo blanco */
-  border-radius: 12px; /* Esquinas redondeadas */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  border: none; /* Eliminar borde superior */
-  margin-top: 20px; /* Espacio arriba */
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  margin-top: 20px;
+  position: relative;
 
-  @media (max-width: 768px) {
-    border-top: none;
-    padding: 12px;
-    margin-left: 0;
-    margin-top: 15px;
-    display: none !important;
+  .user-details {
+    flex: 1;
+    
+    .username {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 2px 0;
+      color: #333;
+    }
+    
+    .user-handle {
+      font-size: 12px;
+      color: #666;
+      margin: 0;
+    }
   }
 
-  @media (max-width: 480px) {
-    gap: 8px;
-    margin-left: 0;
-    padding: 10px;
+  .profile-btn {
+    background: none;
+    border: none;
+    border-radius: 0;
+    width: auto;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 5px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    
+    &:hover {
+      background: none;
+      transform: scale(1.1);
+    }
+
+    .pencil-icon {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      border-radius: 0;
+      filter: brightness(0.7);
+      
+      &:hover {
+        filter: brightness(0.5);
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
     display: none !important;
   }
 }
@@ -472,7 +511,7 @@
   font-size: 14px;
   font-weight: 600;
   margin: 0;
-  color: #333; /* Texto negro */
+  color: #333;
 
   @media (max-width: 768px) {
     display: none;
@@ -481,7 +520,7 @@
 
 .user-handle {
   font-size: 12px;
-  color: #666; /* Texto gris oscuro */
+  color: #666;
   margin: 0;
 
   @media (max-width: 768px) {
@@ -1183,7 +1222,6 @@
   color: #666; /* Texto gris oscuro */
   font-size: 12px;
   padding: 10px;
-  //font-style: italic;
   
   @media (max-width: 768px) {
     font-size: 14px;
@@ -1405,7 +1443,6 @@
   grid-template-columns: 1fr;
   gap: 16px;
 
-
   @media (min-width: 992px) {
     grid-template-columns: 1fr; /* 2 columnas en desktop */
   }
@@ -1430,7 +1467,7 @@
 /* Imagen fija y recortada (mismo alto en todas las tarjetas) */
 .message-recipe-image {
   width: 100%;
-  height: 240px;        /* antes 200px: más “horizontal” */
+  height: 240px;        /* antes 200px: más "horizontal" */
   object-fit: cover;
   object-position: center;
   border-radius: 8px;
@@ -1666,80 +1703,6 @@
   display: block; /* Ambos están en el DOM pero solo uno se muestra por ngIf */
 }
 
-/* Vista inicial */
-.initial-view {
-  .input-section {
-    margin-bottom: 0;
-    
-    h2 {
-      text-align: center;
-      font-size: 1.6em;
-      margin-bottom: 30px;
-      color: #0F314E;
-    }
-  }
-}
-
-/* Input en vista inicial */
-.chat-input-bottom-initial {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
-  
-  .input-container {
-    .message-input {
-      font-size: 16px;
-      padding: 18px 25px;
-    }
-    
-    .send-btn {
-      padding: 18px 30px;
-      font-size: 16px;
-      font-weight: 600;
-    }
-  }
-}
-
-/* Input en vista chat */
-.chat-input-bottom-chat {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
-  
-  .input-container {
-    .message-input {
-      font-size: 14px;
-      padding: 15px 20px;
-    }
-    
-    .send-btn {
-      padding: 15px 25px;
-      font-size: 14px;
-    }
-  }
-}
-
-/* Asegurar que el loading section se vea bien en vista inicial */
-.loading-section {
-  text-align: center;
-  padding: 40px 20px;
-  
-  .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #8ed1c2;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
-  }
-  
-  p {
-    color: #0F314E;
-    font-size: 1.1em;
-  }
-}
-
 /* ===== BOTÓN DE PERFIL EN USER INFO ===== */
 .user-info {
   display: flex;
@@ -1930,25 +1893,6 @@
       }
     }
   }
-
-  /* Imagen en vista completa */
-  .recipe-image {
-    width: 120%; /* 🔥 AUMENTADO: 120% del ancho del contenedor */
-    max-width: 120%; /* 🔥 AUMENTADO: Permitir que sea más ancha */
-    max-height: 320px;
-    object-fit: cover;
-    border-radius: 12px;
-    margin: 0 auto 18px auto;
-    border: 1px solid #e0e0e0;
-    display: block;
-  }
-
-  @media (max-width: 480px) {
-  .message-recipe-image {
-    max-height: 180px;
-  }
-}
-
 }
 
 /* Card interna del historial (imagen + título + X) */
@@ -2118,7 +2062,6 @@
   font-size: 11px;
   color: #666;
   text-align: center;
-  //font-style: italic;
   margin-top: 4px;
 }
 
@@ -2199,7 +2142,6 @@
     color: #666;
     margin: 0 0 15px 0;
     font-weight: 500;
-    //font-style: normal;
   }
 }
 
@@ -2369,15 +2311,7 @@
     margin-top: 25px;
     text-align: center;
     padding: 20px 0;
-    /* ELIMINADO: border-top: 2px dashed #ddd; */
-    /* ELIMINADO: background: #f9f9f9; */
-    /* ELIMINADO: border-radius: 8px; */
   }
-
-  /* 🔥 ELIMINAR estos estilos duplicados (ya están arriba) */
-  /* .download-pdf-btn {
-    ... 
-  } */
 }
 
 /* ===== ESTILOS RESPONSIVOS PARA BOTONES ===== */
@@ -2415,6 +2349,112 @@
   .shopping-list-content .download-pdf-section {
     margin-top: 15px;
     padding: 10px 0;
+  }
+}
+
+/* ===== ESTILOS PARA EL AVATAR DEL USUARIO EN LOS MENSAJES DEL CHAT ===== */
+
+/* Avatar del usuario en mensajes - CON FOTO REAL */
+.message-avatar.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid #0F314E;
+  background: white;
+  
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+}
+
+/* Avatar de la IA (mantener emoji) */
+.message-avatar:not(.user-avatar) {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #8ed1c2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  color: #0F314E;
+}
+
+/* Ajustes para mensajes del usuario con avatar de foto */
+.user-bubble {
+  .message-avatar.user-avatar {
+    border-color: #0F314E;
+  }
+}
+
+/* Ajustes para mensajes de la IA */
+.assistant-bubble {
+  .message-avatar:not(.user-avatar) {
+    border-color: #8ed1c2;
+  }
+}
+
+/* Ajustes responsivos para avatares */
+@media (max-width: 768px) {
+  .message-avatar.user-avatar,
+  .message-avatar:not(.user-avatar) {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-avatar.user-avatar,
+  .message-avatar:not(.user-avatar) {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+  
+  .message-bubble {
+    gap: 10px;
+  }
+}
+
+/* Asegurar que los avatares se alineen correctamente */
+.user-bubble {
+  .message-avatar.user-avatar {
+    align-self: flex-start;
+  }
+}
+
+.assistant-bubble {
+  .message-avatar:not(.user-avatar) {
+    align-self: flex-start;
+  }
+}
+
+/* Imagen en vista completa */
+.recipe-image {
+  width: 120%; /* 🔥 AUMENTADO: 120% del ancho del contenedor */
+  max-width: 120%; /* 🔥 AUMENTADO: Permitir que sea más ancha */
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: 0 auto 18px auto;
+  border: 1px solid #e0e0e0;
+  display: block;
+}
+
+@media (max-width: 480px) {
+  .message-recipe-image {
+    max-height: 180px;
   }
 }
 

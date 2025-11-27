@@ -4,15 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { RecipeService, RecommendRequest, RecommendResponse, OpcionOut,ShoppingListItem } from '../../services/recipe';
 import { Router, RouterLink } from '@angular/router';
-import { HistoryService } from '../../services/history.service'; // AÑADIR
-import { AuthService } from '../../services/auth'; // AÑADIR
+import { HistoryService } from '../../services/history.service';
+import { AuthService } from '../../services/auth';
 
 import jsPDF from 'jspdf';
 
 @Component({
   selector: 'app-chat-ia',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule,RouterLink],
+  imports: [CommonModule, FormsModule, HttpClientModule, RouterLink],
   templateUrl: './chat-ia.html',
   styleUrls: ['./chat-ia.scss']
 })
@@ -31,6 +31,7 @@ export class ChatIAComponent implements OnInit {
   editingMessageText: string = '';
   userName: string | null = null;
   userEmail: string | null = null;
+  userAvatar: string = 'assets/user.png';
 
   preferencias = {
     alergias: [] as string[],
@@ -46,7 +47,7 @@ export class ChatIAComponent implements OnInit {
     private recipeService: RecipeService,
     private historyService: HistoryService, 
     public authService: AuthService,
-    private router: Router // ← AÑADIR Router
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -56,14 +57,72 @@ export class ChatIAComponent implements OnInit {
     }
 
     this.cargarHistorial(); 
+    this.cargarDatosUsuario();
+  }
+
+  // MÉTODO CORREGIDO: Cargar datos del usuario usando propiedades seguras
+  cargarDatosUsuario() {
     this.userName = this.authService.currentUserName;
     this.userEmail = this.authService.currentUserEmail;
+    
+    if (this.authService.isAuthenticated()) {
+      const userId = this.authService.currentUserId;
+      if (userId) {
+        this.authService.getCurrentUser().subscribe({
+          next: (userData) => {
+            console.log('Datos del usuario cargados en chat:', userData);
+            const profile = userData.profile;
+            if (profile) {
+              // CORREGIDO: Usar propiedades seguras con type assertion
+              this.userAvatar = this.getSafeProfileProperty(profile, 'foto_perfil_url') || 
+                               this.getSafeProfileProperty(profile, 'avatar') || 
+                               this.getSafeProfileProperty(profile, 'photo_url') || 
+                               'assets/user.png';
+              
+              this.userName = this.getSafeProfileProperty(profile, 'nombre') || 
+                             this.getSafeProfileProperty(profile, 'nombre_completo') || 
+                             this.authService.currentUserName || 
+                             'Usuario';
+              
+              this.userEmail = userData.email || this.authService.currentUserEmail || '@usuario';
+            } else {
+              // Fallback: intentar cargar solo el perfil
+              this.authService.getUserProfile(userId).subscribe({
+                next: (profileData) => {
+                  console.log('Perfil cargado por fallback en chat:', profileData);
+                  this.userAvatar = this.getSafeProfileProperty(profileData, 'foto_perfil_url') || 
+                                   this.getSafeProfileProperty(profileData, 'avatar') || 
+                                   this.getSafeProfileProperty(profileData, 'photo_url') || 
+                                   'assets/user.png';
+                  
+                  this.userName = this.getSafeProfileProperty(profileData, 'nombre') || 
+                                 this.getSafeProfileProperty(profileData, 'nombre_completo') || 
+                                 'Usuario';
+                },
+                error: (fallbackError) => {
+                  console.error('Error en fallback también en chat:', fallbackError);
+                }
+              });
+            }
+          },
+          error: (error) => {
+            console.error('Error cargando datos del usuario en chat:', error);
+          }
+        });
+      }
+    }
+  }
+
+  // MÉTODO AUXILIAR: Obtener propiedades de perfil de manera segura
+  private getSafeProfileProperty(profile: any, property: string): string | null {
+    return profile && typeof profile === 'object' && property in profile 
+      ? (profile as any)[property] 
+      : null;
   }
 
   toggleMobileMenu() {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
     
-    // Prevenir scroll del body cuando el menú está abierto
     if (this.isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -73,7 +132,7 @@ export class ChatIAComponent implements OnInit {
 
   closeMobileMenu() {
     this.isMobileMenuOpen = false;
-    document.body.style.overflow = ''; // Restaurar scroll
+    document.body.style.overflow = '';
   }
 
   cargarHistorial() {
@@ -86,23 +145,6 @@ export class ChatIAComponent implements OnInit {
       next: (historial: any) => {
         this.historialRecetas = historial || [];
         console.log('📚 Historial cargado:', this.historialRecetas);
-        
-        // Debug MEJORADO
-        this.historialRecetas.forEach((item: any, index: number) => {
-          console.log(`--- Item ${index} del historial ---`);
-          console.log('ID Receta:', item.id_receta);
-          console.log('Fecha:', item.fecha);
-          
-          if (item.receta) {
-            console.log('📖 Receta completa:', item.receta);
-            console.log('🥬 Ingredientes:', item.receta.ingredientes);
-            console.log('📝 Instrucciones:', item.receta.instrucciones);
-            console.log('🔍 Tiene ingredientes array?', Array.isArray(item.receta.ingredientes));
-            console.log('🔍 Tiene instrucciones?', !!item.receta.instrucciones);
-          } else {
-            console.log('❌ NO HAY RECETA en este item');
-          }
-        });
       },
       error: (error) => {
         console.error('Error cargando historial:', error);
@@ -112,55 +154,50 @@ export class ChatIAComponent implements OnInit {
   }
 
   async onSeleccionarReceta(receta: OpcionOut) {
-  try {
-    if (!this.authService.isLoggedIn()) {
-      this.errorMessage = 'Debes iniciar sesión para guardar recetas en tu historial';
-      return;
-    }
+    try {
+      if (!this.authService.isLoggedIn()) {
+        this.errorMessage = 'Debes iniciar sesión para guardar recetas en tu historial';
+        return;
+      }
 
-    const userId = localStorage.getItem('userId');
-    if (!userId) {
-      this.errorMessage = 'No se encontró el usuario en la sesión';
-      return;
-    }
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        this.errorMessage = 'No se encontró el usuario en la sesión';
+        return;
+      }
 
-    const contexto = [
-      this.userMessage ? `Usuario: ${this.userMessage}` : '',
-      receta.ia_explicacion ? `IA: ${receta.ia_explicacion}` : ''
-    ]
-      .filter(Boolean)
-      .join('\n');
+      const contexto = [
+        this.userMessage ? `Usuario: ${this.userMessage}` : '',
+        receta.ia_explicacion ? `IA: ${receta.ia_explicacion}` : ''
+      ]
+        .filter(Boolean)
+        .join('\n');
 
-    const titulo =
-      this.userMessage && this.userMessage.trim().length > 0
-        ? this.userMessage.trim().slice(0, 60)
-        : `Recomendación: ${receta.titulo}`;
+      const titulo =
+        this.userMessage && this.userMessage.trim().length > 0
+          ? this.userMessage.trim().slice(0, 60)
+          : `Recomendación: ${receta.titulo}`;
 
-    console.log('💾 Guardando receta en historial con contexto...');
-    console.log('id_receta:', receta.id_receta);
-    console.log('contexto_ia:', contexto);
-    console.log('titulo_conversacion:', titulo);
-
-    this.recipeService
-      .saveToHistory(userId, receta.id_receta, contexto, titulo)
-      .subscribe({
-        next: () => {
-          this.errorMessage = '';
-          this.recetaSeleccionada = receta;
-          this.opcionesRecetas = [];
-          this.shoppingList = [];
-          this.cargarHistorial(); // recarga panel izquierdo
-          console.log('✅ Receta guardada en historial:', receta.titulo);
-        },
-        error: (err) => {
-          console.error('❌ Error guardando receta:', err);
-          this.errorMessage = 'Error al guardar la receta en el historial';
-        },
-      });
-    } catch (error: any) {
-      console.error('❌ Error guardando receta:', error);
-      this.errorMessage = error.message || 'Error al guardar la receta en el historial';
-    }
+      this.recipeService
+        .saveToHistory(userId, receta.id_receta, contexto, titulo)
+        .subscribe({
+          next: () => {
+            this.errorMessage = '';
+            this.recetaSeleccionada = receta;
+            this.opcionesRecetas = [];
+            this.shoppingList = [];
+            this.cargarHistorial();
+            console.log('✅ Receta guardada en historial:', receta.titulo);
+          },
+          error: (err) => {
+            console.error('❌ Error guardando receta:', err);
+            this.errorMessage = 'Error al guardar la receta en el historial';
+          },
+        });
+      } catch (error: any) {
+        console.error('❌ Error guardando receta:', error);
+        this.errorMessage = error.message || 'Error al guardar la receta en el historial';
+      }
   }
 
   onCargarRecetaDelHistorial(itemHistorial: any) {
@@ -180,23 +217,14 @@ export class ChatIAComponent implements OnInit {
       this.userMessage = '';
       this.errorMessage = '';
       this.shoppingList = [];
-      console.log('📋 Receta cargada del historial:', recetaMapeada);
     } else {
       this.errorMessage = 'No se pudo cargar la receta del historial';
     }
   }
   
   private mapearRecetaAOpcionOut(receta: any): any {
-    console.log('🔄 ===== INICIANDO MAPEO =====');
-    console.log('📥 Receta recibida:', receta);
-    console.log('🥬 Ingredientes originales:', receta.ingredientes);
-    console.log('🔍 Tipo de ingredientes:', typeof receta.ingredientes);
-    console.log('📋 ¿Es array?', Array.isArray(receta.ingredientes));
-    
     let ingredientes: any[] = [];
     if (receta.ingredientes && Array.isArray(receta.ingredientes)) {
-      console.log('✅ Ingredientes ES array, mapeando...');
-      
       ingredientes = receta.ingredientes.map((item: any, index: number) => {
         let nombre = '';
         if (typeof item === 'string') {
@@ -207,7 +235,7 @@ export class ChatIAComponent implements OnInit {
           nombre = String(item);
         }
         
-        const ingredienteMapeado = {
+        return {
           id_ingrediente: index + 1,
           nombre: nombre,
           unidad: null,
@@ -217,18 +245,9 @@ export class ChatIAComponent implements OnInit {
           carbohidratos: null,
           grasas: null
         };
-        
-        console.log(`🥬 Ingrediente ${index}:`, ingredienteMapeado);
-        return ingredienteMapeado;
       });
-    } else {
-      console.log('❌ Ingredientes NO es array o no existe');
     }
 
-    console.log('📤 Ingredientes mapeados finales:', ingredientes);
-    console.log('======= FIN MAPEO =======');
-
-    // Convertir instrucciones string a array de pasos
     let pasos: string[] = [];
     if (receta.instrucciones) {
       pasos = receta.instrucciones
@@ -237,7 +256,6 @@ export class ChatIAComponent implements OnInit {
         .filter((paso: string) => paso.length > 0);
     }
 
-    // Estructura que espera el frontend (OpcionOut)
     return {
       id_receta: receta.id_receta,
       titulo: receta.nombre || 'Sin título',
@@ -246,11 +264,10 @@ export class ChatIAComponent implements OnInit {
       tiempo_preparacion: receta.tiempo_preparacion || null,
       kcal_totales: receta.calorias_totales || null,
       pasos: pasos,
-      //imagen_url: receta.imagen_url || null,
       imagen_url: receta.imagen_url || receta.imagen || null,
       ingredientes: ingredientes,
-      motivos: [], // No hay motivos en el historial
-      ia_explicacion: null // No hay explicación IA en el historial
+      motivos: [],
+      ia_explicacion: null
     };
   }
 
@@ -263,99 +280,65 @@ export class ChatIAComponent implements OnInit {
     this.shoppingList = [];
     this.cancelEdit();
   }
-  // NUEVO: Método para validar antes de enviar (para el botón "Enviar")
+
   sendMessageWithValidation() {
     if (!this.userMessage.trim()) {
       this.errorMessage = 'Por favor, escribe tu mensaje para comenzar la conversación';
-      return; // Detener si está vacío
+      return;
     }
     
     this.sendMessage();
   }
 
-  // NUEVO: Iniciar edición inline
   startEditMessage(messageIndex: number) {
-    console.log('✏ Iniciando edición del mensaje:', messageIndex);
-    
     const messageToEdit = this.conversationHistory[messageIndex];
     this.editingMessageIndex = messageIndex;
     this.editingMessageText = messageToEdit.content;
     
-    // Forzar la detección de cambios
     setTimeout(() => {
       const inputElement = document.querySelector('.edit-message-input') as HTMLInputElement;
       if (inputElement) {
         inputElement.focus();
         inputElement.select();
-        console.log('✅ Input de edición enfocado');
-      } else {
-        console.log('❌ No se encontró el input de edición');
       }
     }, 100);
   }
 
-  // NUEVO: Guardar mensaje editado
   saveEditedMessage() {
-    console.log('💾 Intentando guardar mensaje editado...');
-    
     if (!this.editingMessageText.trim()) {
-      console.log('❌ Mensaje vacío, cancelando');
       this.cancelEdit();
       return;
     }
 
     if (this.editingMessageIndex !== -1) {
-      console.log('✅ Guardando mensaje en índice:', this.editingMessageIndex);
-      
-      // Actualizar el mensaje en el historial
       this.conversationHistory[this.editingMessageIndex].content = this.editingMessageText.trim();
       this.conversationHistory[this.editingMessageIndex].timestamp = new Date();
       
       const userMessageIndex = this.editingMessageIndex;
-      
-      console.log('📝 Mensaje actualizado:', this.editingMessageText);
-      
-      // Eliminar mensajes de IA posteriores al mensaje editado
       this.conversationHistory = this.conversationHistory.slice(0, userMessageIndex + 1);
-      console.log('🗑 Mensajes posteriores eliminados');
       
-      // Limpiar estado de edición
       this.cancelEdit();
-      
-      // Generar nueva respuesta basada en el mensaje editado
       this.regenerateResponse(userMessageIndex);
-    } else {
-      console.log('❌ Índice de edición inválido');
     }
   }
 
-  // NUEVO: Cancelar edición
   cancelEdit() {
-    console.log('❌ Cancelando edición');
     this.editingMessageIndex = -1;
     this.editingMessageText = '';
   }
 
-  // NUEVO: Regenerar respuesta después de editar
   regenerateResponse(messageIndex: number) {
-    console.log('🔄 Regenerando respuesta para mensaje:', messageIndex);
-    
     const editedMessage = this.conversationHistory[messageIndex].content;
     
     this.cargando = true;
     this.errorMessage = '';
     this.recetaSeleccionada = null;
 
-    // Procesar el mensaje editado
     this.procesarMensaje(editedMessage);
-
-    // Generar nuevas recomendaciones basadas en el mensaje editado
     this.generarRecomendaciones(editedMessage);
   }
 
   sendMessage() {
-    // AÑADIR estas 2 líneas:
-    // Limpiar estado de edición si existe
     if (this.editingMessageIndex !== -1) {
       this.cancelEdit();
     }
@@ -374,22 +357,19 @@ export class ChatIAComponent implements OnInit {
       this.userMessage = 'Recomiéndame recetas';
     }
 
-    // 1. AGREGAR MENSAJE DEL USUARIO AL HISTORIAL
     this.conversationHistory.push({
       type: 'user',
       content: this.userMessage,
       timestamp: new Date()
     });
 
-    // 2. Limpiar y preparar para nueva generación
     const currentMessage = this.userMessage;
-    this.userMessage = ''; // Limpiar input para próximo mensaje
+    this.userMessage = '';
     this.recetaSeleccionada = null;
     this.cargando = true;
     this.errorMessage = '';
 
     this.procesarMensaje(currentMessage);
-
     this.generarRecomendaciones(currentMessage);
   }
 
@@ -442,7 +422,7 @@ export class ChatIAComponent implements OnInit {
     const userId = localStorage.getItem('userId') || undefined;
 
     const params: RecommendRequest = {
-      userId,           // deja que el back fusione con lo guardado en perfil
+      userId,
       top_n: 2,
       use_llm: true
     };
@@ -478,18 +458,14 @@ export class ChatIAComponent implements OnInit {
           return receta;
         });
 
-        // 3. AGREGAR RESPUESTA DE LA IA AL HISTORIAL
         this.conversationHistory.push({
           type: 'assistant',
           content: `Te recomiendo ${this.opcionesRecetas.length} recetas:`,
-          recipes: [...this.opcionesRecetas], // Copia de las recetas actuales
+          recipes: [...this.opcionesRecetas],
           timestamp: new Date()
         });
 
-        // Limpiar opcionesRecetas para la próxima generación
         this.opcionesRecetas = [];
-        
-        console.log('Historial de conversación:', this.conversationHistory);
       },
       error: (error: any) => {
         this.cargando = false;
@@ -519,8 +495,8 @@ export class ChatIAComponent implements OnInit {
   }
 
   getImagenRecetaSafe(receta: any): string | null {
-  const url = receta?.imagen_url || receta?.imagen || null;
-  return (typeof url === 'string' && url.trim().length > 0) ? url : null;
+    const url = receta?.imagen_url || receta?.imagen || null;
+    return (typeof url === 'string' && url.trim().length > 0) ? url : null;
   }
 
   onEliminarDelHistorial(itemHistorial: any, event: MouseEvent) {
@@ -531,20 +507,13 @@ export class ChatIAComponent implements OnInit {
       return;
     }
 
-    console.log('🧾 Item historial recibido para borrar:', itemHistorial);
-
-    // 👇 Usamos el id_historial que viene de la tabla
     const historyId: string =
       itemHistorial.id_historial ??
       itemHistorial.id ??
       itemHistorial.historial_id;
 
-    console.log('➡️ ID usado para borrar historial:', historyId);
-
     if (!historyId) {
-      console.error('❌ No se encontró un ID de historial en el item:', itemHistorial);
-      this.errorMessage =
-        'No se pudo identificar el elemento del historial a eliminar';
+      this.errorMessage = 'No se pudo identificar el elemento del historial a eliminar';
       return;
     }
 
@@ -552,25 +521,14 @@ export class ChatIAComponent implements OnInit {
       return;
     }
 
-    console.log('🗑 Eliminando historial con id:', historyId);
-
     this.historyService.deleteHistoryEntry(historyId).subscribe({
       next: () => {
-        console.log('✅ Historial eliminado en backend');
-
-        // Quitar del array local
         this.historialRecetas = this.historialRecetas.filter((h: any) => {
-          const hId =
-            h.id_historial ??
-            h.id ??
-            h.historial_id;
+          const hId = h.id_historial ?? h.id ?? h.historial_id;
           return hId !== historyId;
         });
 
-        if (
-          this.recetaSeleccionada &&
-          this.recetaSeleccionada.id_receta === itemHistorial.id_receta
-        ) {
+        if (this.recetaSeleccionada && this.recetaSeleccionada.id_receta === itemHistorial.id_receta) {
           this.recetaSeleccionada = null;
         }
 
@@ -616,7 +574,6 @@ export class ChatIAComponent implements OnInit {
       return;
     }
 
-    // Verificar si tenemos la lista de compras
     if (this.shoppingList.length === 0) {
       alert('Primero debes cargar la lista de compras haciendo clic en "Ver lista detallada"');
       return;
@@ -627,7 +584,6 @@ export class ChatIAComponent implements OnInit {
     try {
       this.cargando = true;
 
-      // Crear PDF
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const margin = 20;
@@ -635,28 +591,23 @@ export class ChatIAComponent implements OnInit {
       
       let yPosition = 40;
 
-      // Título principal centrado
       pdf.setFontSize(24);
       pdf.setFont('helvetica', 'bold');
       pdf.text(this.recetaSeleccionada.titulo, pageWidth / 2, yPosition, { align: 'center' });
       yPosition += 15;
 
-      // Subtítulo "Lista de Compras" centrado
       pdf.setFontSize(18);
       pdf.setFont('helvetica', 'normal');
       pdf.text('Lista de Compras', pageWidth / 2, yPosition, { align: 'center' });
       yPosition += 25;
 
-      // Línea separadora
       pdf.setDrawColor(200, 200, 200);
       pdf.line(margin, yPosition, pageWidth - margin, yPosition);
       yPosition += 20;
 
-      // Lista de ingredientes - SOLO DETALLES
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'normal');
 
-      // Recopilar todos los detalles en una sola lista
       const todosLosDetalles: string[] = [];
       
       this.shoppingList.forEach((item) => {
@@ -665,9 +616,7 @@ export class ChatIAComponent implements OnInit {
         }
       });
 
-      // Mostrar todos los detalles como lista simple
       todosLosDetalles.forEach((detalle: string, index: number) => {
-        // Verificar espacio para nuevo ítem
         if (yPosition > 250) {
           pdf.addPage();
           yPosition = 40;
@@ -682,7 +631,6 @@ export class ChatIAComponent implements OnInit {
           pdf.setFont('helvetica', 'normal');
         }
 
-        // Mostrar cada detalle con viñeta
         const detalleConVineta = `• ${detalle}`;
         const detalleLines = pdf.splitTextToSize(detalleConVineta, contentWidth);
         
@@ -691,10 +639,9 @@ export class ChatIAComponent implements OnInit {
           yPosition += 5;
         });
         
-        yPosition += 3; // Espacio entre detalles
+        yPosition += 3;
       });
 
-      // Footer con fecha
       const currentDate = new Date().toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'long',
@@ -705,7 +652,6 @@ export class ChatIAComponent implements OnInit {
       pdf.setFont('helvetica', 'normal');
       pdf.text(`Generado por Nutrichef IA - ${currentDate}`, pageWidth / 2, 280, { align: 'center' });
 
-      // Descargar PDF
       pdf.save(`Lista de Compras - ${this.recetaSeleccionada.titulo}.pdf`);
       
       console.log('✅ PDF de lista de compras generado exitosamente');
