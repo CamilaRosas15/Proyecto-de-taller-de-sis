@@ -56,22 +56,25 @@ body {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
 }
 
-/* Banner full-bleed tanto logueado como no logueado */
-.navbar + .welcome-banner,
-.logged-in-actions .welcome-banner {
-  width: 100vw;                         /* ocupa todo el ancho de la ventana */
-  margin-left: calc(50% - 50vw);        /* truco full-bleed */
-  margin-right: calc(50% - 50vw);
-  border-radius: 0;                     /* por si algún contenedor aplica radios */
-  padding: 1.5rem 3rem;                 /* mismo padding que ya usas */
-  position: relative;
-  top: -32px; /* ajusta este número hasta que el verde toque la navbar */
-  margin-top: 0; /* aseguramos que nada la empuje hacia abajo */
+/* Para usuarios NO logueados: banner después del navbar */
+.navbar + .welcome-banner {
+  width: 100%;
+  margin: 0;
+  border-radius: 0;
+  padding: 1.5rem 3rem;
 }
 
-/* Evitar que el contenedor lo limite cuando está logueado */
-.actions-container > .welcome-banner {
-  max-width: none;
+/* Para usuarios LOGUEADOS: banner dentro de logged-in-actions */
+.logged-in-actions .welcome-banner {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  border-radius: 0;
+  padding: 1.5rem 3rem;
+  position: relative;
+  top: 0;
+  margin-top: 0;
+  margin-bottom: 2rem; /* Espacio entre banner y contenido siguiente */
 }
 
 /* Responsive coherente */
@@ -900,6 +903,10 @@ body {
   margin: 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   animation: slideDown 0.5s ease-out;
+  width: 100%;
+  position: relative;
+  top: 0;
+  z-index: 1;
 }
 
 .welcome-content {
@@ -982,12 +989,14 @@ body {
 
 /* --- LOGGED-IN HERO Y GRID --- */
 .logged-in-actions {
-  padding: 2rem 1.5rem 3rem;
+  padding: 0; /* Elimina el padding para que el banner pueda ser full-width */
+  width: 100%;
 }
 
 .actions-container {
   max-width: 1100px;
   margin: 0 auto;
+  padding: 0 1.5rem 3rem; 
 }
 
 .hero {

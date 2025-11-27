@@ -674,7 +674,7 @@
 }
 
 .back-btn {
-  background: #6c757d;
+  background: #0F314E;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -683,7 +683,7 @@
   margin-right: 10px;
   
   &:hover {
-    background: #5a6268;
+    background: #0F314E;
   }
 
   @media (max-width: 480px) {
@@ -940,17 +940,12 @@
 
 /* Recipe Full View responsivo */
 .recipe-full-view {
-  padding: 20px;
-  max-width: 800px;
+  padding: 0; /* 🔥 El padding ya lo maneja el chat-container */
   margin: 0 auto;
-
-  @media (max-width: 768px) {
-    padding: 15px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 10px;
-  }
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
 }
 
 .recipe-full-card {
@@ -958,12 +953,50 @@
   border-radius: 12px;
   padding: 30px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 
-  @media (max-width: 768px) {
+  /* 🔥🔥🔥 ANCHO INICIAL PERSONALIZABLE - CAMBIA ESTE VALOR */
+  /* Por defecto: 800px - Modifica este número según lo que necesites */
+  @media (min-width: 1400px) {
+    width: 800px; /* 🔥 CAMBIA ESTE VALOR para hacerlo más ancho/más delgado */
+    max-width: 800px; /* 🔥 Mismo valor que width */
+  }
+  
+  /* 🔥 REDUCCIÓN PROGRESIVA AUTOMÁTICA */
+  /* Cuando la pantalla es más pequeña que el ancho inicial + márgenes */
+  @media (min-width: 1200px) and (max-width: 1399px) {
+    width: 90%; /* Se reduce al 90% del contenedor */
+    max-width: 750px;
+  }
+  
+  @media (min-width: 992px) and (max-width: 1199px) {
+    width: 92%; /* Se reduce al 92% del contenedor */
+    max-width: 700px;
+  }
+  
+  @media (min-width: 769px) and (max-width: 991px) {
+    width: 94%; /* Se reduce al 94% del contenedor */
+    max-width: 650px;
+  }
+
+  /* 🔥 Cuando ya no cabe el ancho fijo, ocupa porcentaje del contenedor */
+  @media (min-width: 577px) and (max-width: 768px) {
+    width: 96%; /* Casi todo el ancho disponible */
+    max-width: 100%;
+  }
+
+  @media (max-width: 576px) {
+    width: 98%; /* Casi todo el ancho disponible */
+    max-width: 100%;
     padding: 20px;
   }
 
   @media (max-width: 480px) {
+    width: 100%; /* Ocupa el 100% en móviles */
+    max-width: 100%;
     padding: 15px;
   }
 }
@@ -972,6 +1005,7 @@
   color: #0F314E;
   font-size: 2em;
   margin-bottom: 15px;
+  text-align: center;
 
   @media (max-width: 768px) {
     font-size: 1.5em;
@@ -995,7 +1029,7 @@
 }
 
 .meta-badge {
-  background: #8ed1c2;
+  background: #8DC6BD;
   color: white;
   padding: 8px 16px;
   border-radius: 20px;
@@ -1040,6 +1074,11 @@
   @media (max-width: 480px) {
     padding: 30px 15px;
   }
+}
+
+.recipe-full-description {
+  text-align: center; /* AÑADIDO: Centrar la descripción */
+  margin-bottom: 20px;
 }
 
 .spinner {
@@ -1113,7 +1152,10 @@
 }
 
 /* Asegurar que las imágenes sean responsivas */
-img {
+.logo-img,
+.avatar,
+.historial-thumb,
+.message-recipe-image {
   max-width: 100%;
   height: auto;
 }
@@ -1891,12 +1933,14 @@ img {
 
   /* Imagen en vista completa */
   .recipe-image {
-    width: 100%;
+    width: 120%; /* 🔥 AUMENTADO: 120% del ancho del contenedor */
+    max-width: 120%; /* 🔥 AUMENTADO: Permitir que sea más ancha */
     max-height: 320px;
     object-fit: cover;
     border-radius: 12px;
-    margin-bottom: 18px;
+    margin: 0 auto 18px auto;
     border: 1px solid #e0e0e0;
+    display: block;
   }
 
   @media (max-width: 480px) {
@@ -2250,7 +2294,7 @@ img {
 
 /* Botón "Ver lista detallada" - Color #63CDC1 */
 .shopping-list-btn {
-  background: #63CDC1 !important;
+  background: #8DC6BD !important;
   color: white !important;
   border: none !important;
   padding: 10px 20px !important;
@@ -2371,5 +2415,22 @@ img {
   .shopping-list-content .download-pdf-section {
     margin-top: 15px;
     padding: 10px 0;
+  }
+}
+
+.recipe-divider {
+  height: 2px;
+  background: #0F314E;
+  margin: 20px 0;
+  width: 100%;
+  border: none;
+  
+  @media (max-width: 768px) {
+    margin: 15px 0;
+  }
+  
+  @media (max-width: 480px) {
+    margin: 12px 0;
+    height: 1px;
   }
 }
