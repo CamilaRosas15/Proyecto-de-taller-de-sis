@@ -170,9 +170,14 @@
                 <span class="meta-badge">🔥 {{ recetaSeleccionada.kcal_totales }} kcal</span>
               </div>
             </div>
+
+            <div class="recipe-divider"></div>
             
-            <img *ngIf="recetaSeleccionada?.imagen_url" [src]="recetaSeleccionada.imagen_url || 'assets/placeholder-recipe.jpg'"
-            alt="Imagen de {{ recetaSeleccionada.titulo }}" class="recipe-image" />
+            <img *ngIf="recetaSeleccionada?.imagen_url" 
+     [src]="recetaSeleccionada.imagen_url || 'assets/placeholder-recipe.jpg'"
+     alt="Imagen de {{ recetaSeleccionada.titulo }}" 
+     class="recipe-image"
+     style="width: 100%; max-width: none !important; height: 320px; object-fit: cover;" />
 
             <!-- Descripción -->
             <div class="recipe-full-description">
