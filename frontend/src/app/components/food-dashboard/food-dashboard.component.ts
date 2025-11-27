@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FoodDashboardData } from '../../core/adapters/vision-dashboard.adapter';
 import { AiTextToHtmlPipe } from '../../pipes/ai-text-to-html.pipe';
@@ -76,7 +76,10 @@ import { AiTextToHtmlPipe } from '../../pipes/ai-text-to-html.pipe';
     </div>
 
     <!-- Modal para mostrar análisis completo -->
-    <div class="modal-overlay" *ngIf="showModal" (click)="closeModal($event)">
+    <div class="modal-overlay" *ngIf="showModal" (click)="closeModal($event)" 
+         [style.z-index]="9999" 
+         [style.position]="'fixed'" 
+         [style.display]="'flex'">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h2>🍽️ Análisis Nutricional Completo</h2>
@@ -559,7 +562,7 @@ export class FoodDashboardComponent {
 
   showModal = false;
 
-  constructor() {}
+  constructor(private cdr: ChangeDetectorRef) {}
 
   get totalCalories(): number { 
     return Math.round(this.data?.aggregates?.calories || 0); 
@@ -589,8 +592,14 @@ export class FoodDashboardComponent {
   }
 
   openModal(): void {
-    console.log('🔍 MODAL ABIERTO - rawAnalysis recibido:', this.rawAnalysis ? this.rawAnalysis.substring(0, 300) + '...' : 'NULL/UNDEFINED');
+    console.log('🔍 Abriendo modal de análisis completo');
     this.showModal = true;
+    
+    // Forzar detección de cambios para asegurar que el modal aparezca
+    this.cdr.detectChanges();
+    
+    // Agregar clase al body para prevenir scroll
+    document.body.style.overflow = 'hidden';
   }
 
   closeModal(event?: Event): void {
@@ -598,5 +607,11 @@ export class FoodDashboardComponent {
       event.stopPropagation();
     }
     this.showModal = false;
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+    
+    // Forzar detección de cambios
+    this.cdr.detectChanges();
   }
 }

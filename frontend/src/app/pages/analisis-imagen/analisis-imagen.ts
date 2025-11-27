@@ -370,6 +370,7 @@ export class AnalisisImagenComponent implements OnInit {
             this.analysisResult = response;
             this.narrativeAnalysis = response;
             console.log('⚠️ NO SE ENCONTRÓ SEPARADOR - USANDO RESPUESTA COMPLETA PARA AMBAS');
+            console.log('📄 Respuesta completa:', response.substring(0, 500) + '...');
           }
           
           this.dashboardData = adaptFriendlyTextToFoodDashboard(this.analysisResult);

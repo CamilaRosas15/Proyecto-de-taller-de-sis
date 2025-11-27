@@ -317,10 +317,10 @@
   align-items: center;
   gap: 15px;
   padding: 15px;
-  background: #0F314E; /* Fondo blanco */
-  border-radius: 12px; /* Esquinas redondeadas */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  border: none; /* Eliminar borde superior */
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
   margin-top: 20px;
 
   .user-details {
@@ -328,12 +328,12 @@
       font-size: 16px;
       font-weight: 600;
       margin: 0 0 4px 0;
-      color: #333; /* Texto negro */
+      color: #333;
     }
     
     .user-handle {
       font-size: 14px;
-      color: #666; /* Texto gris oscuro */
+      color: #666;
       margin: 0;
     }
   }
@@ -434,24 +434,63 @@
   align-items: center;
   gap: 12px;
   padding: 15px;
-  background: white; /* Fondo blanco */
-  border-radius: 12px; /* Esquinas redondeadas */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  border: none; /* Eliminar borde superior */
-  margin-top: 20px; /* Espacio arriba */
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  margin-top: 20px;
+  position: relative;
 
-  @media (max-width: 768px) {
-    border-top: none;
-    padding: 12px;
-    margin-left: 0;
-    margin-top: 15px;
-    display: none !important;
+  .user-details {
+    flex: 1;
+    
+    .username {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 2px 0;
+      color: #333;
+    }
+    
+    .user-handle {
+      font-size: 12px;
+      color: #666;
+      margin: 0;
+    }
   }
 
-  @media (max-width: 480px) {
-    gap: 8px;
-    margin-left: 0;
-    padding: 10px;
+  .profile-btn {
+    background: none;
+    border: none;
+    border-radius: 0;
+    width: auto;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 5px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    
+    &:hover {
+      background: none;
+      transform: scale(1.1);
+    }
+
+    .pencil-icon {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      border-radius: 0;
+      filter: brightness(0.7);
+      
+      &:hover {
+        filter: brightness(0.5);
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
     display: none !important;
   }
 }
@@ -472,7 +511,7 @@
   font-size: 14px;
   font-weight: 600;
   margin: 0;
-  color: #333; /* Texto negro */
+  color: #333;
 
   @media (max-width: 768px) {
     display: none;
@@ -481,7 +520,7 @@
 
 .user-handle {
   font-size: 12px;
-  color: #666; /* Texto gris oscuro */
+  color: #666;
   margin: 0;
 
   @media (max-width: 768px) {
@@ -674,7 +713,7 @@
 }
 
 .back-btn {
-  background: #6c757d;
+  background: #0F314E;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -683,7 +722,7 @@
   margin-right: 10px;
   
   &:hover {
-    background: #5a6268;
+    background: #0F314E;
   }
 
   @media (max-width: 480px) {
@@ -940,17 +979,12 @@
 
 /* Recipe Full View responsivo */
 .recipe-full-view {
-  padding: 20px;
-  max-width: 800px;
+  padding: 0; /* 🔥 El padding ya lo maneja el chat-container */
   margin: 0 auto;
-
-  @media (max-width: 768px) {
-    padding: 15px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 10px;
-  }
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
 }
 
 .recipe-full-card {
@@ -958,12 +992,50 @@
   border-radius: 12px;
   padding: 30px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 
-  @media (max-width: 768px) {
+  /* 🔥🔥🔥 ANCHO INICIAL PERSONALIZABLE - CAMBIA ESTE VALOR */
+  /* Por defecto: 800px - Modifica este número según lo que necesites */
+  @media (min-width: 1400px) {
+    width: 800px; /* 🔥 CAMBIA ESTE VALOR para hacerlo más ancho/más delgado */
+    max-width: 800px; /* 🔥 Mismo valor que width */
+  }
+  
+  /* 🔥 REDUCCIÓN PROGRESIVA AUTOMÁTICA */
+  /* Cuando la pantalla es más pequeña que el ancho inicial + márgenes */
+  @media (min-width: 1200px) and (max-width: 1399px) {
+    width: 90%; /* Se reduce al 90% del contenedor */
+    max-width: 750px;
+  }
+  
+  @media (min-width: 992px) and (max-width: 1199px) {
+    width: 92%; /* Se reduce al 92% del contenedor */
+    max-width: 700px;
+  }
+  
+  @media (min-width: 769px) and (max-width: 991px) {
+    width: 94%; /* Se reduce al 94% del contenedor */
+    max-width: 650px;
+  }
+
+  /* 🔥 Cuando ya no cabe el ancho fijo, ocupa porcentaje del contenedor */
+  @media (min-width: 577px) and (max-width: 768px) {
+    width: 96%; /* Casi todo el ancho disponible */
+    max-width: 100%;
+  }
+
+  @media (max-width: 576px) {
+    width: 98%; /* Casi todo el ancho disponible */
+    max-width: 100%;
     padding: 20px;
   }
 
   @media (max-width: 480px) {
+    width: 100%; /* Ocupa el 100% en móviles */
+    max-width: 100%;
     padding: 15px;
   }
 }
@@ -972,6 +1044,7 @@
   color: #0F314E;
   font-size: 2em;
   margin-bottom: 15px;
+  text-align: center;
 
   @media (max-width: 768px) {
     font-size: 1.5em;
@@ -995,7 +1068,7 @@
 }
 
 .meta-badge {
-  background: #8ed1c2;
+  background: #8DC6BD;
   color: white;
   padding: 8px 16px;
   border-radius: 20px;
@@ -1040,6 +1113,11 @@
   @media (max-width: 480px) {
     padding: 30px 15px;
   }
+}
+
+.recipe-full-description {
+  text-align: center; /* AÑADIDO: Centrar la descripción */
+  margin-bottom: 20px;
 }
 
 .spinner {
@@ -1113,7 +1191,10 @@
 }
 
 /* Asegurar que las imágenes sean responsivas */
-img {
+.logo-img,
+.avatar,
+.historial-thumb,
+.message-recipe-image {
   max-width: 100%;
   height: auto;
 }
@@ -1141,7 +1222,6 @@ img {
   color: #666; /* Texto gris oscuro */
   font-size: 12px;
   padding: 10px;
-  //font-style: italic;
   
   @media (max-width: 768px) {
     font-size: 14px;
@@ -1363,7 +1443,6 @@ img {
   grid-template-columns: 1fr;
   gap: 16px;
 
-
   @media (min-width: 992px) {
     grid-template-columns: 1fr; /* 2 columnas en desktop */
   }
@@ -1388,7 +1467,7 @@ img {
 /* Imagen fija y recortada (mismo alto en todas las tarjetas) */
 .message-recipe-image {
   width: 100%;
-  height: 240px;        /* antes 200px: más “horizontal” */
+  height: 240px;        /* antes 200px: más "horizontal" */
   object-fit: cover;
   object-position: center;
   border-radius: 8px;
@@ -1624,80 +1703,6 @@ img {
   display: block; /* Ambos están en el DOM pero solo uno se muestra por ngIf */
 }
 
-/* Vista inicial */
-.initial-view {
-  .input-section {
-    margin-bottom: 0;
-    
-    h2 {
-      text-align: center;
-      font-size: 1.6em;
-      margin-bottom: 30px;
-      color: #0F314E;
-    }
-  }
-}
-
-/* Input en vista inicial */
-.chat-input-bottom-initial {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
-  
-  .input-container {
-    .message-input {
-      font-size: 16px;
-      padding: 18px 25px;
-    }
-    
-    .send-btn {
-      padding: 18px 30px;
-      font-size: 16px;
-      font-weight: 600;
-    }
-  }
-}
-
-/* Input en vista chat */
-.chat-input-bottom-chat {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
-  
-  .input-container {
-    .message-input {
-      font-size: 14px;
-      padding: 15px 20px;
-    }
-    
-    .send-btn {
-      padding: 15px 25px;
-      font-size: 14px;
-    }
-  }
-}
-
-/* Asegurar que el loading section se vea bien en vista inicial */
-.loading-section {
-  text-align: center;
-  padding: 40px 20px;
-  
-  .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #8ed1c2;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 20px;
-  }
-  
-  p {
-    color: #0F314E;
-    font-size: 1.1em;
-  }
-}
-
 /* ===== BOTÓN DE PERFIL EN USER INFO ===== */
 .user-info {
   display: flex;
@@ -1888,23 +1893,6 @@ img {
       }
     }
   }
-
-  /* Imagen en vista completa */
-  .recipe-image {
-    width: 100%;
-    max-height: 320px;
-    object-fit: cover;
-    border-radius: 12px;
-    margin-bottom: 18px;
-    border: 1px solid #e0e0e0;
-  }
-
-  @media (max-width: 480px) {
-  .message-recipe-image {
-    max-height: 180px;
-  }
-}
-
 }
 
 /* Card interna del historial (imagen + título + X) */
@@ -2074,7 +2062,6 @@ img {
   font-size: 11px;
   color: #666;
   text-align: center;
-  //font-style: italic;
   margin-top: 4px;
 }
 
@@ -2155,7 +2142,6 @@ img {
     color: #666;
     margin: 0 0 15px 0;
     font-weight: 500;
-    //font-style: normal;
   }
 }
 
@@ -2250,7 +2236,7 @@ img {
 
 /* Botón "Ver lista detallada" - Color #63CDC1 */
 .shopping-list-btn {
-  background: #63CDC1 !important;
+  background: #8DC6BD !important;
   color: white !important;
   border: none !important;
   padding: 10px 20px !important;
@@ -2325,15 +2311,7 @@ img {
     margin-top: 25px;
     text-align: center;
     padding: 20px 0;
-    /* ELIMINADO: border-top: 2px dashed #ddd; */
-    /* ELIMINADO: background: #f9f9f9; */
-    /* ELIMINADO: border-radius: 8px; */
   }
-
-  /* 🔥 ELIMINAR estos estilos duplicados (ya están arriba) */
-  /* .download-pdf-btn {
-    ... 
-  } */
 }
 
 /* ===== ESTILOS RESPONSIVOS PARA BOTONES ===== */
@@ -2459,5 +2437,40 @@ img {
 .assistant-bubble {
   .message-avatar:not(.user-avatar) {
     align-self: flex-start;
+  }
+}
+
+/* Imagen en vista completa */
+.recipe-image {
+  width: 120%; /* 🔥 AUMENTADO: 120% del ancho del contenedor */
+  max-width: 120%; /* 🔥 AUMENTADO: Permitir que sea más ancha */
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: 0 auto 18px auto;
+  border: 1px solid #e0e0e0;
+  display: block;
+}
+
+@media (max-width: 480px) {
+  .message-recipe-image {
+    max-height: 180px;
+  }
+}
+
+.recipe-divider {
+  height: 2px;
+  background: #0F314E;
+  margin: 20px 0;
+  width: 100%;
+  border: none;
+  
+  @media (max-width: 768px) {
+    margin: 15px 0;
+  }
+  
+  @media (max-width: 480px) {
+    margin: 12px 0;
+    height: 1px;
   }
 }

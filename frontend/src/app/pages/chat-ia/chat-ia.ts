@@ -1,9 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { RecipeService, RecommendRequest, RecommendResponse, OpcionOut,ShoppingListItem } from '../../services/recipe';
-import { RouterLink} from '@angular/router'; 
+import { Router, RouterLink } from '@angular/router';
 import { HistoryService } from '../../services/history.service';
 import { AuthService } from '../../services/auth';
 
@@ -12,11 +12,11 @@ import jsPDF from 'jspdf';
 @Component({
   selector: 'app-chat-ia',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule,RouterLink],
+  imports: [CommonModule, FormsModule, HttpClientModule, RouterLink],
   templateUrl: './chat-ia.html',
   styleUrls: ['./chat-ia.scss']
 })
-export class ChatIAComponent {
+export class ChatIAComponent implements OnInit {
   userMessage: string = '';
   opcionesRecetas: any[] = [];
   cargando: boolean = false;
@@ -46,8 +46,16 @@ export class ChatIAComponent {
   constructor(
     private recipeService: RecipeService,
     private historyService: HistoryService, 
-    public authService: AuthService 
-  ) {
+    public authService: AuthService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
     this.cargarHistorial(); 
     this.cargarDatosUsuario();
   }
@@ -111,8 +119,6 @@ export class ChatIAComponent {
       ? (profile as any)[property] 
       : null;
   }
-
-  // ... (el resto de los métodos se mantienen igual)
 
   toggleMobileMenu() {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
