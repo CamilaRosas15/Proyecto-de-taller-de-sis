@@ -193,8 +193,10 @@ class GeminiFoodDetector:
             Dictionary with detection results
         """
         if not self.api_key:
-            logger.warning("Gemini API key not configured, using simulation")
+            logger.error("❌ NO HAY API KEY CONFIGURADA - usando simulación")
             return self._simulate_detection()
+        
+        logger.info(f"✅ API KEY ENCONTRADA - Iniciando análisis real con Gemini {self.model_name}")
         
         try:
             # Convert image to base64
@@ -260,7 +262,10 @@ class GeminiFoodDetector:
             logger.info(f"Respuesta JSON recibida de Gemini: {json.dumps(result, indent=2)[:500]}...")
             
             # Process Gemini response
-            return self._process_gemini_response(result)
+            logger.info("🔄 Procesando respuesta de Gemini...")
+            processed_result = self._process_gemini_response(result)
+            logger.info(f"✅ Respuesta procesada - Tipo: {processed_result.get('analysis_type', 'desconocido')}")
+            return processed_result
             
         except requests.exceptions.RequestException as e:
             logger.error(f"Error de conexión con Gemini API: {str(e)}")
@@ -472,7 +477,8 @@ class GeminiFoodDetector:
                         }
                 
                 # Si no tiene separador, usar formato simulado para mantener consistencia
-                logger.info("📋 Respuesta sin separador detectada, forzando formato consistente")
+                logger.warning("📋 Respuesta sin separador detectada - FORZANDO SIMULACIÓN para consistencia")
+                logger.info(f"📄 Respuesta de Gemini sin separador: {content[:200]}...")
                 
                 # Si Gemini no siguió el formato dual, usar la simulación para mantener consistencia
                 return self._simulate_natural_response()
@@ -480,11 +486,11 @@ class GeminiFoodDetector:
                 logger.warning("No se encontraron candidates en la respuesta de Gemini")
             
         except Exception as e:
-            logger.error(f"Error processing Gemini response: {str(e)}")
+            logger.error(f"❌ ERROR processing Gemini response: {str(e)}")
             import traceback
             logger.error(f"Traceback completo: {traceback.format_exc()}")
         
-        logger.info("Usando análisis simulado como fallback")
+        logger.warning("⚠️ CAYENDO EN SIMULACIÓN - usando análisis simulado como fallback")
         return self._simulate_natural_response()
 
     def _get_nutrition_info(self, food_name: str) -> Dict:
