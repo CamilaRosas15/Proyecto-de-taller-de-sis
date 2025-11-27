@@ -330,4 +330,106 @@ async getUserProfile(userId: string, token?: string): Promise<any | null> {
       throw new UnauthorizedException('Unable to refresh session');
     }
   }
+
+  // Agregar al archivo auth.service.ts después del método refreshSession
+
+  async uploadProfilePicture(userId: string, file: Express.Multer.File): Promise<string> {
+    try {
+      this.logger.log(`📸 Uploading profile picture for user: ${userId}`);
+      
+      // Validar tipo de archivo
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        throw new InternalServerErrorException('Solo se permiten imágenes (JPEG, PNG, WEBP)');
+      }
+
+      // Validar tamaño (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        throw new InternalServerErrorException('La imagen no debe superar los 5MB');
+      }
+
+      // Generar nombre único para el archivo
+      const fileExt = file.originalname.split('.').pop();
+      const fileName = `${userId}-${Date.now()}.${fileExt}`;
+      const filePath = `${userId}/${fileName}`;
+
+      this.logger.log(`📁 Uploading to path: ${filePath}`);
+
+      // Subir archivo a Supabase Storage
+      const { data: uploadData, error: uploadError } = await this.supabaseService
+        .getClient()
+        .storage
+        .from('foto-perfil')
+        .upload(filePath, file.buffer, {
+          contentType: file.mimetype,
+          upsert: true, // Sobrescribir si existe
+        });
+
+      if (uploadError) {
+        this.logger.error(`❌ Error uploading file: ${uploadError.message}`);
+        throw new InternalServerErrorException('Error al subir la imagen');
+      }
+
+      // Obtener URL pública
+      const { data: urlData } = this.supabaseService
+        .getClient()
+        .storage
+        .from('foto-perfil')
+        .getPublicUrl(filePath);
+
+      const publicUrl = urlData.publicUrl;
+      this.logger.log(`✅ File uploaded successfully: ${publicUrl}`);
+
+      // Actualizar la BD con la nueva URL
+      const { error: updateError } = await this.supabaseService
+        .getClient()
+        .from('usuario_detalles')
+        .update({ foto_perfil_url: publicUrl })
+        .eq('id', userId);
+
+      if (updateError) {
+        this.logger.error(`❌ Error updating profile URL: ${updateError.message}`);
+        throw new InternalServerErrorException('Error al actualizar el perfil');
+      }
+
+      return publicUrl;
+    } catch (error) {
+      this.logger.error(`❌ Unexpected error uploading profile picture: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async deleteOldProfilePicture(userId: string): Promise<void> {
+    try {
+      this.logger.log(`🗑️ Deleting old profile pictures for user: ${userId}`);
+      
+      // Listar archivos del usuario
+      const { data: files, error: listError } = await this.supabaseService
+        .getClient()
+        .storage
+        .from('foto-perfil')
+        .list(userId);
+
+      if (listError || !files || files.length === 0) {
+        this.logger.log(`No old files to delete`);
+        return;
+      }
+
+      // Eliminar todos los archivos antiguos
+      const filesToDelete = files.map(file => `${userId}/${file.name}`);
+      const { error: deleteError } = await this.supabaseService
+        .getClient()
+        .storage
+        .from('foto-perfil')
+        .remove(filesToDelete);
+
+      if (deleteError) {
+        this.logger.warn(`⚠️ Error deleting old files: ${deleteError.message}`);
+      } else {
+        this.logger.log(`✅ Old files deleted successfully`);
+      }
+    } catch (error) {
+      this.logger.warn(`⚠️ Unexpected error deleting old files: ${error.message}`);
+    }
+  }
 }

@@ -58,6 +58,12 @@ export class PerfilUsuarioComponent implements OnInit {
   nuevoGusto = '';
   nuevoNoMeGusta = '';
 
+  // 📸 NUEVAS VARIABLES para foto de perfil
+  selectedFile: File | null = null;
+  previewUrl: string | null = null;
+  isUploadingPhoto = false;
+  uploadPhotoMessage = '';
+
   isLoading = true;
   errorMessage = '';
   isEditing = false;
@@ -156,7 +162,7 @@ export class PerfilUsuarioComponent implements OnInit {
       id: profile.id || '',
       nombre: profile.nombre || profile.nombre_completo || this.authService.currentUserName || 'Usuario',
       email: email || 'No disponible',
-      avatar: 'assets/user.png',
+      avatar: profile.foto_perfil_url || 'assets/user.png', // 📸 USAR foto de perfil de la BD
       edad: profile.edad || 0,
       sexo: profile.sexo || 'No especificado',
       altura: profile.altura || 0,
@@ -210,7 +216,7 @@ export class PerfilUsuarioComponent implements OnInit {
       nombre: this.usuario.nombre || '',
       edad: Number(this.usuario.edad) || 0,
       sexo: this.usuario.sexo || '',
-      altura: alturaOriginalEnMetros, // ← Usar la misma unidad que usuarioEditado.altura
+      altura: alturaOriginalEnMetros,
       peso: Number(this.usuario.peso) || 0,
       objetivo_calorico: Number(this.usuario.objetivo_calorico) || 0,
       objetivo: this.usuario.objetivo || '',
@@ -219,27 +225,11 @@ export class PerfilUsuarioComponent implements OnInit {
       no_me_gusta: this.getNoGustosArray()
     };
 
-    // DEBUG DETALLADO
-    console.log('🔍 COMPARANDO CAMBIOS:');
-    console.log('Original - Nombre:', datosOriginales.nombre, '| Editado:', this.usuarioEditado.nombre);
-    console.log('Original - Edad:', datosOriginales.edad, '| Editado:', this.usuarioEditado.edad);
-    console.log('Original - Altura:', datosOriginales.altura, '| Editado:', this.usuarioEditado.altura);
-    console.log('Original - Peso:', datosOriginales.peso, '| Editado:', this.usuarioEditado.peso);
-    console.log('Original - Sexo:', datosOriginales.sexo, '| Editado:', this.usuarioEditado.sexo);
-    console.log('Original - Objetivo:', datosOriginales.objetivo, '| Editado:', this.usuarioEditado.objetivo);
-    console.log('Original - Calorías:', datosOriginales.objetivo_calorico, '| Editado:', this.usuarioEditado.objetivo_calorico);
-    console.log('Original - Gustos:', datosOriginales.gustos);
-    console.log('Editado - Gustos:', this.usuarioEditado.gustos);
-    console.log('Original - Alergias:', datosOriginales.alergias);
-    console.log('Editado - Alergias:', this.usuarioEditado.alergias);
-    console.log('Original - No me gusta:', datosOriginales.no_me_gusta);
-    console.log('Editado - No me gusta:', this.usuarioEditado.no_me_gusta);
-
     const cambios = (
       this.usuarioEditado.nombre !== datosOriginales.nombre ||
       this.usuarioEditado.edad !== datosOriginales.edad ||
       this.usuarioEditado.sexo !== datosOriginales.sexo ||
-      this.usuarioEditado.altura !== datosOriginales.altura || // ← Ahora comparamos en la misma unidad
+      this.usuarioEditado.altura !== datosOriginales.altura ||
       this.usuarioEditado.peso !== datosOriginales.peso ||
       this.usuarioEditado.objetivo_calorico !== datosOriginales.objetivo_calorico ||
       this.usuarioEditado.objetivo !== datosOriginales.objetivo ||
@@ -256,6 +246,84 @@ export class PerfilUsuarioComponent implements OnInit {
   private arraysIguales(arr1: string[], arr2: string[]): boolean {
     if (arr1.length !== arr2.length) return false;
     return arr1.every((item, index) => item === arr2[index]);
+  }
+
+  // 📸 NUEVO: Manejar selección de archivo
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      this.uploadPhotoMessage = 'Solo se permiten imágenes (JPEG, PNG, WEBP)';
+      setTimeout(() => this.uploadPhotoMessage = '', 3000);
+      return;
+    }
+
+    // Validar tamaño (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      this.uploadPhotoMessage = 'La imagen no debe superar los 5MB';
+      setTimeout(() => this.uploadPhotoMessage = '', 3000);
+      return;
+    }
+
+    this.selectedFile = file;
+
+    // Crear preview
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.previewUrl = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // 📸 NUEVO: Guardar foto de perfil
+  guardarFotoPerfil(): void {
+    if (!this.selectedFile) {
+      this.uploadPhotoMessage = 'Por favor selecciona una imagen';
+      return;
+    }
+
+    const userId = this.authService.currentUserId;
+    if (!userId) {
+      this.uploadPhotoMessage = 'Error: Usuario no identificado';
+      return;
+    }
+
+    this.isUploadingPhoto = true;
+    this.uploadPhotoMessage = 'Subiendo foto...';
+
+    this.authService.uploadProfilePicture(userId, this.selectedFile).subscribe({
+      next: (response) => {
+        console.log('✅ Foto subida exitosamente:', response);
+        this.usuario.avatar = response.url;
+        this.previewUrl = null;
+        this.selectedFile = null;
+        this.isUploadingPhoto = false;
+        this.uploadPhotoMessage = 'Foto actualizada exitosamente';
+        
+        setTimeout(() => {
+          this.uploadPhotoMessage = '';
+        }, 3000);
+      },
+      error: (error) => {
+        console.error('❌ Error subiendo foto:', error);
+        this.isUploadingPhoto = false;
+        this.uploadPhotoMessage = 'Error al subir la foto: ' + (error.message || 'Error desconocido');
+        
+        setTimeout(() => {
+          this.uploadPhotoMessage = '';
+        }, 5000);
+      }
+    });
+  }
+
+  // 📸 NUEVO: Cancelar cambio de foto
+  cancelarCambioFoto(): void {
+    this.selectedFile = null;
+    this.previewUrl = null;
+    this.uploadPhotoMessage = '';
   }
 
   // Métodos para manejar tags
@@ -296,15 +364,23 @@ export class PerfilUsuarioComponent implements OnInit {
   editarPerfil(): void {
     this.isEditing = true;
     this.saveMessage = '';
+    // 📸 Resetear variables de foto al abrir modal
+    this.selectedFile = null;
+    this.previewUrl = null;
+    this.uploadPhotoMessage = '';
   }
 
   // Cerrar modal de edición
   cancelarEdicion(): void {
     this.isEditing = false;
-    this.inicializarDatosEdicion(); // Restaurar datos originales
+    this.inicializarDatosEdicion();
     this.nuevaAlergia = '';
     this.nuevoGusto = '';
     this.nuevoNoMeGusta = '';
+    // 📸 Limpiar variables de foto
+    this.selectedFile = null;
+    this.previewUrl = null;
+    this.uploadPhotoMessage = '';
   }
 
   // Guardar cambios
@@ -319,43 +395,23 @@ export class PerfilUsuarioComponent implements OnInit {
     // Verificar si realmente hay cambios antes de guardar
     if (!this.hayCambios()) {
       console.log('❌ No hay cambios que guardar');
-      
-      // Cerrar el modal de edición
       this.isEditing = false;
-      
-      // Mostrar mensaje informativo en la parte superior
       this.saveMessage = 'No se detectaron cambios para guardar';
-      
-      // Limpiar el mensaje después de 3 segundos
       setTimeout(() => {
         this.saveMessage = '';
       }, 3000);
-      
       return;
     }
 
     this.isSaving = true;
     this.saveMessage = '';
 
-    // DEBUG: Ver qué datos se van a enviar
-    console.log('📤 Datos a enviar a Supabase:');
-    console.log('Nombre:', this.usuarioEditado.nombre);
-    console.log('Edad:', this.usuarioEditado.edad);
-    console.log('Altura (cm):', this.usuarioEditado.altura);
-    console.log('Peso:', this.usuarioEditado.peso);
-    console.log('Sexo:', this.usuarioEditado.sexo);
-    console.log('Objetivo:', this.usuarioEditado.objetivo);
-    console.log('Calorías:', this.usuarioEditado.objetivo_calorico);
-    console.log('Gustos:', this.usuarioEditado.gustos);
-    console.log('Alergias:', this.usuarioEditado.alergias);
-    console.log('No me gusta:', this.usuarioEditado.no_me_gusta);
-
     const profileData: UserProfileData = {
       nombre_completo: this.usuarioEditado.nombre,
       edad: this.usuarioEditado.edad,
       peso: this.usuarioEditado.peso,
       sexo: this.usuarioEditado.sexo,
-      altura: this.usuarioEditado.altura, // ← Enviar en metros al backend
+      altura: this.usuarioEditado.altura,
       objetivo: this.usuarioEditado.objetivo,
       calorias_diarias_objetivo: this.usuarioEditado.objetivo_calorico,
       gustos: this.usuarioEditado.gustos,
@@ -364,16 +420,12 @@ export class PerfilUsuarioComponent implements OnInit {
       email: this.usuario.email
     };
 
-    console.log('🎯 ProfileData para Supabase:', profileData);
-
     const userId = this.authService.currentUserId;
     if (!userId) {
       this.errorMessage = 'No se pudo identificar al usuario';
       this.isSaving = false;
       return;
     }
-
-    console.log('🚀 Enviando datos actualizados a Supabase...');
 
     this.authService.saveUserProfile(userId, profileData).subscribe({
       next: (response) => {
@@ -382,7 +434,6 @@ export class PerfilUsuarioComponent implements OnInit {
         this.isEditing = false;
         this.saveMessage = 'Perfil actualizado exitosamente';
         
-        // Recargar datos actualizados
         setTimeout(() => {
           this.cargarDatosUsuario();
           this.saveMessage = '';
@@ -393,7 +444,6 @@ export class PerfilUsuarioComponent implements OnInit {
         this.isSaving = false;
         this.saveMessage = 'Error al actualizar el perfil: ' + (error.message || 'Error desconocido');
         
-        // Mostrar error por más tiempo
         setTimeout(() => {
           this.saveMessage = '';
         }, 5000);

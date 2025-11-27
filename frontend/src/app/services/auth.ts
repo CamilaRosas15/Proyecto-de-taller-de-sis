@@ -260,6 +260,28 @@ export class AuthService {
     );
   }
 
+  // 📸 NUEVO: Método para subir foto de perfil
+  uploadProfilePicture(userId: string, file: File): Observable<{ message: string; url: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<{ message: string; url: string }>(
+      `${this.baseUrl}/profile/${userId}/upload-picture`,
+      formData,
+      {
+        headers: {
+          'Authorization': `Bearer ${this._accessToken}`
+          // NO incluir 'Content-Type', Angular lo maneja automáticamente con FormData
+        }
+      }
+    ).pipe(
+      tap((response) => {
+        console.log('[AuthService] Foto de perfil subida exitosamente:', response);
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: any) {
     console.error('Error en AuthService:', error);
     const errorMessage = error.error?.message || error.message || 'Error desconocido de autenticación.';

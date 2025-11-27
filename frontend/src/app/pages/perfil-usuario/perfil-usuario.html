@@ -47,6 +47,7 @@
         <!-- Imagen en el lado izquierdo (50%) -->
         <div class="perfil-avatar-section">
           <div class="perfil-avatar">
+            <!-- ACTUALIZADO: Usar la misma lógica de foto de perfil -->
             <img [src]="usuario.avatar" alt="Avatar del usuario" class="avatar-img">
           </div>
         </div>
@@ -80,7 +81,7 @@
             </div>
             <div class="info-item">
               <label>Altura:</label>
-              <span>{{ usuario.altura }} cm</span>
+              <span>{{ (usuario.altura * 100) | number:'1.0-0' }} cm</span>
             </div>
             <div class="info-item">
               <label>Peso:</label>
@@ -168,6 +169,60 @@
     <div class="modal-content">
       <form (ngSubmit)="guardarCambios()" #editForm="ngForm" class="registro-form">
         
+        <!-- 📸 SECCIÓN: Foto de Perfil -->
+        <div class="form-section">
+          <h3>Foto de Perfil</h3>
+          
+          <div class="photo-upload-section">
+            <!-- Vista previa de la foto -->
+            <div class="photo-preview">
+              <!-- ACTUALIZADO: Usar la misma lógica de foto de perfil -->
+              <img [src]="previewUrl || usuario.avatar" alt="Vista previa" class="preview-img">
+            </div>
+            
+            <!-- Controles de subida -->
+            <div class="photo-controls">
+              <div class="file-input-container">
+                <input type="file" id="fotoPerfil" 
+                       (change)="onFileSelected($event)" 
+                       accept="image/jpeg,image/jpg,image/png,image/webp"
+                       class="file-input">
+                <label for="fotoPerfil" class="file-input-label">
+                  <i class="fas fa-camera"></i> Elegir Foto
+                </label>
+              </div>
+              
+              <!-- Mensajes de estado -->
+              <div *ngIf="uploadPhotoMessage" class="photo-message" 
+                   [class.error]="uploadPhotoMessage.includes('Error')">
+                {{ uploadPhotoMessage }}
+              </div>
+              
+              <!-- Botones de acción para foto -->
+              <div *ngIf="selectedFile" class="photo-actions">
+                <button type="button" class="btn btn-primary btn-small" 
+                        (click)="guardarFotoPerfil()" 
+                        [disabled]="isUploadingPhoto">
+                  <span *ngIf="isUploadingPhoto" class="loading-text">
+                    <i class="fas fa-spinner fa-spin"></i> Subiendo...
+                  </span>
+                  <span *ngIf="!isUploadingPhoto">
+                    <i class="fas fa-upload"></i> Subir Foto
+                  </span>
+                </button>
+                <button type="button" class="btn btn-secondary btn-small" 
+                        (click)="cancelarCambioFoto()">
+                  <i class="fas fa-times"></i> Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="photo-instructions">
+            <p><small>Formatos permitidos: JPEG, PNG, WEBP (máx. 5MB)</small></p>
+          </div>
+        </div>
+
         <!-- Información Personal -->
         <div class="form-section">
           <h3>Información Personal</h3>
@@ -207,18 +262,18 @@
           </div>
 
           <div class="form-group altura">
-  <label for="altura">Altura (m):</label>
-  <input 
-      type="number" 
-      id="altura" 
-      name="altura" 
-      [(ngModel)]="usuarioEditado.altura" 
-      step="0.01" 
-      min="1.0" 
-      max="2.5" 
-      required
-      placeholder="Ej: 1.90">
-</div>
+            <label for="altura">Altura (m):</label>
+            <input 
+                type="number" 
+                id="altura" 
+                name="altura" 
+                [(ngModel)]="usuarioEditado.altura" 
+                step="0.01" 
+                min="1.0" 
+                max="2.5" 
+                required
+                placeholder="Ej: 1.90">
+          </div>
         </div>
 
         <!-- Objetivos -->
@@ -312,7 +367,7 @@
             Cancelar
           </button>
           <button type="submit" class="btn btn-primary" 
-                    [disabled]="isSaving || !editForm.valid">
+                  [disabled]="isSaving || !editForm.valid">
             <span *ngIf="isSaving" class="loading-text">
               <i class="fas fa-spinner fa-spin"></i> Guardando...
             </span>

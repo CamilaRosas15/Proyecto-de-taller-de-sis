@@ -45,13 +45,6 @@
                 {{ item.receta?.nombre || ('Receta ' + item.id_receta) }}
               </span>
         
-              <!--
-                Si más adelante quieres que la X elimine del historial:
-                - Agregamos (click)="onEliminarDelHistorial(item, $event)"
-                - Implementamos el método en el .ts
-                De momento lo dejo sin (click) para que NO te dé el error de
-                "onEliminarDelHistorial no existe".
-              -->
               <span class="historial-delete" (click)="onEliminarDelHistorial(item, $event)">
                 ✕
               </span>
@@ -66,7 +59,8 @@
 
       <!-- User info del sidebar con botón de perfil -->
       <div class="user-info">
-        <img src="assets/user.png" alt="Usuario" class="avatar">
+        <!-- ACTUALIZADO: Usar la foto del usuario dinámicamente -->
+        <img [src]="userAvatar" alt="Usuario" class="avatar">
         <div class="user-details">
           <p class="username">{{ userName || 'Usuario' }}</p>
           <p class="user-handle">{{ userEmail || '@usuario' }}</p>
@@ -138,10 +132,10 @@
           </div>
         </div>
 
-
         <!-- User info en móvil con botón de perfil -->
         <div class="mobile-user-info">
-          <img src="assets/user.png" alt="Usuario" class="avatar">
+          <!-- ACTUALIZADO: Usar la foto del usuario dinámicamente -->
+          <img [src]="userAvatar" alt="Usuario" class="avatar">
           <div class="user-details">
             <p class="username">{{ userName || 'Usuario' }}</p>
             <p class="user-handle">{{ userEmail || '@usuario' }}</p>
@@ -292,7 +286,10 @@
                 
                 <!-- Mensaje del usuario -->
                 <div *ngIf="message.type === 'user'" class="message-bubble user-bubble">
-                  <div class="message-avatar">👤</div>
+                  <!-- ACTUALIZADO: Usar foto del usuario en lugar del emoji -->
+                  <div class="message-avatar user-avatar">
+                    <img [src]="userAvatar" alt="Usuario" class="avatar-img">
+                  </div>
                   <div class="message-content">
                     
                     <!-- Modo visualización normal - MOSTRAR cuando NO estamos editando este mensaje -->
