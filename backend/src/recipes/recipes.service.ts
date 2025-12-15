@@ -104,24 +104,31 @@ export class RecipesService {
 
   private async askOllama(prompt: string): Promise<string> {
     //const base = process.env.OLLAMA_BASE_URL || 'https://approachable-dale-macroptic.ngrok-free.dev';
-    const base = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-    const model = process.env.OLLAMA_MODEL || 'qwen3:4b';
+    //const base = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+    const base = process.env.HF_OLLAMA_URL;
+    //const HF_GPU_URL = process.env.HF_OLLAMA_URL;
+    const model = process.env.OLLAMA_MODEL || 'qwen2.5:1.5b';
     console.log('DEPURACIÓN OLLAMA:');
     console.log('URL:', base);
     console.log('Modelo:', model);
     console.log('Prompt (inicio):', prompt.substring(0, 200) + '...');
 
+    if (!base) {
+    this.logger.error('HF_OLLAMA_URL no configurada en variables de entorno');
+    throw new Error('Servidor Ollama no configurado');
+    }
 
     try {
       const res = await fetch(`${base}/api/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json','ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify({
           model,
           messages: [{ role: 'user', content: prompt }],
           stream: false,
           options: { temperature: 0.7 },
         }),
+        signal: AbortSignal.timeout(24000000)
       });
       
       console.log('Status respuesta:', res.status);
