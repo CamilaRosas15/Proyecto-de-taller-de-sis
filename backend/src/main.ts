@@ -4,16 +4,21 @@ import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   app.setGlobalPrefix('api');
+
   app.enableCors({
-    origin: 'http://localhost:4200', 
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: true, // 👈 permite frontend en la nube (Render / Vercel)
     credentials: true,
   });
-  
-  const port = process.env.PORT ?? 3000;
+
+  const port = process.env.PORT || 3000;
   await app.listen(port);
-  //console.log(`🚀 Servidor corriendo en: http://localhost:${port}/`);
-  Logger.log(`🚀 Servidor corriendo en: http://localhost:${port}/api/`, 'Bootstrap');
+
+  Logger.log(
+    `🚀 Servidor corriendo en puerto ${port} (/api)`,
+    'Bootstrap',
+  );
+  //const app = await NestFactory.create(AppModule);
 }
 bootstrap();
