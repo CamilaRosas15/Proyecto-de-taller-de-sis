@@ -36,7 +36,7 @@ export interface ImageAnalysis {
 @Injectable({ providedIn: 'root' })
 export class ImageAnalysisService {
   private last: ImageAnalysis | null = null;
-  private readonly API_BASE = 'https://proyecto-de-taller-de-sis-6xbp.onrender.com/api/v1/ai';
+  private readonly API_BASE = 'https://proyecto-de-taller-de-sis.onrender.com/api/v1/ai';
 
   constructor(private http: HttpClient) {}
 

@@ -32,7 +32,7 @@ export class AnalisisImagenComponent implements OnInit {
   userAvatar: string = 'assets/user.png'; // NUEVA PROPIEDAD PARA LA FOTO
   hasCameraSupport: boolean = false;
   
-  private readonly FASTAPI_URL = 'https://proyecto-de-taller-de-sis-6xbp.onrender.com/api/v1/ai/analyze-food-natural';
+  private readonly FASTAPI_URL = 'https://proyecto-de-taller-de-sis.onrender.com/api/v1/ai/analyze-food-natural';
 
   constructor(
     private http: HttpClient,
@@ -420,7 +420,7 @@ export class AnalisisImagenComponent implements OnInit {
       'Authorization': `Bearer ${token}`
     });
 
-    this.http.post('https://proyecto-de-taller-de-sis.onrender.com/api/platos-escaneados', formData, { headers })
+    this.http.post('https://proyecto-de-taller-de-sis-6xbp.onrender.com/api/platos-escaneados', formData, { headers })
       .subscribe({
         next: (plato: any) => {
           console.log('Análisis guardado en historial:', plato);

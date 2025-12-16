@@ -66,7 +66,7 @@ export interface RecommendResponse {
 
 @Injectable({ providedIn: 'root' })
 export class RecipeService {
-  private baseUrl = 'https://proyecto-de-taller-de-sis.onrender.com/api/recipes'; 
+  private baseUrl = 'https://proyecto-de-taller-de-sis-6xbp.onrender.com/api/recipes'; 
 
   constructor(private http: HttpClient) {}
 

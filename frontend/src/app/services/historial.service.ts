@@ -24,7 +24,7 @@ export interface HistorialSidebar {
   providedIn: 'root'
 })
 export class HistorialService {
-  private readonly BASE_URL = 'https://proyecto-de-taller-de-sis.onrender.com/api/platos-escaneados';
+  private readonly BASE_URL = 'https://proyecto-de-taller-de-sis-6xbp.onrender.com/api/platos-escaneados';
 
   constructor(private http: HttpClient) {}
 
