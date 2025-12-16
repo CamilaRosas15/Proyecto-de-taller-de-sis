@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class AIService {
-  private apiUrl = 'http://localhost:3000'; 
+  private apiUrl = 'https://proyecto-de-taller-de-sis.onrender.com'; 
 
   constructor(private http: HttpClient) { }
 

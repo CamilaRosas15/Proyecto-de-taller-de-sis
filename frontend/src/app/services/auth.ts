@@ -47,7 +47,7 @@ export interface UserProfileData {
 })
 export class AuthService {
   // ✅ CORREGIR la URL base (eliminar /api si tu backend no lo tiene)
-  private baseUrl = 'http://localhost:3000/api/auth';
+  private baseUrl = 'https://proyecto-de-taller-de-sis.onrender.com/api/auth';
   private _accessToken: string | null = null;
   private _currentUserId: string | null = null;
   private _currentUserEmail: string | null = null;
