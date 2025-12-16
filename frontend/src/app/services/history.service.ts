@@ -7,7 +7,7 @@ import { Observable, catchError, throwError, from } from 'rxjs';
   providedIn: 'root'
 })
 export class HistoryService {
-  private baseUrl = 'http://localhost:3000/api/recipes';
+  private baseUrl = 'https://proyecto-de-taller-de-sis.onrender.com/api/recipes';
 
   constructor(
     private http: HttpClient,
